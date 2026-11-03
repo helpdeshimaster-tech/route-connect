@@ -252,6 +252,59 @@
     </div>
   </footer>
 
+  <!-- ========================================================================= -->
+  <!-- FIREBASE CLOUD ENGINE (routeconnect-kanpur-34176)                         -->
+  <!-- ========================================================================= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJnefI6TOx8WN2CfFpABebiZEjC4Cn0p4",
+      authDomain: "routeconnect-kanpur-34176.firebaseapp.com",
+      projectId: "routeconnect-kanpur-34176",
+      storageBucket: "routeconnect-kanpur-34176.firebasestorage.app",
+      messagingSenderId: "853374704678",
+      appId: "1:853374704678:web:3285be5fb293c3dbc09ae7",
+      measurementId: "G-PJK9TJ5MX4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    try { getAnalytics(app); } catch (e) {}
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    // Expose Firebase helpers to main window script
+    window.RC_FIREBASE = {
+      auth,
+      db,
+      googleProvider,
+      signInWithPopup,
+      signOut,
+      collection,
+      doc,
+      setDoc,
+      addDoc
+    };
+
+    // Real-time Firestore listener for live trips (auto-updates UI across all devices)
+    onSnapshot(collection(db, "live_trips"), (snapshot) => {
+      const liveTrips = [];
+      snapshot.forEach((docSnap) => {
+        liveTrips.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      localStorage.setItem("RC_LIVE_TRIPS", JSON.stringify(liveTrips));
+      if (typeof window.filterTrips === "function") {
+        window.filterTrips();
+      }
+    }, (err) => {
+      console.warn("Firestore live_trips listener notice:", err.message);
+    });
+  </script>
+
   <!-- Application Logic & Security Engine -->
   <script>
     // =========================================================================
@@ -347,10 +400,10 @@
       document.getElementById("authModal").classList.remove("flex");
     }
 
-    function handleGoogleSignIn(e) {
+    async function handleGoogleSignIn(e) {
       e.preventDefault();
-      const name = document.getElementById("authName").value.trim().replace(/[<>/{}[\]\\]/g, "");
-      const email = document.getElementById("authEmail").value.trim().toLowerCase();
+      let name = document.getElementById("authName").value.trim().replace(/[<>/{}[\]\\]/g, "");
+      let email = document.getElementById("authEmail").value.trim().toLowerCase();
       const phone = document.getElementById("authPhone").value.trim();
 
       if (!email.endsWith("@gmail.com")) {
@@ -358,8 +411,27 @@
         return;
       }
 
+      let uid = "USR_" + btoa(email).slice(0, 10);
+
+      // Verify with Firebase Google Sign-In Popup if available
+      if (window.RC_FIREBASE) {
+        try {
+          const result = await window.RC_FIREBASE.signInWithPopup(
+            window.RC_FIREBASE.auth,
+            window.RC_FIREBASE.googleProvider
+          );
+          if (result && result.user) {
+            uid = result.user.uid;
+            email = (result.user.email || email).toLowerCase();
+            name = name || result.user.displayName || "Verified Passenger";
+          }
+        } catch (err) {
+          console.warn("Google popup skipped or closed, proceeding with form verification:", err.message);
+        }
+      }
+
       const passengerObj = {
-        uid: "USR_" + btoa(email).slice(0, 10),
+        uid,
         name,
         email,
         phone,
@@ -379,11 +451,26 @@
         localStorage.setItem("RC_PASSENGER_DIRECTORY", JSON.stringify(directory));
       }
 
+      // Sync Passenger to Firestore Database
+      if (window.RC_FIREBASE && window.RC_FIREBASE.auth.currentUser) {
+        try {
+          const { db, doc, setDoc } = window.RC_FIREBASE;
+          await setDoc(doc(db, "passengers", uid), passengerObj, { merge: true });
+        } catch (err) {
+          console.warn("Firestore passenger sync notice:", err.message);
+        }
+      }
+
       closeAuthModal();
       renderAuthHeader();
     }
 
-    function signOutPassenger() {
+    async function signOutPassenger() {
+      if (window.RC_FIREBASE) {
+        try {
+          await window.RC_FIREBASE.signOut(window.RC_FIREBASE.auth);
+        } catch (e) {}
+      }
       localStorage.removeItem("RC_PASSENGER_USER");
       renderAuthHeader();
     }
@@ -413,7 +500,7 @@
         logs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
       } catch (e) {}
 
-      logs.push({
+      const logEntry = {
         log_id: "LOG_" + Date.now(),
         passenger_uid: user.uid,
         passenger_name: user.name,
@@ -424,9 +511,16 @@
         vehicle_no: vehicleNo,
         action_type: actionType,
         timestamp: new Date().toISOString()
-      });
+      };
 
+      logs.push(logEntry);
       localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(logs));
+
+      // Sync security log to Firestore
+      if (window.RC_FIREBASE && window.RC_FIREBASE.auth.currentUser) {
+        const { db, collection, addDoc } = window.RC_FIREBASE;
+        addDoc(collection(db, "interaction_logs"), logEntry).catch(() => {});
+      }
 
       if (actionType === "CALL") {
         window.location.href = targetUrl;
@@ -829,13 +923,21 @@
         return;
       }
 
-      localStorage.setItem(todayKey, JSON.stringify({
+      const reviewObj = {
+        driver_id: driverId,
         passenger_uid: user.uid,
         passenger_email: user.email,
         rating: selectedStarRating,
         comment: comment,
         timestamp: new Date().toISOString()
-      }));
+      };
+
+      localStorage.setItem(todayKey, JSON.stringify(reviewObj));
+
+      if (window.RC_FIREBASE && window.RC_FIREBASE.auth.currentUser) {
+        const { db, doc, setDoc } = window.RC_FIREBASE;
+        setDoc(doc(db, "reviews", todayKey), reviewObj).catch(() => {});
+      }
 
       alert("Thank you! Your verified review has been saved.");
       closeRatingModal();
