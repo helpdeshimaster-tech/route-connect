@@ -286,6 +286,41 @@
     let verifiedDriverRecord = null; // Holds ONLY this logged-in driver's record from Firestore
     let allLiveTrips = [];
 
+    // ✅ स्मार्ट डेट कन्वर्टर: यह "15/11/2026" (DD/MM/YYYY) और "2026-11-15" (YYYY-MM-DD) दोनों को "2026-11-15" में बदल देता है
+    function normalizeDateToYMD(dateInput) {
+      if (!dateInput) return "";
+      const raw = String(dateInput).trim();
+
+      // 1. अगर फॉर्मेट DD/MM/YYYY या DD-MM-YYYY है (जैसे 15/11/2026)
+      const dmyMatch = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (dmyMatch) {
+        const dd = dmyMatch[1].padStart(2, "0");
+        const mm = dmyMatch[2].padStart(2, "0");
+        const yyyy = dmyMatch[3];
+        return `${yyyy}-${mm}-${dd}`;
+      }
+
+      // 2. अगर फॉर्मेट पहले से YYYY-MM-DD या YYYY/MM/DD है (जैसे 2026-11-15)
+      const ymdMatch = raw.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+      if (ymdMatch) {
+        const yyyy = ymdMatch[1];
+        const mm = ymdMatch[2].padStart(2, "0");
+        const dd = ymdMatch[3].padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+      }
+
+      // 3. कोई अन्य स्टैंडर्ड डेट स्ट्रिंग
+      const parsed = new Date(raw);
+      if (!isNaN(parsed.getTime())) {
+        const yyyy = parsed.getFullYear();
+        const mm = String(parsed.getMonth() + 1).padStart(2, "0");
+        const dd = String(parsed.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+      }
+
+      return raw;
+    }
+
     function initStopSelects() {
       const startSel = document.getElementById("tripStartStop");
       const endSel = document.getElementById("tripEndStop");
@@ -351,13 +386,13 @@
       }
 
       const data = docSnap.data();
-      const isStatusActive = String(data.status || "").toLowerCase() === "active";
-      const isPaid = String(data.payment_status || "Paid").toLowerCase() !== "pending";
+      const isStatusActive = String(data.status || "").trim().toLowerCase() === "active";
+      const isPaid = String(data.payment_status || "Paid").trim().toLowerCase() !== "pending";
 
-      // Compare Expiry Date (YYYY-MM-DD) in IST
+      // Compare Expiry Date in IST (Supports both DD/MM/YYYY and YYYY-MM-DD)
       const todayIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10);
-      const expiryStr = String(data.expiry_date || "").trim();
-      const isExpired = expiryStr && expiryStr < todayIST;
+      const normalizedExpiry = normalizeDateToYMD(data.expiry_date);
+      const isExpired = normalizedExpiry !== "" && normalizedExpiry < todayIST;
 
       if (!isStatusActive) {
         return { allowed: false, reason: "BLOCKED", data };
@@ -523,7 +558,7 @@
           vehicle_type: d.vehicle_type || "Winger",
           max_capacity: maxCapacity,
           seats_available: seatsAvailable,
-          expiry_date: d.expiry_date || "",
+          expiry_date: normalizeDateToYMD(d.expiry_date) || d.expiry_date || "",
           start_stop: startStop,
           end_stop: endStop,
           departure_time: depTime,
