@@ -26,7 +26,7 @@
   <!-- Top Security Banner -->
   <div class="bg-amber-500 text-slate-900 text-xs sm:text-sm font-medium py-2 px-4 text-center">
     <i class="fa-solid fa-shield-halved mr-1"></i>
-    Physically Verified Drivers • Hybrid Stop & Map Tracking • Auto-Expiring Trips • 25-Day Security Log
+    Verified Captains • Hybrid Stop & Map Tracking • Permanent Captain Reviews • 25-Day Security Log
   </div>
 
   <!-- Navbar -->
@@ -42,7 +42,7 @@
         </div>
       </div>
 
-      <!-- Right Actions: Passenger Google Auth + Driver Portal Link -->
+      <!-- Right Actions: Passenger Google Auth + Captain Portal Link -->
       <div class="flex items-center gap-2">
         <div id="authSection">
           <button onclick="openAuthModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
@@ -53,7 +53,7 @@
 
         <a href="driver.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
           <i class="fa-solid fa-id-card text-emerald-400"></i>
-          <span class="hidden sm:inline">Driver Portal</span>
+          <span class="hidden sm:inline">Captain Portal</span>
         </a>
       </div>
     </div>
@@ -65,7 +65,7 @@
       <div class="bg-white text-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl border border-slate-200">
         <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
           <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-route text-emerald-600"></i> Search Live & Promised Vehicles
+            <i class="fa-solid fa-route text-emerald-600"></i> Search Live & Scheduled Vehicles
           </h2>
           <span id="currentDateBadge" class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-full border border-emerald-200"></span>
         </div>
@@ -126,7 +126,7 @@
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot"></span>
         <h3 class="font-bold text-slate-800 text-sm sm:text-base">
-          Active & Promised Vehicles (<span id="tripCount">0</span>)
+          Available Vehicles (<span id="tripCount">0</span>)
         </h3>
       </div>
 
@@ -141,7 +141,7 @@
     <div id="tripsContainer" class="space-y-4"></div>
   </main>
 
-  <!-- Google Sign-In Modal (For Passenger Database & Security Verification) -->
+  <!-- Google Sign-In Modal -->
   <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -155,7 +155,7 @@
       </div>
 
       <p class="text-xs text-slate-600 mt-3 leading-relaxed">
-        For passenger and driver safety, please enter your mobile number and continue with your Google account before calling a driver, viewing live map locations, or submitting ratings.
+        For passenger and Captain safety, please enter your mobile number and continue with your Google account before calling a Captain, viewing live map locations, or submitting permanent reviews.
       </p>
 
       <form id="googleAuthForm" onsubmit="handleGoogleSignIn(event)" class="mt-4 space-y-3">
@@ -168,7 +168,7 @@
           <input type="email" id="authEmail" required placeholder="yourname@gmail.com" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number (For Emergency Security Log)</label>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number (For 25-Day Security Log)</label>
           <input type="tel" id="authPhone" required pattern="[6-9][0-9]{9}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="10-digit mobile number" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
         </div>
 
@@ -187,7 +187,7 @@
       </div>
       <h4 class="font-bold text-slate-900 text-base">Open Official Google Maps</h4>
       <p id="mapGateDesc" class="text-xs text-slate-600 mt-2 leading-relaxed">
-        You are opening the verified Google Maps live location link shared by the driver.
+        You are opening the live Google Maps location shared by the Captain.
       </p>
       <div class="mt-5 flex gap-2">
         <button onclick="closeMapGateModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
@@ -200,12 +200,12 @@
     </div>
   </div>
 
-  <!-- Rating & Review Modal -->
+  <!-- Rating & Review Modal (Permanent Reviews + View Past Reviews) -->
   <div id="ratingModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
         <div>
-          <h4 class="font-bold text-slate-900 text-base">Rate Verified Driver</h4>
+          <h4 class="font-bold text-slate-900 text-base">Captain Reviews & Rating</h4>
           <p id="modalDriverName" class="text-xs text-slate-500 mt-0.5"></p>
         </div>
         <button onclick="closeRatingModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
@@ -213,52 +213,65 @@
         </button>
       </div>
 
-      <form id="ratingForm" onsubmit="submitReview(event)" class="mt-4 space-y-4">
-        <input type="hidden" id="modalDriverId" />
+      <div class="overflow-y-auto pr-1 space-y-4 mt-3 flex-1">
+        <!-- Submit New Review Form -->
+        <form id="ratingForm" onsubmit="submitReview(event)" class="space-y-3.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+          <input type="hidden" id="modalDriverId" />
+          <input type="hidden" id="modalDriverTitleHidden" />
 
-        <div class="text-center">
-          <p class="text-xs font-semibold uppercase text-slate-500 mb-2">Select Star Rating</p>
-          <div id="starSelector" class="flex justify-center gap-2 text-2xl text-amber-400 cursor-pointer">
-            <i onclick="setStarRating(1)" class="fa-solid fa-star" data-star="1"></i>
-            <i onclick="setStarRating(2)" class="fa-solid fa-star" data-star="2"></i>
-            <i onclick="setStarRating(3)" class="fa-solid fa-star" data-star="3"></i>
-            <i onclick="setStarRating(4)" class="fa-solid fa-star" data-star="4"></i>
-            <i onclick="setStarRating(5)" class="fa-solid fa-star" data-star="5"></i>
+          <div class="text-center">
+            <p class="text-[11px] font-semibold uppercase text-slate-500 mb-1.5">Write a Permanent Review</p>
+            <div id="starSelector" class="flex justify-center gap-2 text-2xl text-amber-400 cursor-pointer">
+              <i onclick="setStarRating(1)" class="fa-solid fa-star" data-star="1"></i>
+              <i onclick="setStarRating(2)" class="fa-solid fa-star" data-star="2"></i>
+              <i onclick="setStarRating(3)" class="fa-solid fa-star" data-star="3"></i>
+              <i onclick="setStarRating(4)" class="fa-solid fa-star" data-star="4"></i>
+              <i onclick="setStarRating(5)" class="fa-solid fa-star" data-star="5"></i>
+            </div>
+            <span id="starRatingText" class="text-xs font-bold text-emerald-600 mt-1 block">5 Stars - Excellent Service</span>
           </div>
-          <span id="starRatingText" class="text-xs font-bold text-emerald-600 mt-1 block">5 Stars - Excellent Service</span>
-        </div>
 
+          <div>
+            <p class="text-xs font-semibold text-slate-600 mb-1.5">Quick Tags (Optional):</p>
+            <div id="tagContainer" class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">On Time</button>
+              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Safe Driving</button>
+              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Clean Vehicle</button>
+              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Polite Captain</button>
+              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-rose-200 bg-white text-rose-600 hover:border-rose-500">Overloading</button>
+              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-rose-200 bg-white text-rose-600 hover:border-rose-500">Late Departure</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-semibold text-slate-600">Your Feedback</label>
+              <span id="charCount" class="text-[11px] font-medium text-slate-400">0 / 250 chars</span>
+            </div>
+            <textarea 
+              id="reviewerComment" 
+              rows="2" 
+              maxlength="250"
+              oninput="sanitizeAndCount(this)"
+              placeholder="Share your travel experience with this Captain..." 
+              class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+            ></textarea>
+          </div>
+
+          <button type="submit" id="submitReviewBtn" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-xs sm:text-sm shadow transition">
+            Submit Permanent Review
+          </button>
+        </form>
+
+        <!-- Permanent Reviews List -->
         <div>
-          <p class="text-xs font-semibold text-slate-600 mb-2">Quick Tags (Optional):</p>
-          <div id="tagContainer" class="flex flex-wrap gap-1.5">
-            <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 text-slate-600 hover:border-emerald-500">On Time</button>
-            <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 text-slate-600 hover:border-emerald-500">Safe Driving</button>
-            <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 text-slate-600 hover:border-emerald-500">Clean Vehicle</button>
-            <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 text-slate-600 hover:border-emerald-500">Polite Behavior</button>
-            <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-rose-200 text-rose-600 hover:border-rose-500">Overloading</button>
-            <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-rose-200 text-rose-600 hover:border-rose-500">Late Departure</button>
-          </div>
+          <h5 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
+            <span>All Passenger Reviews</span>
+            <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">Permanent Record</span>
+          </h5>
+          <div id="driverReviewsList" class="space-y-2.5"></div>
         </div>
-
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="block text-xs font-semibold text-slate-600">Short Feedback (Plain Text Only, Max 50 Words)</label>
-            <span id="charCount" class="text-[11px] font-medium text-slate-400">0 / 250 chars</span>
-          </div>
-          <textarea 
-            id="reviewerComment" 
-            rows="2" 
-            maxlength="250"
-            oninput="sanitizeAndCount(this)"
-            placeholder="Write short feedback..." 
-            class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"
-          ></textarea>
-        </div>
-
-        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm shadow transition">
-          Submit Verified Review
-        </button>
-      </form>
+      </div>
     </div>
   </div>
 
@@ -266,7 +279,7 @@
   <footer class="bg-slate-900 text-slate-400 text-xs py-6 px-4 mt-10">
     <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
       <p>© 2026 RouteConnect Corridor (Manjhepur – Amauli – Jahanabad – Kanpur).</p>
-      <p class="text-slate-500">Verified Driver Aggregator • Hybrid Stop & Map Tracking</p>
+      <p class="text-slate-500">Verified Captain Aggregator • Hybrid Stop & Map Tracking</p>
     </div>
   </footer>
 
@@ -277,7 +290,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, addDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAJnefI6TOx8WN2CfFpABebiZEjC4Cn0p4",
@@ -304,9 +317,11 @@
       collection,
       doc,
       setDoc,
-      addDoc
+      addDoc,
+      updateDoc
     };
 
+    // Listen to Live & Scheduled Trips
     onSnapshot(collection(db, "live_trips"), (snapshot) => {
       const liveTrips = [];
       snapshot.forEach((docSnap) => {
@@ -318,6 +333,24 @@
       }
     }, (err) => {
       console.warn("Firestore live_trips listener notice:", err.message);
+    });
+
+    // Listen to Permanent Captain Reviews (Never expires)
+    onSnapshot(collection(db, "reviews"), (snapshot) => {
+      const allReviews = [];
+      snapshot.forEach((docSnap) => {
+        allReviews.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      localStorage.setItem("RC_PERMANENT_REVIEWS", JSON.stringify(allReviews));
+      if (typeof window.filterTrips === "function") {
+        window.filterTrips();
+      }
+      const openDriverId = document.getElementById("modalDriverId")?.value;
+      if (openDriverId && typeof window.renderCaptainReviewsList === "function") {
+        window.renderCaptainReviewsList(openDriverId);
+      }
+    }, (err) => {
+      console.warn("Firestore reviews listener notice:", err.message);
     });
   </script>
 
@@ -396,6 +429,14 @@
       return raw;
     }
 
+    // Returns clean English "Today" or "Tomorrow" for any trip
+    function getCleanDayLabel(trip) {
+      const tomorrowYMD = formatYMDLocal(getISTDateObj(1));
+      if (trip.trip_date === tomorrowYMD) return "Tomorrow";
+      if (trip.trip_date_label && /कल|tomorrow/i.test(trip.trip_date_label)) return "Tomorrow";
+      return "Today";
+    }
+
     function isValidAndFreshGoogleMapsUrl(urlStr, trackingUpdatedAt) {
       if (!urlStr || typeof urlStr !== "string") return false;
       const clean = urlStr.trim();
@@ -453,19 +494,14 @@
       return { allowed: isStatusActive && isNotExpired, record: match };
     }
 
-    // ✅ Smart Trip Expiry Filter (Supports Today & Tomorrow Promised Trips)
     function isTripStillActive(trip) {
       const todayYMD = formatYMDLocal(getISTDateObj(0));
       const tomorrowYMD = formatYMDLocal(getISTDateObj(1));
       const tripDate = trip.trip_date || todayYMD;
 
-      // If trip date is in the past (before today), hide it
       if (tripDate < todayYMD) return false;
-
-      // If trip date is tomorrow, keep it visible
       if (tripDate === tomorrowYMD) return true;
 
-      // For today's trips: check departure + safe transit + 45 mins buffer
       const tripStart = getStopObj(trip.start_stop);
       const tripEnd = getStopObj(trip.end_stop);
       if (!tripStart || !tripEnd || !trip.departure_time) return false;
@@ -482,6 +518,32 @@
       if (now > expiryTime) return false;
 
       return true;
+    }
+
+    // Permanent Reviews Helper
+    function getAllPermanentReviews() {
+      try {
+        const raw = JSON.parse(localStorage.getItem("RC_PERMANENT_REVIEWS") || "[]");
+        return Array.isArray(raw) ? raw : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function getCaptainRatingSummary(driverId, fallbackRating, fallbackCount) {
+      const allReviews = getAllPermanentReviews().filter(r => r.driver_id === driverId);
+      if (allReviews.length === 0) {
+        return {
+          avg: fallbackRating || "5.0",
+          count: Number(fallbackCount) || 0
+        };
+      }
+      const sum = allReviews.reduce((acc, r) => acc + (Number(r.stars) || 5), 0);
+      const avg = (sum / allReviews.length).toFixed(1);
+      return {
+        avg,
+        count: allReviews.length
+      };
     }
 
     function getLoggedInPassenger() {
@@ -525,9 +587,9 @@
       document.getElementById("authModal").classList.remove("flex");
     }
 
-    function openMapGateModal(driverName, vehicleNo, mapUrl) {
+    function openMapGateModal(captainName, vehicleNo, mapUrl) {
       document.getElementById("mapGateDesc").textContent =
-        `You are opening the live Google Maps location shared by ${driverName} (${vehicleNo}).`;
+        `You are opening the live Google Maps location shared by Captain ${captainName} (${vehicleNo}).`;
       document.getElementById("mapGateConfirmBtn").href = mapUrl;
       document.getElementById("mapGateModal").classList.remove("hidden");
       document.getElementById("mapGateModal").classList.add("flex");
@@ -568,13 +630,6 @@
       const passengerObj = { uid, name, email, phone, joined_at: new Date().toISOString() };
       localStorage.setItem("RC_PASSENGER_USER", JSON.stringify(passengerObj));
 
-      let directory = [];
-      try { directory = JSON.parse(localStorage.getItem("RC_PASSENGER_DIRECTORY") || "[]"); } catch (err) {}
-      if (!directory.some(u => u.email === email)) {
-        directory.push(passengerObj);
-        localStorage.setItem("RC_PASSENGER_DIRECTORY", JSON.stringify(directory));
-      }
-
       if (window.RC_FIREBASE && window.RC_FIREBASE.auth.currentUser) {
         try {
           const { db, doc, setDoc } = window.RC_FIREBASE;
@@ -594,6 +649,7 @@
       renderAuthHeader();
     }
 
+    // Only Interaction Logs expire after 25 days (Reviews are permanent)
     function purgeExpiredInteractionLogs() {
       try {
         const rawLogs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
@@ -603,7 +659,7 @@
       } catch (e) {}
     }
 
-    function handleProtectedAction(actionType, driverId, driverName, vehicleNo, targetUrl) {
+    function handleProtectedAction(actionType, driverId, captainName, vehicleNo, targetUrl) {
       const user = getLoggedInPassenger();
       if (!user) {
         openAuthModal();
@@ -617,7 +673,7 @@
       const logEntry = {
         log_id: "LOG_" + Date.now(),
         passenger_uid: user.uid, passenger_name: user.name, passenger_email: user.email, passenger_phone: user.phone,
-        driver_id: driverId, driver_name: driverName, vehicle_no: vehicleNo, action_type: actionType, timestamp: new Date().toISOString()
+        driver_id: driverId, driver_name: captainName, vehicle_no: vehicleNo, action_type: actionType, timestamp: new Date().toISOString()
       };
 
       logs.push(logEntry);
@@ -631,7 +687,7 @@
       if (actionType === "CALL") {
         window.location.href = targetUrl;
       } else if (actionType === "GMAPS_LIVE") {
-        openMapGateModal(driverName, vehicleNo, targetUrl);
+        openMapGateModal(captainName, vehicleNo, targetUrl);
       } else {
         window.open(targetUrl, "_blank", "noopener,noreferrer");
       }
@@ -809,8 +865,8 @@
             <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
               <i class="fa-solid fa-van-shuttle"></i>
             </div>
-            <h4 class="font-bold text-slate-800 text-base">No Active or Promised Vehicles Listed Right Now</h4>
-            <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Verified drivers update their live departures and return schedules directly from the Driver Portal.</p>
+            <h4 class="font-bold text-slate-800 text-base">No Active or Scheduled Vehicles Right Now</h4>
+            <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Verified Captains update their live departures and return schedules directly from the Captain Portal.</p>
           </div>
         `;
         return;
@@ -847,9 +903,12 @@
         const rawMapLink = trip.gmaps_link || trip.live_tracking_url || "";
         const hasValidMapLink = isValidAndFreshGoogleMapsUrl(rawMapLink, trip.tracking_updated_at || trip.updated_at);
 
-        let liveTrackingBannerHTML = "";
-        const dateBadgeStr = trip.trip_date_label || "आज (Today)";
+        // Clean English Day Label ("Today" or "Tomorrow") right inside STARTS FROM
+        const dayWord = getCleanDayLabel(trip);
+        const depTimeFormatted = `${dayWord}, ${convert24To12(trip.departure_time)}`;
 
+        // Only show live stop check-in bar when vehicle is actually Running (No redundant Promised Return banner)
+        let liveTrackingBannerHTML = "";
         if (trip.status === "Running") {
           const activeStopName = currentStopObj ? currentStopObj.name : trip.start_stop;
           const stopTimeLabel = trip.current_stop_time || convert24To12(trip.departure_time);
@@ -869,7 +928,7 @@
               <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 pulse-dot flex-shrink-0"></span>
                 <div>
-                  <span class="text-slate-600">Current Stop Check-In:</span>
+                  <span class="text-slate-600">Current Stop:</span>
                   <span class="font-bold text-emerald-900 ml-1">${activeStopName}</span>
                   <span class="text-[11px] text-emerald-700 font-medium ml-1">(${stopTimeLabel})</span>
                 </div>
@@ -877,18 +936,6 @@
               <div class="text-slate-600 text-[11px] sm:text-xs">
                 <i class="fa-solid fa-location-arrow text-emerald-600 mr-1"></i>${nextStopText}
               </div>
-            </div>
-          `;
-        } else {
-          liveTrackingBannerHTML = `
-            <div class="mt-3 bg-indigo-50 border border-indigo-200 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div class="flex items-center gap-2 text-indigo-900">
-                <i class="fa-solid fa-calendar-check text-indigo-600 text-sm"></i>
-                <span><b>Promised Return (${dateBadgeStr}):</b> Departing from <b>${trip.start_stop}</b> at <b>${convert24To12(trip.departure_time)}</b></span>
-              </div>
-              <span class="text-[11px] bg-white text-indigo-700 px-2 py-0.5 rounded border border-indigo-200 font-semibold">
-                Call / WhatsApp for Booking
-              </span>
             </div>
           `;
         }
@@ -934,18 +981,21 @@
             `;
         }
 
-        const statusBadge = trip.status === "Running"
-          ? `<span class="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full"><span class="w-2 h-2 rounded-full bg-emerald-600"></span> Live On Route</span>`
-          : `<span class="inline-flex items-center gap-1.5 text-xs font-bold bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-full"><i class="fa-regular fa-calendar-check"></i> Promised (${dateBadgeStr}): ${convert24To12(trip.departure_time)}</span>`;
+        // Top-right badge only shown if Live On Route (No cluttered Promised date box)
+        const liveTopBadge = trip.status === "Running"
+          ? `<span class="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full mb-1"><span class="w-2 h-2 rounded-full bg-emerald-600"></span> Live On Route</span>`
+          : "";
 
         const seatBadge = isFull
-          ? `<span class="inline-block text-xs font-bold text-rose-600 mt-1.5"><i class="fa-solid fa-ban"></i> Housefull (0/${maxSeats} Seats)</span>`
-          : `<span class="inline-block text-xs font-bold text-emerald-700 mt-1.5"><i class="fa-solid fa-chair"></i> ${seatsLeft} of ${maxSeats} Seats Available</span>`;
+          ? `<span class="inline-block text-xs font-bold text-rose-600"><i class="fa-solid fa-ban"></i> Housefull (0/${maxSeats} Seats)</span>`
+          : `<span class="inline-block text-xs font-bold text-emerald-700"><i class="fa-solid fa-chair"></i> ${seatsLeft} of ${maxSeats} Seats Available</span>`;
+
+        const ratingInfo = getCaptainRatingSummary(trip.driver_id, trip.rating, trip.review_count);
 
         const pickupText = userFromStop ? ` from ${userFromStop.name}` : "";
         const dropText = userToStop ? ` to ${userToStop.name}` : "";
         const whatsappMsg = encodeURIComponent(
-          `नमस्ते ${trip.driver_name} जी (${trip.vehicle_no}), मैंने RouteConnect पर आपकी ${trip.start_stop} से ${trip.end_stop} (${dateBadgeStr} - ${convert24To12(trip.departure_time)}) वाली ट्रिप देखी। मुझे${pickupText}${dropText} सीट बुक करनी है।`
+          `Hello Captain ${trip.driver_name} (${trip.vehicle_no}), I saw your trip from ${trip.start_stop} to ${trip.end_stop} (${depTimeFormatted}) on RouteConnect. I want to book a seat${pickupText}${dropText}.`
         );
         const waUrl = `https://wa.me/91${trip.driver_phone}?text=${whatsappMsg}`;
         const telUrl = `tel:${trip.driver_phone}`;
@@ -970,26 +1020,23 @@
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <h4 class="font-bold text-slate-900 text-base">${trip.driver_name}</h4>
                     ${genderBadge}
-                    <span class="text-[11px] bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-md border border-blue-200">
-                      <i class="fa-solid fa-circle-check"></i> Verified
-                    </span>
                   </div>
                   <p class="text-xs font-semibold text-slate-600 mt-0.5">
                     ${trip.vehicle_type} • <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 font-mono">${trip.vehicle_no}</span>
                   </p>
                   <div class="flex items-center gap-2 mt-1">
-                    <span class="text-xs font-bold text-amber-600">
-                      <i class="fa-solid fa-star"></i> ${trip.rating || "5.0"}
-                    </span>
-                    <span class="text-[11px] text-slate-400">(${trip.review_count || 0} reviews)</span>
+                    <button onclick="openRatingModal('${trip.driver_id}', '${trip.driver_name} (${trip.vehicle_no})')" class="text-xs font-bold text-amber-600 hover:underline flex items-center gap-1">
+                      <i class="fa-solid fa-star"></i> ${ratingInfo.avg}
+                      <span class="text-[11px] text-slate-500 font-medium">(${ratingInfo.count} reviews)</span>
+                    </button>
                     <button onclick="openRatingModal('${trip.driver_id}', '${trip.driver_name} (${trip.vehicle_no})')" class="text-[11px] text-emerald-600 hover:underline font-semibold ml-1">
-                      + Rate Driver
+                      + Rate Captain
                     </button>
                   </div>
                 </div>
               </div>
-              <div class="text-right">
-                ${statusBadge}
+              <div class="text-right flex flex-col items-end">
+                ${liveTopBadge}
                 <div>${seatBadge}</div>
               </div>
             </div>
@@ -999,7 +1046,7 @@
               <div>
                 <span class="text-[10px] uppercase font-bold text-slate-400 block">Starts From</span>
                 <span class="font-bold text-slate-900">${trip.start_stop}</span>
-                <span class="block text-xs font-semibold text-emerald-600">${convert24To12(trip.departure_time)}</span>
+                <span class="block text-xs font-bold text-emerald-600 mt-0.5">${depTimeFormatted}</span>
               </div>
 
               <div class="flex-1 px-3 flex flex-col items-center">
@@ -1010,40 +1057,39 @@
                   <div class="absolute inset-y-0 left-0 ${trip.status === 'Running' ? 'bg-emerald-500' : 'bg-indigo-400'} rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
                 </div>
                 <span class="text-[10px] text-slate-500 mt-1">
-                  ${hasValidMapLink ? "🟢 Live Map + Stop Tracking" : "📍 1-Tap Stop Check-In Mode"}
+                  ${hasValidMapLink ? "🟢 Live Map + Stop Tracking" : (trip.status === 'Running' ? "📍 1-Tap Stop Check-In" : "Scheduled Trip")}
                 </span>
               </div>
 
               <div class="text-right">
                 <span class="text-[10px] uppercase font-bold text-slate-400 block">Goes Up To</span>
                 <span class="font-bold text-slate-900">${trip.end_stop}</span>
-                <span class="block text-xs font-semibold text-slate-700">Promised ETA: ${convert24To12(trip.claimed_arrival_time)}</span>
+                <span class="block text-xs font-semibold text-slate-700 mt-0.5">ETA: ${convert24To12(trip.claimed_arrival_time)}</span>
               </div>
             </div>
 
             ${liveTrackingBannerHTML}
             ${customTimingHTML}
 
-            <!-- Action Buttons -->
+            <!-- Action Buttons (Cleaned of redundant hashtags) -->
             <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-              <div class="flex flex-wrap gap-1">
-                ${(trip.top_tags || ["Verified Partner"]).map(tag => `<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium">#${tag}</span>`).join("")}
-                ${trip.note ? `<span class="text-[11px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md font-medium"><i class="fa-solid fa-bullhorn mr-1"></i>${trip.note}</span>` : ""}
+              <div>
+                ${trip.note ? `<span class="inline-block text-xs bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg font-medium"><i class="fa-solid fa-bullhorn mr-1"></i>${trip.note}</span>` : ""}
               </div>
 
-              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end ml-auto">
                 ${googleMapsBtnHTML}
                 <button 
                   onclick="handleProtectedAction('CALL', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${telUrl}')" 
                   class="flex-1 sm:flex-initial px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition"
                 >
-                  <i class="fa-solid fa-phone"></i> Call Driver
+                  <i class="fa-solid fa-phone"></i> Call Captain
                 </button>
                 <button 
                   onclick="handleProtectedAction('WHATSAPP', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${waUrl}')" 
                   class="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition"
                 >
-                  <i class="fa-brands fa-whatsapp text-sm"></i> ${trip.status === 'Promised' ? 'Book Seat on WhatsApp' : 'WhatsApp Inquiry'}
+                  <i class="fa-brands fa-whatsapp text-sm"></i> ${trip.status === 'Promised' ? 'Book on WhatsApp' : 'WhatsApp'}
                 </button>
               </div>
             </div>
@@ -1052,14 +1098,16 @@
       }).join("");
     }
 
-    // Rating and review functions
-    function openRatingModal(driverId, driverTitle) {
+    // Permanent Rating & Review Functions
+    function openRatingModal(driverId, captainTitle) {
       const user = getLoggedInPassenger();
       if (!user) { openAuthModal(); return; }
       document.getElementById("modalDriverId").value = driverId;
-      document.getElementById("modalDriverName").textContent = driverTitle;
+      document.getElementById("modalDriverTitleHidden").value = captainTitle;
+      document.getElementById("modalDriverName").textContent = captainTitle;
       document.getElementById("charCount").textContent = "0 / 250 chars";
       setStarRating(5);
+      renderCaptainReviewsList(driverId);
       document.getElementById("ratingModal").classList.remove("hidden");
       document.getElementById("ratingModal").classList.add("flex");
     }
@@ -1068,10 +1116,22 @@
       document.getElementById("ratingModal").classList.add("hidden");
       document.getElementById("ratingModal").classList.remove("flex");
       document.getElementById("ratingForm").reset();
+      document.querySelectorAll("#tagContainer .tag-btn").forEach(btn => {
+        btn.classList.remove("bg-emerald-600", "text-white");
+        btn.classList.add("bg-white");
+      });
     }
 
     function setStarRating(star) {
       selectedStarRating = star;
+      const labels = {
+        1: "1 Star - Poor Service",
+        2: "2 Stars - Below Average",
+        3: "3 Stars - Average",
+        4: "4 Stars - Good Service",
+        5: "5 Stars - Excellent Service"
+      };
+      document.getElementById("starRatingText").textContent = labels[star] || "5 Stars";
       document.querySelectorAll("#starSelector i").forEach(icon => {
         const iconStar = Number(icon.getAttribute("data-star"));
         icon.className = iconStar <= star ? "fa-solid fa-star text-amber-400" : "fa-regular fa-star text-slate-300";
@@ -1081,6 +1141,7 @@
     function toggleTag(btn) {
       btn.classList.toggle("bg-emerald-600");
       btn.classList.toggle("text-white");
+      btn.classList.toggle("bg-white");
     }
 
     function sanitizeAndCount(el) {
@@ -1088,12 +1149,116 @@
       document.getElementById("charCount").textContent = `${el.value.length} / 250 chars`;
     }
 
-    function submitReview(e) {
+    window.renderCaptainReviewsList = function (driverId) {
+      const listEl = document.getElementById("driverReviewsList");
+      if (!listEl) return;
+
+      const matching = getAllPermanentReviews()
+        .filter(r => r.driver_id === driverId)
+        .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+      if (matching.length === 0) {
+        listEl.innerHTML = `
+          <div class="text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400">
+            No passenger reviews yet for this Captain. Be the first to rate!
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = matching.map(r => {
+        const starsHTML = Array.from({ length: 5 }, (_, idx) =>
+          `<i class="${idx < (Number(r.stars) || 5) ? 'fa-solid text-amber-400' : 'fa-regular text-slate-300'} fa-star text-[11px]"></i>`
+        ).join("");
+        const dateStr = r.created_at
+          ? new Date(r.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+          : "";
+        const tagsHTML = Array.isArray(r.tags) && r.tags.length > 0
+          ? `<div class="flex flex-wrap gap-1 mt-1.5">${r.tags.map(t => `<span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${t}</span>`).join("")}</div>`
+          : "";
+
+        return `
+          <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-xs">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-800">${r.passenger_name || "Verified Passenger"}</span>
+              <span class="text-[10px] text-slate-400">${dateStr}</span>
+            </div>
+            <div class="mt-0.5">${starsHTML}</div>
+            ${r.comment ? `<p class="text-slate-600 mt-1.5 leading-relaxed">${r.comment}</p>` : ""}
+            ${tagsHTML}
+          </div>
+        `;
+      }).join("");
+    };
+
+    async function submitReview(e) {
       e.preventDefault();
       const user = getLoggedInPassenger();
       if (!user) { openAuthModal(); return; }
-      alert("Thank you! Your review has been saved.");
-      closeRatingModal();
+
+      const driverId = document.getElementById("modalDriverId").value;
+      const captainTitle = document.getElementById("modalDriverTitleHidden").value;
+      const comment = document.getElementById("reviewerComment").value.trim();
+
+      const selectedTags = [];
+      document.querySelectorAll("#tagContainer .tag-btn.bg-emerald-600").forEach(btn => {
+        selectedTags.push(btn.textContent.trim());
+      });
+
+      const btn = document.getElementById("submitReviewBtn");
+      btn.disabled = true;
+      btn.textContent = "Saving Permanent Review...";
+
+      const reviewPayload = {
+        review_id: "REV_" + Date.now(),
+        driver_id: driverId,
+        captain_title: captainTitle,
+        passenger_uid: user.uid,
+        passenger_name: user.name,
+        passenger_email: user.email,
+        stars: selectedStarRating,
+        tags: selectedTags,
+        comment: comment,
+        created_at: new Date().toISOString()
+      };
+
+      try {
+        const existing = getAllPermanentReviews();
+        existing.unshift(reviewPayload);
+        localStorage.setItem("RC_PERMANENT_REVIEWS", JSON.stringify(existing));
+
+        if (window.RC_FIREBASE) {
+          const { db, collection, addDoc, doc, updateDoc } = window.RC_FIREBASE;
+          await addDoc(collection(db, "reviews"), reviewPayload);
+
+          // Update Captain's live trip documents with the new permanent average
+          const summary = getCaptainRatingSummary(driverId, "5.0", 1);
+          const activeTrips = getActiveTripsData().filter(t => t.driver_id === driverId);
+          for (const t of activeTrips) {
+            if (t.id) {
+              updateDoc(doc(db, "live_trips", t.id), {
+                rating: summary.avg,
+                review_count: summary.count
+              }).catch(() => {});
+            }
+          }
+        }
+
+        document.getElementById("reviewerComment").value = "";
+        document.getElementById("charCount").textContent = "0 / 250 chars";
+        document.querySelectorAll("#tagContainer .tag-btn").forEach(b => {
+          b.classList.remove("bg-emerald-600", "text-white");
+          b.classList.add("bg-white");
+        });
+        renderCaptainReviewsList(driverId);
+        filterTrips();
+        alert("Thank you! Your review has been permanently saved to this Captain's profile.");
+      } catch (err) {
+        alert("Review saved locally: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Submit Permanent Review";
+      }
     }
 
     window.addEventListener("DOMContentLoaded", () => {
