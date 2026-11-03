@@ -18,7 +18,7 @@
   <!-- Top Security Banner -->
   <div class="bg-emerald-600 text-white text-xs sm:text-sm font-medium py-2 px-4 text-center">
     <i class="fa-solid fa-shield-halved mr-1"></i>
-    RouteConnect Verified Captain Portal • Separate Live & Return Controls • Strict Turnaround Time Lock
+    RouteConnect Verified Captain Portal • Dynamic Stop ETA Sync • Strict Turnaround Time Lock
   </div>
 
   <!-- Navbar -->
@@ -104,7 +104,7 @@
             <span>1. Active Trips & 1-Tap Stop Controller</span>
           </h3>
           <span class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-lg border border-emerald-200">
-            Real-Time Sync
+            Real-Time ETA Sync
           </span>
         </div>
 
@@ -324,7 +324,7 @@
   <footer class="bg-slate-900 text-slate-400 text-xs py-6 px-4 mt-10">
     <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
       <p>© 2026 RouteConnect Captain Portal (Manjhepur – Amauli – Jahanabad – Kanpur).</p>
-      <p class="text-slate-500">Persistent Session Auth • Dual Workspace Control</p>
+      <p class="text-slate-500">Persistent Session Auth • Dynamic Stop ETA Recalculation</p>
     </div>
   </footer>
 
@@ -351,7 +351,6 @@
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
 
-    // Ensure session stays logged in across browser restarts unless Captain clicks Sign Out
     setPersistence(auth, browserLocalPersistence).catch(() => {});
 
     const ROUTE_STOPS = [
@@ -474,7 +473,6 @@
       return Math.abs(eObj.offset - sObj.offset);
     }
 
-    // Check if candidate arrival time is at least minSafeMins after depTime (allows midnight wrap for late night runs)
     function isArrivalValidAgainstFloor(depTimeStr, arrTimeStr, minSafeMins) {
       const depM = timeStrToMins(depTimeStr);
       let arrM = timeStrToMins(arrTimeStr);
@@ -484,8 +482,6 @@
       return (arrM - depM) >= minSafeMins;
     }
 
-    // Compute strict absolute arrival minutes from 00:00 of the trip start day
-    // Example: If trip departs at 21:00 (1260) and arrives at 00:15 (15), effective arrival is 1455 (>1440 = next day)
     function getEffectiveArrivalMins(depTimeStr, arrTimeStr) {
       const depM = timeStrToMins(depTimeStr);
       let arrM = timeStrToMins(arrTimeStr);
@@ -495,7 +491,6 @@
       return arrM;
     }
 
-    // Get Captain's Permanent Rating Summary so publishing a trip never overwrites real reviews
     function getCaptainPermanentRating(driverId, fallbackRating, fallbackCount) {
       const matching = allPermanentReviews.filter(r => r.driver_id === driverId);
       if (matching.length === 0) {
@@ -543,7 +538,6 @@
       document.getElementById("liveDepTime").value = nowStr;
       updateLiveMinETA(true);
 
-      // Default Return Time (+3 hours from now)
       const retDefMins = timeStrToMins(nowStr) + 180;
       if (retDefMins >= 1440) {
         selectReturnDateMode("TOMORROW");
@@ -594,9 +588,8 @@
     };
 
     // =========================================================================
-    // WORKSPACE 2B: STRICT RETURN TIME LOCK (Prevents Returning Before Arrival!)
+    // WORKSPACE 2B: STRICT RETURN TIME LOCK
     // =========================================================================
-    // Computes the earliest valid return departure in minutes (0..1439) for TODAY
     function getEarliestAllowedReturnMinsForToday() {
       const activeRunning = getMyActiveRunningTrip();
       if (activeRunning) {
@@ -606,7 +599,7 @@
         );
         return {
           hasActive: true,
-          minAllowedMins: effArrMins + 20, // 20-min mandatory turnaround buffer after arrival
+          minAllowedMins: effArrMins + 20,
           refStart: activeRunning.start_stop,
           refEnd: activeRunning.end_stop,
           refArrStr: format12Hr(activeRunning.claimed_arrival_time)
@@ -621,7 +614,6 @@
     window.selectReturnDateMode = function (mode) {
       const todayRule = getEarliestAllowedReturnMinsForToday();
 
-      // If Captain tries to select TODAY, but the active trip arrives so late that +20 mins crosses midnight (1440)
       if (mode === "TODAY" && todayRule.hasActive && todayRule.minAllowedMins >= 1440) {
         alert(
           `Turnaround Time Lock:\nYour current live trip arrives at ${todayRule.refEnd} at ${todayRule.refArrStr}.\nWith a 20-minute turnaround buffer, you cannot depart again Today before midnight.\n\nPlease schedule your return trip for Tomorrow.`
@@ -637,7 +629,6 @@
         btnToday.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-indigo-600 text-white border-indigo-600 shadow-sm";
         btnTomorrow.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-white text-slate-700 border-slate-300 hover:border-indigo-400";
 
-        // Auto-correct return departure time if it is currently earlier than live arrival + 20 mins
         if (todayRule.hasActive) {
           const curDepMins = timeStrToMins(document.getElementById("retDepTime").value);
           if (curDepMins < todayRule.minAllowedMins) {
@@ -726,7 +717,6 @@
       return true;
     };
 
-    // Auto-fill Return Form by reversing active Live Trip or Live Form inputs
     window.autoFillReturnFromLive = function () {
       const activeRunning = getMyActiveRunningTrip();
       if (activeRunning) {
@@ -770,6 +760,15 @@
         (t) =>
           (t.driver_uid === currentDriverUser.uid || t.id === `TRIP_${currentDriverUser.uid}`) &&
           t.status === "Running"
+      );
+    }
+
+    function getMyPromisedReturnTrip() {
+      if (!currentDriverUser) return null;
+      return allLiveTrips.find(
+        (t) =>
+          (t.driver_uid === currentDriverUser.uid && t.status === "Promised") ||
+          t.id === `TRIP_PROMISED_${currentDriverUser.uid}`
       );
     }
 
@@ -1037,7 +1036,6 @@
       const arrTime = document.getElementById("retArrTime").value;
       const promisedDepMins = timeStrToMins(depTime);
 
-      // Strict Same-Day Return Validation (Cannot depart before arriving + 20 mins buffer!)
       if (dateMode === "TODAY") {
         const todayRule = getEarliestAllowedReturnMinsForToday();
 
@@ -1060,7 +1058,6 @@
             return;
           }
         } else {
-          // If no active running trip, ensure Today's scheduled departure is not already in the past
           const now = new Date();
           const nowMins = now.getHours() * 60 + now.getMinutes();
           if (promisedDepMins < nowMins - 10) {
@@ -1171,7 +1168,6 @@
       }
     };
 
-    // Listen to live_trips
     onSnapshot(collection(db, "live_trips"), (snapshot) => {
       allLiveTrips = [];
       snapshot.forEach((docSnap) => {
@@ -1182,7 +1178,6 @@
       updateReturnMinETA(false);
     });
 
-    // Listen to permanent reviews so Captain ratings are always accurate
     onSnapshot(collection(db, "reviews"), (snapshot) => {
       allPermanentReviews = [];
       snapshot.forEach((docSnap) => {
@@ -1242,7 +1237,7 @@
             <div class="flex items-center justify-between mb-2 flex-wrap gap-1">
               <span class="text-xs font-bold text-slate-800">
                 <i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>
-                1-Tap Current Stop Check-In:
+                1-Tap Current Stop Check-In (Auto-updates Destination ETA):
               </span>
               <span class="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-md border border-emerald-300">
                 Current: ${trip.current_stop || trip.start_stop} (${trip.current_stop_time || "Just started"})
@@ -1355,18 +1350,55 @@
       }).join("");
     }
 
+    // =========================================================================
+    // 1-TAP STOP CHECK-IN WITH DYNAMIC DESTINATION & RETURN ETA RECALCULATION
+    // =========================================================================
     window.checkInStop = async function (tripDocId, stopName) {
       const now = new Date();
       const now24 = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
       const now12 = format12Hr(now24);
 
+      const trip = allLiveTrips.find(t => t.id === tripDocId);
+      let updatedArr24 = trip ? trip.claimed_arrival_time : "";
+
+      if (trip) {
+        const remainingMins = getSafeRouteMins(stopName, trip.end_stop);
+        const curMins = timeStrToMins(now24);
+        const dynamicMinArrMins = curMins + remainingMins;
+        updatedArr24 = minsToTimeStr(dynamicMinArrMins);
+      }
+
       try {
-        await updateDoc(doc(db, "live_trips", tripDocId), {
+        const updatePayload = {
           current_stop: stopName,
           current_stop_time: now12,
           current_stop_time_24: now24,
           updated_at: now.toISOString()
-        });
+        };
+        if (updatedArr24) {
+          updatePayload.claimed_arrival_time = updatedArr24;
+        }
+        await updateDoc(doc(db, "live_trips", tripDocId), updatePayload);
+
+        // If Captain also has a same-day Scheduled Return Trip and the live delay pushes arrival past return departure, auto-shift return trip by +20 mins buffer
+        const promisedReturn = getMyPromisedReturnTrip();
+        const todayYMD = formatYMDLocal(getISTDateObj(0));
+        if (trip && promisedReturn && (!promisedReturn.trip_date || promisedReturn.trip_date === todayYMD) && updatedArr24) {
+          const effNewArrMins = getEffectiveArrivalMins(trip.departure_time, updatedArr24);
+          const minReturnDepMins = effNewArrMins + 20;
+          const curReturnDepMins = timeStrToMins(promisedReturn.departure_time);
+
+          if (minReturnDepMins < 1440 && curReturnDepMins < minReturnDepMins) {
+            const shiftedDepStr = minsToTimeStr(minReturnDepMins);
+            const retRouteMins = getSafeRouteMins(promisedReturn.start_stop, promisedReturn.end_stop);
+            const shiftedArrStr = minsToTimeStr(minReturnDepMins + retRouteMins);
+            await updateDoc(doc(db, "live_trips", promisedReturn.id), {
+              departure_time: shiftedDepStr,
+              claimed_arrival_time: shiftedArrStr,
+              updated_at: now.toISOString()
+            });
+          }
+        }
       } catch (err) {
         alert("Failed to update current stop: " + err.message);
       }
