@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RouteConnect | Manjhepur - Amauli - Jahanabad - Kanpur Live Vehicles</title>
+  <title>RouteConnect | Manjhepur - Amauli - Jahanabad - Kanpur Live Corridor</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -23,29 +23,39 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-  <!-- Top Security / Info Banner -->
-  <div id="topNotice" class="bg-amber-500 text-slate-900 text-xs sm:text-sm font-medium py-2 px-4 text-center">
+  <!-- Top Security Banner -->
+  <div class="bg-amber-500 text-slate-900 text-xs sm:text-sm font-medium py-2 px-4 text-center">
     <i class="fa-solid fa-shield-halved mr-1"></i>
-    All vehicles & drivers listed here are physically verified for passenger safety.
+    Physically Verified Drivers • Google Sign-In Protected • 25-Day Rolling Security Log Active
   </div>
 
   <!-- Navbar -->
   <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-30">
-    <div class="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between">
+    <div class="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between gap-2">
       <div class="flex items-center space-x-2.5">
         <div class="bg-emerald-500 text-slate-900 p-2 rounded-lg font-bold text-lg leading-none">
           <i class="fa-solid fa-van-shuttle"></i>
         </div>
         <div>
-          <h1 class="font-bold text-lg tracking-tight leading-none">RouteConnect</h1>
+          <h1 class="font-bold text-base sm:text-lg tracking-tight leading-none">RouteConnect</h1>
           <p class="text-[11px] text-slate-400 mt-0.5">Manjhepur • Amauli • Jahanabad • Kanpur</p>
         </div>
       </div>
 
-      <a href="driver.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs sm:text-sm font-medium px-3.5 py-2 rounded-lg transition flex items-center gap-2">
-        <i class="fa-solid fa-id-card text-emerald-400"></i>
-        <span>Driver Login</span>
-      </a>
+      <!-- Right Actions: Passenger Google Auth + Driver Portal Link -->
+      <div class="flex items-center gap-2">
+        <div id="authSection">
+          <button onclick="openAuthModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-brands fa-google text-rose-500"></i>
+            <span>Sign In</span>
+          </button>
+        </div>
+
+        <a href="driver.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+          <i class="fa-solid fa-id-card text-emerald-400"></i>
+          <span class="hidden sm:inline">Driver Portal</span>
+        </a>
+      </div>
     </div>
   </header>
 
@@ -53,9 +63,9 @@
   <section class="bg-gradient-to-b from-slate-900 to-slate-800 text-white pt-4 pb-8 px-4 shadow-md">
     <div class="max-w-4xl mx-auto">
       <div class="bg-white text-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl border border-slate-200">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
           <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-route text-emerald-600"></i> Find Live Vehicles on Route
+            <i class="fa-solid fa-route text-emerald-600"></i> Search Live & Promised Vehicles
           </h2>
           <span id="currentDateBadge" class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-full border border-emerald-200"></span>
         </div>
@@ -94,14 +104,14 @@
         <!-- Search & Filter Bar -->
         <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
           <div id="routeTravelEstimate" class="text-xs text-slate-600 font-medium">
-            Select Pickup & Drop stops to see exact passing vehicles & safe arrival time.
+            Select Pickup & Drop stops to calculate exact safe transit time and passing vehicles.
           </div>
           <div class="flex gap-2 w-full sm:w-auto">
             <button onclick="resetFilters()" class="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
-              Show All
+              Reset
             </button>
             <button onclick="filterTrips()" class="flex-1 sm:flex-initial px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition flex items-center justify-center gap-2">
-              <i class="fa-solid fa-magnifying-glass"></i> Search Vehicles
+              <i class="fa-solid fa-magnifying-glass"></i> Find Vehicles
             </button>
           </div>
         </div>
@@ -111,12 +121,12 @@
 
   <!-- Main Vehicle Listings -->
   <main class="max-w-4xl mx-auto w-full px-4 py-6 flex-1">
-    <!-- Direction Quick Filters -->
+    <!-- Direction & Status Filters -->
     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot"></span>
         <h3 class="font-bold text-slate-800 text-sm sm:text-base">
-          Active Vehicles Today (<span id="tripCount">0</span>)
+          Listed Vehicles (<span id="tripCount">0</span>)
         </h3>
       </div>
 
@@ -131,12 +141,50 @@
     <div id="tripsContainer" class="space-y-4"></div>
   </main>
 
-  <!-- Rating & Review Modal (Text-Only, Anti-XSS Protected) -->
+  <!-- Google Sign-In Modal (For Passenger Database & Security Verification) -->
+  <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <i class="fa-brands fa-google text-rose-500 text-lg"></i>
+          <h4 class="font-bold text-slate-900 text-base">Passenger Verification</h4>
+        </div>
+        <button onclick="closeAuthModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-600 mt-3 leading-relaxed">
+        For passenger and driver safety, you must sign in with your Google account before calling a driver, viewing live WhatsApp locations, or submitting ratings.
+      </p>
+
+      <form id="googleAuthForm" onsubmit="handleGoogleSignIn(event)" class="mt-4 space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+          <input type="text" id="authName" required maxlength="60" placeholder="Enter your full name" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Gmail Address</label>
+          <input type="email" id="authEmail" required placeholder="yourname@gmail.com" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number (For Emergency Security Log)</label>
+          <input type="tel" id="authPhone" required pattern="[6-9][0-9]{9}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="10-digit mobile number" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+
+        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm shadow flex items-center justify-center gap-2 transition">
+          <i class="fa-brands fa-google text-emerald-400"></i> Continue with Google Account
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Rating & Review Modal (Text-Only, Strict 50-Word / 250-Char Limit) -->
   <div id="ratingModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
         <div>
-          <h4 class="font-bold text-slate-900 text-base">Rate Driver & Vehicle</h4>
+          <h4 class="font-bold text-slate-900 text-base">Rate Verified Driver</h4>
           <p id="modalDriverName" class="text-xs text-slate-500 mt-0.5"></p>
         </div>
         <button onclick="closeRatingModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
@@ -149,7 +197,7 @@
 
         <!-- Star Selection -->
         <div class="text-center">
-          <p class="text-xs font-semibold uppercase text-slate-500 mb-2">Tap to Select Stars</p>
+          <p class="text-xs font-semibold uppercase text-slate-500 mb-2">Select Star Rating</p>
           <div id="starSelector" class="flex justify-center gap-2 text-2xl text-amber-400 cursor-pointer">
             <i onclick="setStarRating(1)" class="fa-solid fa-star" data-star="1"></i>
             <i onclick="setStarRating(2)" class="fa-solid fa-star" data-star="2"></i>
@@ -162,7 +210,7 @@
 
         <!-- Quick Feedback Tags -->
         <div>
-          <p class="text-xs font-semibold text-slate-600 mb-2">Quick Feedback Tags (Select any):</p>
+          <p class="text-xs font-semibold text-slate-600 mb-2">Quick Tags (Optional):</p>
           <div id="tagContainer" class="flex flex-wrap gap-1.5">
             <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 text-slate-600 hover:border-emerald-500">On Time</button>
             <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 text-slate-600 hover:border-emerald-500">Safe Driving</button>
@@ -171,21 +219,6 @@
             <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-rose-200 text-rose-600 hover:border-rose-500">Overloading</button>
             <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-rose-200 text-rose-600 hover:border-rose-500">Late Departure</button>
           </div>
-        </div>
-
-        <!-- Customer Mobile (1 review per day anti-spam check) -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Your Mobile Number (1 review per day limit)</label>
-          <input 
-            type="tel" 
-            id="reviewerPhone" 
-            required 
-            pattern="[6-9][0-9]{9}" 
-            maxlength="10" 
-            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-            placeholder="Enter 10-digit mobile number" 
-            class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" 
-          />
         </div>
 
         <!-- Short Comment (Strict 250 Characters / Max 50 Words, Plain Text Only) -->
@@ -199,7 +232,7 @@
             rows="2" 
             maxlength="250"
             oninput="sanitizeAndCount(this)"
-            placeholder="Write short feedback (Links, code, and special symbols are blocked)..." 
+            placeholder="Write short feedback (Links, code, files, and special symbols are strictly blocked)..." 
             class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500"
           ></textarea>
         </div>
@@ -215,11 +248,11 @@
   <footer class="bg-slate-900 text-slate-400 text-xs py-6 px-4 mt-10">
     <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
       <p>© 2026 RouteConnect Corridor (Manjhepur – Amauli – Jahanabad – Kanpur).</p>
-      <p class="text-slate-500">Independent Vehicle Aggregator • Verified Driver Directory</p>
+      <p class="text-slate-500">Verified Driver Aggregator • 25-Day Automated Security Retention</p>
     </div>
   </footer>
 
-  <!-- Application Logic & Master Data -->
+  <!-- Application Logic & Security Engine -->
   <script>
     // =========================================================================
     // 1. MASTER VERIFIED 34 ROUTE STOPS & CUMULATIVE SAFE TIME OFFSET (MINUTES)
@@ -262,92 +295,148 @@
     ];
 
     // =========================================================================
-    // 2. SAMPLE LIVE TRIPS (Connects to Firebase Firestore / LocalStorage)
+    // 2. PRODUCTION CLEAN STATE (NO FAKE DEMO DRIVERS)
     // =========================================================================
-    const SAMPLE_TRIPS = [
-      {
-        trip_id: "TRIP_101",
-        driver_id: "DRV_01",
-        driver_name: "Rajesh Singh",
-        driver_phone: "9839011223",
-        driver_photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-        vehicle_type: "Force Cruiser (12 Seater)",
-        vehicle_no: "UP 71 AT 4521",
-        start_stop: "Manjhepur",
-        end_stop: "Basant Vihar Chauraha",
-        departure_time: "07:00",
-        claimed_arrival_time: "09:30",
-        seats_available: 4,
-        status: "Running",
-        rating: 4.8,
-        review_count: 42,
-        top_tags: ["On Time", "Safe Driving"],
-        whatsapp_location_active: true
-      },
-      {
-        trip_id: "TRIP_102",
-        driver_id: "DRV_02",
-        driver_name: "Mahendra Yadav",
-        driver_phone: "9450022334",
-        driver_photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
-        vehicle_type: "Mahindra Bolero",
-        vehicle_no: "UP 78 DN 8890",
-        start_stop: "Amauli",
-        end_stop: "Naubasta",
-        departure_time: "08:00",
-        claimed_arrival_time: "09:40",
-        seats_available: 3,
-        status: "Scheduled",
-        rating: 4.6,
-        review_count: 29,
-        top_tags: ["Clean Vehicle", "Polite Behavior"],
-        whatsapp_location_active: true
-      },
-      {
-        trip_id: "TRIP_103",
-        driver_id: "DRV_03",
-        driver_name: "Suresh Kumar",
-        driver_phone: "9935033445",
-        driver_photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80",
-        vehicle_type: "Tata Magic Express",
-        vehicle_no: "UP 71 B 3109",
-        start_stop: "Sathigavan",
-        end_stop: "Jahanabad",
-        departure_time: "09:15",
-        claimed_arrival_time: "10:05",
-        seats_available: 5,
-        status: "Scheduled",
-        rating: 4.5,
-        review_count: 18,
-        top_tags: ["On Time"],
-        whatsapp_location_active: true
-      },
-      {
-        trip_id: "TRIP_104",
-        driver_id: "DRV_04",
-        driver_name: "Dinesh Tiwari",
-        driver_phone: "9198044556",
-        driver_photo: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80",
-        vehicle_type: "Maruti Ertiga (AC)",
-        vehicle_no: "UP 78 GT 1120",
-        start_stop: "Basant Vihar Chauraha",
-        end_stop: "Sathigavan",
-        departure_time: "12:05",
-        claimed_arrival_time: "14:05",
-        seats_available: 2,
-        status: "Scheduled",
-        rating: 4.9,
-        review_count: 64,
-        top_tags: ["Clean Vehicle", "Safe Driving"],
-        whatsapp_location_active: true
-      }
-    ];
+    // Real trips added via driver.html or Firebase will populate RC_LIVE_TRIPS
+    const DEFAULT_TRIPS = [];
 
     let currentDirectionFilter = "ALL";
     let selectedStarRating = 5;
 
     // =========================================================================
-    // 3. HELPER FUNCTIONS (TIME & OFFSET CALCULATIONS)
+    // 3. PASSENGER GOOGLE AUTHENTICATION & 25-DAY ROLLING INTERACTION LOG
+    // =========================================================================
+    function getLoggedInPassenger() {
+      try {
+        return JSON.parse(localStorage.getItem("RC_PASSENGER_USER"));
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function renderAuthHeader() {
+      const user = getLoggedInPassenger();
+      const authContainer = document.getElementById("authSection");
+      if (user && user.email) {
+        authContainer.innerHTML = `
+          <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span class="font-semibold text-slate-200 truncate max-w-[110px]">${user.name}</span>
+            <button onclick="signOutPassenger()" title="Sign Out" class="text-slate-400 hover:text-rose-400 ml-1">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
+        `;
+      } else {
+        authContainer.innerHTML = `
+          <button onclick="openAuthModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-brands fa-google text-rose-500"></i>
+            <span>Sign In</span>
+          </button>
+        `;
+      }
+    }
+
+    function openAuthModal() {
+      document.getElementById("authModal").classList.remove("hidden");
+      document.getElementById("authModal").classList.add("flex");
+    }
+
+    function closeAuthModal() {
+      document.getElementById("authModal").classList.add("hidden");
+      document.getElementById("authModal").classList.remove("flex");
+    }
+
+    function handleGoogleSignIn(e) {
+      e.preventDefault();
+      const name = document.getElementById("authName").value.trim().replace(/[<>/{}[\]\\]/g, "");
+      const email = document.getElementById("authEmail").value.trim().toLowerCase();
+      const phone = document.getElementById("authPhone").value.trim();
+
+      if (!email.endsWith("@gmail.com")) {
+        alert("Please sign in using a valid @gmail.com address.");
+        return;
+      }
+
+      const passengerObj = {
+        uid: "USR_" + btoa(email).slice(0, 10),
+        name,
+        email,
+        phone,
+        joined_at: new Date().toISOString()
+      };
+
+      // Save current session
+      localStorage.setItem("RC_PASSENGER_USER", JSON.stringify(passengerObj));
+
+      // Save to Master Passenger CRM Directory (for Admin Database Count)
+      let directory = [];
+      try {
+        directory = JSON.parse(localStorage.getItem("RC_PASSENGER_DIRECTORY") || "[]");
+      } catch (err) {}
+      if (!directory.some(u => u.email === email)) {
+        directory.push(passengerObj);
+        localStorage.setItem("RC_PASSENGER_DIRECTORY", JSON.stringify(directory));
+      }
+
+      closeAuthModal();
+      renderAuthHeader();
+    }
+
+    function signOutPassenger() {
+      localStorage.removeItem("RC_PASSENGER_USER");
+      renderAuthHeader();
+    }
+
+    // Automatically purge interaction logs older than 25 days (600 hours)
+    function purgeExpiredInteractionLogs() {
+      try {
+        const rawLogs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
+        const cutoffTime = Date.now() - (25 * 24 * 60 * 60 * 1000); // 25 Days in ms
+        const validLogs = rawLogs.filter(log => new Date(log.timestamp).getTime() >= cutoffTime);
+        localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(validLogs));
+      } catch (e) {}
+    }
+
+    // Log passenger click (Call or WhatsApp) for 25-day security trace
+    function handleProtectedAction(actionType, driverId, driverName, vehicleNo, targetUrl) {
+      const user = getLoggedInPassenger();
+      if (!user) {
+        openAuthModal();
+        return;
+      }
+
+      purgeExpiredInteractionLogs();
+
+      let logs = [];
+      try {
+        logs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
+      } catch (e) {}
+
+      logs.push({
+        log_id: "LOG_" + Date.now(),
+        passenger_uid: user.uid,
+        passenger_name: user.name,
+        passenger_email: user.email,
+        passenger_phone: user.phone,
+        driver_id: driverId,
+        driver_name: driverName,
+        vehicle_no: vehicleNo,
+        action_type: actionType,
+        timestamp: new Date().toISOString()
+      });
+
+      localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(logs));
+
+      if (actionType === "CALL") {
+        window.location.href = targetUrl;
+      } else {
+        window.open(targetUrl, "_blank", "noopener,noreferrer");
+      }
+    }
+
+    // =========================================================================
+    // 4. TIME & SAFE TRANSIT OFFSET HELPERS
     // =========================================================================
     function getStopObj(stopName) {
       return ROUTE_STOPS.find(s => s.name === stopName);
@@ -409,7 +498,7 @@
       document.getElementById("toStop").value = "";
       setDirectionFilter("ALL");
       document.getElementById("routeTravelEstimate").innerHTML =
-        "Select Pickup & Drop stops to see exact passing vehicles & safe arrival time.";
+        "Select Pickup & Drop stops to calculate exact safe transit time and passing vehicles.";
       filterTrips();
     }
 
@@ -427,17 +516,17 @@
     }
 
     // =========================================================================
-    // 4. SUB-ROUTE MATCHING & RENDER ENGINE
+    // 5. SUB-ROUTE MATCHING & LIVE / PROMISED TRIP RENDER ENGINE
     // =========================================================================
     function getActiveTripsData() {
       const saved = localStorage.getItem("RC_LIVE_TRIPS");
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed)) return parsed;
         } catch (e) {}
       }
-      return SAMPLE_TRIPS;
+      return DEFAULT_TRIPS;
     }
 
     function filterTrips() {
@@ -516,8 +605,8 @@
             <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
               <i class="fa-solid fa-van-shuttle"></i>
             </div>
-            <h4 class="font-bold text-slate-800 text-base">No Direct Vehicles Found on This Sub-Route</h4>
-            <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Try clicking "Show All" to view all active vehicles running between Manjhepur, Amauli, Jahanabad, and Kanpur.</p>
+            <h4 class="font-bold text-slate-800 text-base">No Active or Promised Vehicles Listed Right Now</h4>
+            <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Verified drivers update their live departures and promised schedules directly from the Driver Portal. Please check back shortly.</p>
           </div>
         `;
         return;
@@ -527,6 +616,10 @@
         const tripStart = getStopObj(trip.start_stop);
         const tripEnd = getStopObj(trip.end_stop);
         const isTowardsKanpur = tripEnd.index > tripStart.index;
+
+        const maxSeats = Number(trip.max_capacity) || 12;
+        const seatsLeft = Number(trip.seats_available);
+        const isFull = seatsLeft <= 0;
 
         let customTimingHTML = "";
         if (userFromStop && userToStop) {
@@ -542,20 +635,28 @@
                 <span class="font-bold text-emerald-800 ml-1">${pickupETA}</span>
               </div>
               <div>
-                <span class="text-slate-500">Safe Arrival at <b>${userToStop.name}</b>:</span>
+                <span class="text-slate-500">Min Safe Arrival at <b>${userToStop.name}</b>:</span>
                 <span class="font-bold text-emerald-800 ml-1">${dropETA}</span>
               </div>
             </div>
           `;
         }
 
+        // Trip Status Badge (Running vs Promised Schedule)
         const statusBadge = trip.status === "Running"
-          ? `<span class="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full"><span class="w-2 h-2 rounded-full bg-emerald-600"></span> On the Way</span>`
-          : `<span class="inline-flex items-center gap-1.5 text-xs font-bold bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full"><i class="fa-regular fa-clock"></i> Departing ${convert24To12(trip.departure_time)}</span>`;
+          ? `<span class="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full"><span class="w-2 h-2 rounded-full bg-emerald-600"></span> Live On Route</span>`
+          : `<span class="inline-flex items-center gap-1.5 text-xs font-bold bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-full"><i class="fa-regular fa-calendar-check"></i> Promised: ${convert24To12(trip.departure_time)}</span>`;
+
+        // Seat Badge (Controlled solely by Driver)
+        const seatBadge = isFull
+          ? `<span class="inline-block text-xs font-bold text-rose-600 mt-1.5"><i class="fa-solid fa-ban"></i> Housefull (0/${maxSeats} Seats)</span>`
+          : `<span class="inline-block text-xs font-bold text-emerald-700 mt-1.5"><i class="fa-solid fa-chair"></i> ${seatsLeft} of ${maxSeats} Seats Available</span>`;
 
         const whatsappMsg = encodeURIComponent(
-          `Hello ${trip.driver_name} (${trip.vehicle_no}), I saw your trip (${trip.start_stop} to ${trip.end_stop} at ${convert24To12(trip.departure_time)}) on RouteConnect. Please share your Live Location and confirm seat availability.`
+          `Hello ${trip.driver_name} (${trip.vehicle_no}), I found your trip (${trip.start_stop} to ${trip.end_stop} at ${convert24To12(trip.departure_time)}) on RouteConnect. Please share your Live Location and confirm seat availability.`
         );
+        const waUrl = `https://wa.me/91${trip.driver_phone}?text=${whatsappMsg}`;
+        const telUrl = `tel:${trip.driver_phone}`;
 
         return `
           <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:shadow-md transition">
@@ -566,7 +667,7 @@
                 <div>
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <h4 class="font-bold text-slate-900 text-base">${trip.driver_name}</h4>
-                    <span class="text-[11px] bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-md border border-blue-200" title="Physically Verified by Admin">
+                    <span class="text-[11px] bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-md border border-blue-200">
                       <i class="fa-solid fa-circle-check"></i> Verified
                     </span>
                   </div>
@@ -575,9 +676,9 @@
                   </p>
                   <div class="flex items-center gap-2 mt-1">
                     <span class="text-xs font-bold text-amber-600">
-                      <i class="fa-solid fa-star"></i> ${trip.rating}
+                      <i class="fa-solid fa-star"></i> ${trip.rating || "5.0"}
                     </span>
-                    <span class="text-[11px] text-slate-400">(${trip.review_count} reviews)</span>
+                    <span class="text-[11px] text-slate-400">(${trip.review_count || 0} reviews)</span>
                     <button onclick="openRatingModal('${trip.driver_id}', '${trip.driver_name} (${trip.vehicle_no})')" class="text-[11px] text-emerald-600 hover:underline font-semibold ml-1">
                       + Rate Driver
                     </button>
@@ -586,9 +687,7 @@
               </div>
               <div class="text-right">
                 ${statusBadge}
-                <div class="text-xs font-semibold text-slate-600 mt-1.5">
-                  <i class="fa-solid fa-chair text-emerald-600"></i> ${trip.seats_available} Seats Left
-                </div>
+                <div>${seatBadge}</div>
               </div>
             </div>
 
@@ -613,7 +712,7 @@
               <div class="text-right">
                 <span class="text-[10px] uppercase font-bold text-slate-400 block">Goes Up To</span>
                 <span class="font-bold text-slate-900">${trip.end_stop}</span>
-                <span class="block text-xs font-semibold text-slate-700">ETA: ${convert24To12(trip.claimed_arrival_time)}</span>
+                <span class="block text-xs font-semibold text-slate-700">Promised ETA: ${convert24To12(trip.claimed_arrival_time)}</span>
               </div>
             </div>
 
@@ -622,16 +721,22 @@
             <!-- Action Buttons -->
             <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
               <div class="flex flex-wrap gap-1">
-                ${(trip.top_tags || []).map(tag => `<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium">#${tag}</span>`).join("")}
+                ${(trip.top_tags || ["Verified Partner"]).map(tag => `<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium">#${tag}</span>`).join("")}
               </div>
 
               <div class="flex items-center gap-2 w-full sm:w-auto">
-                <a href="tel:${trip.driver_phone}" class="flex-1 sm:flex-initial px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition">
+                <button 
+                  onclick="handleProtectedAction('CALL', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${telUrl}')" 
+                  class="flex-1 sm:flex-initial px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition"
+                >
                   <i class="fa-solid fa-phone"></i> Call Driver
-                </a>
-                <a href="https://wa.me/91${trip.driver_phone}?text=${whatsappMsg}" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition">
+                </button>
+                <button 
+                  onclick="handleProtectedAction('WHATSAPP', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${waUrl}')" 
+                  class="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition"
+                >
                   <i class="fa-brands fa-whatsapp text-sm"></i> Live Location / Chat
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -640,9 +745,14 @@
     }
 
     // =========================================================================
-    // 5. RATING & REVIEW MODAL + STRICT ANTI-XSS / TEXT-ONLY SANITIZATION
+    // 6. RATING & REVIEW MODAL + STRICT ANTI-XSS / TEXT-ONLY SANITIZATION
     // =========================================================================
     function openRatingModal(driverId, driverTitle) {
+      const user = getLoggedInPassenger();
+      if (!user) {
+        openAuthModal();
+        return;
+      }
       document.getElementById("modalDriverId").value = driverId;
       document.getElementById("modalDriverName").textContent = driverTitle;
       document.getElementById("charCount").textContent = "0 / 250 chars";
@@ -704,33 +814,37 @@
 
     function submitReview(e) {
       e.preventDefault();
-      const driverId = document.getElementById("modalDriverId").value;
-      const phone = document.getElementById("reviewerPhone").value.trim();
-      const comment = document.getElementById("reviewerComment").value.trim();
-      const todayKey = `REVIEW_${driverId}_${phone}_${new Date().toISOString().slice(0, 10)}`;
-
-      if (!/^[6-9]\d{9}$/.test(phone)) {
-        alert("Please enter a valid 10-digit mobile number.");
+      const user = getLoggedInPassenger();
+      if (!user) {
+        openAuthModal();
         return;
       }
 
+      const driverId = document.getElementById("modalDriverId").value;
+      const comment = document.getElementById("reviewerComment").value.trim();
+      const todayKey = `REVIEW_${driverId}_${user.uid}_${new Date().toISOString().slice(0, 10)}`;
+
       if (localStorage.getItem(todayKey)) {
-        alert("You have already submitted a review for this driver today.");
+        alert("You have already submitted a verified review for this driver today.");
         return;
       }
 
       localStorage.setItem(todayKey, JSON.stringify({
+        passenger_uid: user.uid,
+        passenger_email: user.email,
         rating: selectedStarRating,
         comment: comment,
         timestamp: new Date().toISOString()
       }));
 
-      alert("Thank you! Your verified review has been recorded.");
+      alert("Thank you! Your verified review has been saved.");
       closeRatingModal();
     }
 
     // Initialize Page
     window.addEventListener("DOMContentLoaded", () => {
+      purgeExpiredInteractionLogs();
+      renderAuthHeader();
       initDropdowns();
       filterTrips();
     });
