@@ -17,8 +17,8 @@
 
   <!-- Top Security Banner -->
   <div class="bg-emerald-600 text-white text-xs sm:text-sm font-medium py-2 px-4 text-center">
-    <i class="fa-solid fa-id-card-clip mr-1"></i>
-    RouteConnect Driver Control Panel • Real-Time Seat & Schedule Publisher
+    <i class="fa-solid fa-shield-halved mr-1"></i>
+    RouteConnect Verified Driver Portal • Single-Record Cloud Verification (Zero Data Leak)
   </div>
 
   <!-- Navbar -->
@@ -26,7 +26,7 @@
     <div class="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between gap-2">
       <div class="flex items-center space-x-2.5">
         <div class="bg-emerald-500 text-slate-900 p-2 rounded-lg font-bold text-lg leading-none">
-          <i class="fa-solid fa-steering-wheel"></i>
+          <i class="fa-solid fa-van-shuttle"></i>
         </div>
         <div>
           <h1 class="font-bold text-base sm:text-lg tracking-tight leading-none">Driver Portal</h1>
@@ -46,79 +46,104 @@
 
   <main class="max-w-4xl mx-auto w-full px-4 py-6 flex-1 space-y-6">
 
-    <!-- STEP 1: GOOGLE SIGN-IN GATE (Shown when logged out) -->
+    <!-- STEP 1: GOOGLE SIGN-IN GATE -->
     <section id="loginGate" class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border border-slate-200 text-center max-w-lg mx-auto my-6">
       <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-4 text-2xl">
-        <i class="fa-solid fa-van-shuttle"></i>
+        <i class="fa-solid fa-id-card"></i>
       </div>
-      <h2 class="text-lg sm:text-xl font-bold text-slate-900">Driver Partner Sign-In</h2>
+      <h2 class="text-lg sm:text-xl font-bold text-slate-900">Verified Driver Sign-In</h2>
       <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-        Sign in with your Google Account to register your vehicle, publish live trips, and update available seats in real time.
+        Sign in with the Gmail ID registered with RouteConnect Admin. Only your individual profile will be fetched securely from Firebase.
       </p>
 
       <button onclick="loginDriverWithGoogle()" class="mt-6 w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm shadow-md flex items-center justify-center gap-2.5 transition">
         <i class="fa-brands fa-google text-emerald-400 text-base"></i>
-        <span>Sign In with Google</span>
+        <span>Sign In with Registered Google Account</span>
       </button>
       <p id="authErrorMsg" class="text-xs text-rose-600 font-medium mt-3 hidden"></p>
     </section>
 
-    <!-- STEP 2: DRIVER DASHBOARD (Shown after Google Sign-In) -->
+    <!-- LOADING STATE -->
+    <section id="loadingGate" class="hidden bg-white rounded-2xl p-8 text-center max-w-lg mx-auto my-6 border border-slate-200">
+      <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-600 mb-2"></i>
+      <p class="text-xs font-semibold text-slate-600">Verifying your driver membership & validity...</p>
+    </section>
+
+    <!-- BLOCKED / EXPIRED / UNREGISTERED NOTICE -->
+    <section id="blockedNotice" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-6 text-center max-w-lg mx-auto my-6 shadow-sm">
+      <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3 text-xl">
+        <i class="fa-solid fa-ban"></i>
+      </div>
+      <h3 id="blockedTitle" class="font-bold text-rose-900 text-base">Access Restricted</h3>
+      <p id="blockedDesc" class="text-xs text-rose-700 mt-1.5 leading-relaxed"></p>
+      <button onclick="logoutDriver()" class="mt-5 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl transition shadow-sm">
+        Sign Out & Switch Account
+      </button>
+    </section>
+
+    <!-- STEP 2: DRIVER DASHBOARD (Shown only when Active & Not Expired) -->
     <div id="driverDashboard" class="hidden space-y-6">
 
-      <!-- A. Driver & Vehicle Profile Card -->
+      <!-- Subscription / Validity Banner -->
+      <div id="validityBanner" class="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs text-emerald-900 font-medium">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+          <span>Admin Verified Partner (<span id="bannerDriverId" class="font-mono font-bold"></span>)</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="paymentBadgeText" class="bg-white px-2.5 py-0.5 rounded-md border border-emerald-200 font-semibold"></span>
+          <span id="expiryBadgeText" class="font-bold text-emerald-700"></span>
+        </div>
+      </div>
+
+      <!-- A. Admin-Locked Driver & Vehicle Profile Card -->
       <section class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-          <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-            <i class="fa-solid fa-user-check text-emerald-600"></i>
-            <span>1. Your Driver & Vehicle Profile</span>
-          </h3>
-          <span class="text-[11px] bg-blue-50 text-blue-700 font-semibold px-2.5 py-0.5 rounded-full border border-blue-200">
-            Verified Account
+          <div class="flex items-center gap-3">
+            <img id="profPhotoPreview" src="" alt="Driver" class="w-11 h-11 rounded-xl object-cover border border-slate-300 bg-slate-100" />
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-1.5">
+                <span>1. Registered Vehicle & Driver Details</span>
+              </h3>
+              <p class="text-[11px] text-slate-400">Synced directly from Admin Master Sheet (Read-Only)</p>
+            </div>
+          </div>
+          <span class="text-[11px] bg-slate-100 text-slate-700 font-semibold px-2.5 py-1 rounded-lg border border-slate-200">
+            <i class="fa-solid fa-lock text-slate-400 mr-1"></i> Admin Locked
           </span>
         </div>
 
-        <form id="profileForm" onsubmit="saveDriverProfile(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Driver Full Name *</label>
-            <input type="text" id="profName" required maxlength="50" placeholder="e.g. Ramesh Yadav" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">10-Digit Mobile / WhatsApp Number *</label>
-            <input type="tel" id="profPhone" required pattern="[6-9][0-9]{9}" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="9876543210" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Driver Full Name</label>
+            <input type="text" id="profName" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 cursor-not-allowed outline-none" />
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Vehicle Number (Plate) *</label>
-            <input type="text" id="profVehicleNo" required maxlength="15" oninput="this.value=this.value.toUpperCase()" placeholder="UP78 AB 1234" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono uppercase outline-none focus:ring-2 focus:ring-emerald-500" />
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Gender</label>
+            <input type="text" id="profGender" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 cursor-not-allowed outline-none" />
           </div>
 
-          <div class="grid grid-cols-2 gap-2.5">
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Vehicle Type *</label>
-              <select id="profVehicleType" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-                <option value="Winger (12-15 Seater)">Tata Winger</option>
-                <option value="Magic / Tempo">Tata Magic</option>
-                <option value="Bolero / SUV">Bolero / SUV</option>
-                <option value="Eeco Van">Maruti Eeco</option>
-                <option value="Mini Bus">Mini Bus</option>
-                <option value="Auto / Loader">Three Wheeler</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Total Seats *</label>
-              <input type="number" id="profMaxSeats" required min="1" max="50" value="12" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-            </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Registered Mobile / WhatsApp</label>
+            <input type="tel" id="profPhone" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 cursor-not-allowed outline-none" />
           </div>
 
-          <div class="sm:col-span-2 flex items-center justify-between pt-2">
-            <span id="profileSavedMsg" class="text-xs font-semibold text-emerald-600"></span>
-            <button type="submit" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow transition">
-              <i class="fa-solid fa-floppy-disk mr-1"></i> Save Profile Details
-            </button>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Vehicle Number (Plate)</label>
+            <input type="text" id="profVehicleNo" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-800 uppercase cursor-not-allowed outline-none" />
           </div>
-        </form>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Vehicle Type</label>
+            <input type="text" id="profVehicleType" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 cursor-not-allowed outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Approved Seat Capacity</label>
+            <input type="number" id="profMaxSeats" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 cursor-not-allowed outline-none" />
+          </div>
+        </div>
       </section>
 
       <!-- B. Publish New Live or Promised Trip -->
@@ -128,35 +153,30 @@
             <i class="fa-solid fa-satellite-dish text-emerald-600"></i>
             <span>2. Publish Live or Scheduled Trip</span>
           </h3>
-          <span class="text-xs text-slate-400">Auto-calculates safe arrival time</span>
+          <span class="text-xs text-slate-400">Auto-expires 45 mins after arrival</span>
         </div>
 
         <form id="tripForm" onsubmit="publishTrip(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Start Stop -->
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Starting Stop (From) *</label>
             <select id="tripStartStop" required onchange="calculateSafeETA()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500"></select>
           </div>
 
-          <!-- End Stop -->
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Destination Stop (Goes Up To) *</label>
             <select id="tripEndStop" required onchange="calculateSafeETA()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500"></select>
           </div>
 
-          <!-- Departure Time -->
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Departure Time *</label>
             <input type="time" id="tripDepTime" required onchange="calculateSafeETA()" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
 
-          <!-- Auto Calculated Arrival Time -->
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Promised Arrival ETA (Auto-Locked)</label>
             <input type="time" id="tripArrTime" required readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-300 rounded-xl text-sm font-bold text-emerald-700 outline-none cursor-not-allowed" />
           </div>
 
-          <!-- Trip Status -->
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Current Trip Status *</label>
             <select id="tripStatus" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500">
@@ -165,7 +185,6 @@
             </select>
           </div>
 
-          <!-- Seats Currently Available -->
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Seats Currently Empty/Available *</label>
             <input type="number" id="tripSeatsLeft" required min="0" max="50" value="12" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-emerald-700 outline-none focus:ring-2 focus:ring-emerald-500" />
@@ -199,17 +218,17 @@
   <footer class="bg-slate-900 text-slate-400 text-xs py-6 px-4 mt-10">
     <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
       <p>© 2026 RouteConnect Driver Portal (Manjhepur – Amauli – Jahanabad – Kanpur).</p>
-      <p class="text-slate-500">Real-Time Firestore Cloud Engine Active</p>
+      <p class="text-slate-500">Single-Document Firestore Auth • Zero Bulk Data Download</p>
     </div>
   </footer>
 
   <!-- ========================================================================= -->
-  <!-- FIREBASE CLOUD ENGINE & DRIVER PORTAL LOGIC                               -->
+  <!-- FIREBASE CLOUD ENGINE (SINGLE DRIVER RECORD LOOKUP - NO JSON FILE)        -->
   <!-- ========================================================================= -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAJnefI6TOx8WN2CfFpABebiZEjC4Cn0p4",
@@ -226,7 +245,6 @@
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
 
-    // Master 34 Stops matching index.html exactly
     const ROUTE_STOPS = [
       { index: 0,  name: "Manjhepur", offset: 0 },
       { index: 1,  name: "Barwa", offset: 5 },
@@ -265,9 +283,9 @@
     ];
 
     let currentDriverUser = null;
+    let verifiedDriverRecord = null; // Holds ONLY this logged-in driver's record from Firestore
     let allLiveTrips = [];
 
-    // Populate Stop Dropdowns
     function initStopSelects() {
       const startSel = document.getElementById("tripStartStop");
       const endSel = document.getElementById("tripEndStop");
@@ -289,7 +307,6 @@
       calculateSafeETA();
     }
 
-    // Calculate Promised Arrival Time based on ROUTE_STOPS offset
     window.calculateSafeETA = function () {
       const startName = document.getElementById("tripStartStop").value;
       const endName = document.getElementById("tripEndStop").value;
@@ -308,7 +325,6 @@
       document.getElementById("tripArrTime").value = `${arrH}:${arrM}`;
     };
 
-    // Google Login for Driver
     window.loginDriverWithGoogle = async function () {
       const errEl = document.getElementById("authErrorMsg");
       errEl.classList.add("hidden");
@@ -324,98 +340,140 @@
       await signOut(auth);
     };
 
-    // Auth State Observer
-    onAuthStateChanged(auth, (user) => {
-      currentDriverUser = user;
-      const loginGate = document.getElementById("loginGate");
-      const dashboard = document.getElementById("driverDashboard");
-      const badge = document.getElementById("driverAuthBadge");
+    // Fetch ONLY this single driver's document from Firestore 'verified_drivers/{email}'
+    async function verifySingleDriverFromFirestore(user) {
+      const emailKey = user.email.toLowerCase().trim();
+      const docRef = doc(db, "verified_drivers", emailKey);
+      const docSnap = await getDoc(docRef);
 
-      if (user) {
-        loginGate.classList.add("hidden");
-        dashboard.classList.remove("hidden");
-        badge.innerHTML = `
-          <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="font-semibold text-slate-200 truncate max-w-[110px]">${user.displayName || user.email}</span>
-            <button onclick="logoutDriver()" title="Sign Out" class="text-slate-400 hover:text-rose-400 ml-1">
-              <i class="fa-solid fa-right-from-bracket"></i>
-            </button>
-          </div>
-        `;
-        loadSavedProfile(user);
-        renderDriverTrips();
-      } else {
-        loginGate.classList.remove("hidden");
-        dashboard.classList.add("hidden");
-        badge.innerHTML = "";
+      if (!docSnap.exists()) {
+        return { allowed: false, reason: "NOT_FOUND" };
       }
-    });
 
-    // Load & Save Driver Profile
-    function loadSavedProfile(user) {
-      const saved = localStorage.getItem(`RC_DRIVER_PROFILE_${user.uid}`);
-      if (saved) {
-        try {
-          const p = JSON.parse(saved);
-          document.getElementById("profName").value = p.name || user.displayName || "";
-          document.getElementById("profPhone").value = p.phone || "";
-          document.getElementById("profVehicleNo").value = p.vehicle_no || "";
-          document.getElementById("profVehicleType").value = p.vehicle_type || "Winger (12-15 Seater)";
-          document.getElementById("profMaxSeats").value = p.max_capacity || 12;
-          document.getElementById("tripSeatsLeft").value = p.max_capacity || 12;
-          return;
-        } catch (e) {}
+      const data = docSnap.data();
+      const isStatusActive = String(data.status || "").toLowerCase() === "active";
+      const isPaid = String(data.payment_status || "Paid").toLowerCase() !== "pending";
+
+      // Compare Expiry Date (YYYY-MM-DD) in IST
+      const todayIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const expiryStr = String(data.expiry_date || "").trim();
+      const isExpired = expiryStr && expiryStr < todayIST;
+
+      if (!isStatusActive) {
+        return { allowed: false, reason: "BLOCKED", data };
       }
-      document.getElementById("profName").value = user.displayName || "";
+      if (!isPaid || isExpired) {
+        return { allowed: false, reason: "EXPIRED", data };
+      }
+
+      return { allowed: true, data };
     }
 
-    window.saveDriverProfile = async function (e) {
-      e.preventDefault();
-      if (!currentDriverUser) return;
+    onAuthStateChanged(auth, async (user) => {
+      currentDriverUser = user;
+      verifiedDriverRecord = null;
 
-      const profileData = {
-        driver_id: currentDriverUser.uid,
-        name: document.getElementById("profName").value.trim(),
-        phone: document.getElementById("profPhone").value.trim(),
-        vehicle_no: document.getElementById("profVehicleNo").value.trim().toUpperCase(),
-        vehicle_type: document.getElementById("profVehicleType").value,
-        max_capacity: Number(document.getElementById("profMaxSeats").value) || 12,
-        email: currentDriverUser.email,
-        photo: currentDriverUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(document.getElementById("profName").value.trim())}&background=10b981&color=fff`,
-        updated_at: new Date().toISOString()
-      };
+      const loginGate = document.getElementById("loginGate");
+      const loadingGate = document.getElementById("loadingGate");
+      const dashboard = document.getElementById("driverDashboard");
+      const blockedNotice = document.getElementById("blockedNotice");
+      const badge = document.getElementById("driverAuthBadge");
 
-      localStorage.setItem(`RC_DRIVER_PROFILE_${currentDriverUser.uid}`, JSON.stringify(profileData));
-      document.getElementById("tripSeatsLeft").value = profileData.max_capacity;
-
-      try {
-        await setDoc(doc(db, "drivers", currentDriverUser.uid), profileData, { merge: true });
-      } catch (err) {
-        console.warn("Driver profile cloud sync notice:", err.message);
-      }
-
-      const msg = document.getElementById("profileSavedMsg");
-      msg.textContent = "✓ Profile Saved Successfully!";
-      setTimeout(() => { msg.textContent = ""; }, 3000);
-    };
-
-    // Publish or Update Live Trip in Firestore
-    window.publishTrip = async function (e) {
-      e.preventDefault();
-      if (!currentDriverUser) {
-        alert("Please sign in first.");
+      if (!user) {
+        loginGate.classList.remove("hidden");
+        loadingGate.classList.add("hidden");
+        dashboard.classList.add("hidden");
+        blockedNotice.classList.add("hidden");
+        badge.innerHTML = "";
         return;
       }
 
-      const driverName = document.getElementById("profName").value.trim();
-      const driverPhone = document.getElementById("profPhone").value.trim();
-      const vehicleNo = document.getElementById("profVehicleNo").value.trim().toUpperCase();
-      const vehicleType = document.getElementById("profVehicleType").value;
-      const maxCapacity = Number(document.getElementById("profMaxSeats").value) || 12;
+      loginGate.classList.add("hidden");
+      dashboard.classList.add("hidden");
+      blockedNotice.classList.add("hidden");
+      loadingGate.classList.remove("hidden");
 
-      if (!driverName || !/^[6-9][0-9]{9}$/.test(driverPhone) || !vehicleNo) {
-        alert("Please complete and save your Driver Name, 10-digit Mobile Number, and Vehicle Number in Step 1 first.");
+      badge.innerHTML = `
+        <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="font-semibold text-slate-200 truncate max-w-[110px]">${user.email}</span>
+          <button onclick="logoutDriver()" title="Sign Out" class="text-slate-400 hover:text-rose-400 ml-1">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      `;
+
+      try {
+        const check = await verifySingleDriverFromFirestore(user);
+        loadingGate.classList.add("hidden");
+
+        if (!check.allowed) {
+          blockedNotice.classList.remove("hidden");
+          const titleEl = document.getElementById("blockedTitle");
+          const descEl = document.getElementById("blockedDesc");
+
+          if (check.reason === "NOT_FOUND") {
+            titleEl.textContent = "Gmail ID Not Registered";
+            descEl.textContent = `Your Gmail (${user.email}) is not registered in the RouteConnect Master Sheet. Please submit your offline documents & photo to the Admin to activate your account.`;
+          } else if (check.reason === "EXPIRED") {
+            titleEl.textContent = "Membership Validity Expired";
+            descEl.textContent = `Your plan expired on ${check.data.expiry_date || "recent date"} (Payment: ${check.data.payment_status || "Pending"}). Please contact Admin to renew your validity. Any active trip has been removed.`;
+            // Auto-remove any lingering live trip for expired driver
+            deleteDoc(doc(db, "live_trips", `TRIP_${user.uid}`)).catch(() => {});
+          } else {
+            titleEl.textContent = "Driver Account Paused / Blocked";
+            descEl.textContent = "Your account status is currently set to Blocked by the Admin. Please contact RouteConnect Admin.";
+            deleteDoc(doc(db, "live_trips", `TRIP_${user.uid}`)).catch(() => {});
+          }
+          return;
+        }
+
+        // Driver is Active & Valid! Populate read-only profile
+        verifiedDriverRecord = check.data;
+        populateLockedProfile(user, verifiedDriverRecord);
+        dashboard.classList.remove("hidden");
+        renderDriverTrips();
+
+      } catch (err) {
+        loadingGate.classList.add("hidden");
+        blockedNotice.classList.remove("hidden");
+        document.getElementById("blockedTitle").textContent = "Verification Error";
+        document.getElementById("blockedDesc").textContent = "Could not verify your driver record: " + err.message;
+      }
+    });
+
+    function populateLockedProfile(user, d) {
+      document.getElementById("bannerDriverId").textContent = d.driver_id || "VERIFIED";
+      document.getElementById("paymentBadgeText").textContent = `Payment: ${d.payment_status || "Paid"}`;
+      document.getElementById("expiryBadgeText").textContent = d.expiry_date ? `Valid till: ${d.expiry_date}` : "Active";
+
+      document.getElementById("profName").value = d.name || user.displayName || "";
+      document.getElementById("profGender").value = d.gender || "Male";
+      document.getElementById("profPhone").value = d.phone || "";
+      document.getElementById("profVehicleNo").value = (d.vehicle_no || "").toUpperCase();
+      document.getElementById("profVehicleType").value = d.vehicle_type || "Winger";
+
+      const maxCap = Number(d.max_capacity) || 12;
+      document.getElementById("profMaxSeats").value = maxCap;
+      document.getElementById("tripSeatsLeft").max = maxCap;
+      document.getElementById("tripSeatsLeft").value = maxCap;
+
+      const photoUrl = d.photo && d.photo.trim() !== ""
+        ? d.photo.trim()
+        : (user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name || "Driver")}&background=0f172a&color=fff`);
+
+      const imgEl = document.getElementById("profPhotoPreview");
+      imgEl.src = photoUrl;
+      imgEl.onerror = () => {
+        imgEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name || "Driver")}&background=0f172a&color=fff`;
+      };
+    }
+
+    // Publish or Update Live Trip in Firestore (Re-verifies expiry before publishing)
+    window.publishTrip = async function (e) {
+      e.preventDefault();
+      if (!currentDriverUser || !verifiedDriverRecord) {
+        alert("Unauthorized: Verified driver profile not loaded.");
         return;
       }
 
@@ -426,52 +484,67 @@
         return;
       }
 
-      calculateSafeETA();
-
-      const depTime = document.getElementById("tripDepTime").value;
-      const arrTime = document.getElementById("tripArrTime").value;
-      const status = document.getElementById("tripStatus").value;
-      const seatsAvailable = Math.min(maxCapacity, Math.max(0, Number(document.getElementById("tripSeatsLeft").value)));
-
-      const tripId = `TRIP_${currentDriverUser.uid}`;
-      const avatarUrl = currentDriverUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(driverName)}&background=0f172a&color=fff`;
-
-      const tripPayload = {
-        driver_id: currentDriverUser.uid,
-        driver_name: driverName,
-        driver_phone: driverPhone,
-        driver_photo: avatarUrl,
-        vehicle_no: vehicleNo,
-        vehicle_type: vehicleType,
-        max_capacity: maxCapacity,
-        seats_available: seatsAvailable,
-        start_stop: startStop,
-        end_stop: endStop,
-        departure_time: depTime,
-        claimed_arrival_time: arrTime,
-        status: status,
-        rating: "5.0",
-        review_count: 1,
-        top_tags: ["Verified Partner", "Safe Transit"],
-        updated_at: new Date().toISOString()
-      };
-
       const btn = document.getElementById("publishBtn");
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Publishing Live to RouteConnect...`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Checking Validity & Publishing...`;
 
       try {
+        // Real-time re-check from Firestore in case Admin blocked/expired the driver mid-session
+        const freshCheck = await verifySingleDriverFromFirestore(currentDriverUser);
+        if (!freshCheck.allowed) {
+          alert("Your account validity has expired or been blocked by Admin. Reloading portal...");
+          window.location.reload();
+          return;
+        }
+
+        const d = freshCheck.data;
+        calculateSafeETA();
+
+        const maxCapacity = Number(d.max_capacity) || 12;
+        const depTime = document.getElementById("tripDepTime").value;
+        const arrTime = document.getElementById("tripArrTime").value;
+        const status = document.getElementById("tripStatus").value;
+        const seatsAvailable = Math.min(maxCapacity, Math.max(0, Number(document.getElementById("tripSeatsLeft").value)));
+
+        const tripId = `TRIP_${currentDriverUser.uid}`;
+        const photoUrl = d.photo && d.photo.trim() !== ""
+          ? d.photo.trim()
+          : (currentDriverUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name)}&background=0f172a&color=fff`);
+
+        const tripPayload = {
+          driver_id: d.driver_id || currentDriverUser.uid,
+          driver_uid: currentDriverUser.uid,
+          driver_email: currentDriverUser.email.toLowerCase(),
+          driver_name: d.name,
+          driver_gender: d.gender || "Male",
+          driver_phone: String(d.phone).trim(),
+          driver_photo: photoUrl,
+          vehicle_no: String(d.vehicle_no).trim().toUpperCase(),
+          vehicle_type: d.vehicle_type || "Winger",
+          max_capacity: maxCapacity,
+          seats_available: seatsAvailable,
+          expiry_date: d.expiry_date || "",
+          start_stop: startStop,
+          end_stop: endStop,
+          departure_time: depTime,
+          claimed_arrival_time: arrTime,
+          status: status,
+          rating: d.rating || "5.0",
+          review_count: Number(d.review_count) || 1,
+          top_tags: ["Verified Partner", "Safe Transit"],
+          updated_at: new Date().toISOString()
+        };
+
         await setDoc(doc(db, "live_trips", tripId), tripPayload);
         alert("Your trip is now LIVE on RouteConnect!");
       } catch (err) {
-        alert("Failed to publish to cloud: " + err.message);
+        alert("Failed to publish trip: " + err.message);
       } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Publish / Update My Live Trip on RouteConnect`;
       }
     };
 
-    // Real-time listener for all trips so driver can control their active trip
     onSnapshot(collection(db, "live_trips"), (snapshot) => {
       allLiveTrips = [];
       snapshot.forEach((docSnap) => {
@@ -485,7 +558,9 @@
       const container = document.getElementById("myActiveTripsContainer");
       if (!currentDriverUser) return;
 
-      const myTrips = allLiveTrips.filter((t) => t.driver_id === currentDriverUser.uid);
+      const myTrips = allLiveTrips.filter(
+        (t) => t.driver_uid === currentDriverUser.uid || t.id === `TRIP_${currentDriverUser.uid}`
+      );
 
       if (myTrips.length === 0) {
         container.innerHTML = `
@@ -516,7 +591,6 @@
               </p>
             </div>
 
-            <!-- Instant Seat & Status Controls -->
             <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200">
               <div class="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-xl border border-slate-300">
                 <button onclick="adjustSeats('${trip.id}', ${seats - 1}, ${max})" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 font-bold text-sm">-</button>
@@ -541,7 +615,6 @@
       }).join("");
     }
 
-    // Seat Counter Update
     window.adjustSeats = async function (tripDocId, newSeats, maxCapacity) {
       const clamped = Math.min(maxCapacity, Math.max(0, newSeats));
       try {
@@ -554,7 +627,6 @@
       }
     };
 
-    // Toggle Running / Promised
     window.toggleTripStatus = async function (tripDocId, currentStatus) {
       const nextStatus = currentStatus === "Running" ? "Promised" : "Running";
       try {
@@ -567,7 +639,6 @@
       }
     };
 
-    // End / Remove Trip
     window.removeTrip = async function (tripDocId) {
       if (!confirm("Are you sure you want to end and remove this trip from RouteConnect?")) return;
       try {
