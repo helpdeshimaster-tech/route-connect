@@ -279,7 +279,7 @@
   <footer class="bg-slate-900 text-slate-400 text-xs py-6 px-4 mt-10">
     <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
       <p>© 2026 RouteConnect Corridor (Manjhepur – Amauli – Jahanabad – Kanpur).</p>
-      <p class="text-slate-500">Verified Captain Aggregator • Hybrid Stop & Map Tracking</p>
+      <p class="text-slate-500">Verified Captain Aggregator • Dynamic Stop & Lag Sync</p>
     </div>
   </footer>
 
@@ -434,6 +434,110 @@
       return "Today";
     }
 
+    function timeStrToMins(tStr) {
+      if (!tStr || !tStr.includes(":")) return 0;
+      const [h, m] = tStr.split(":").map(Number);
+      return h * 60 + m;
+    }
+
+    function minsToTimeStr(totalMins) {
+      const norm = ((totalMins % 1440) + 1440) % 1440;
+      const hh = String(Math.floor(norm / 60)).padStart(2, "0");
+      const mm = String(norm % 60).padStart(2, "0");
+      return `${hh}:${mm}`;
+    }
+
+    function getEffectiveArrivalMins(depTimeStr, arrTimeStr) {
+      const depM = timeStrToMins(depTimeStr);
+      let arrM = timeStrToMins(arrTimeStr);
+      if (arrM < depM) {
+        arrM += 1440;
+      }
+      return arrM;
+    }
+
+    // =========================================================================
+    // PASSENGER-SIDE SMART AUTO-LAG & DEADHEAD GUARD FOR SCHEDULED TRIPS
+    // =========================================================================
+    // 1. Ensures a Captain's Scheduled Return Trip never displays a departure time earlier than
+    //    their currently active Live Trip's dynamic arrival + deadhead travel + 20m buffer.
+    // 2. If the scheduled departure time has arrived and Captain hasn't pressed Start yet,
+    //    automatically steps the displayed departure time by +2m -> +5m -> +10m intervals.
+    function getEffectiveScheduledTimes(trip, allTrips) {
+      const todayYMD = formatYMDLocal(getISTDateObj(0));
+      const tripStart = getStopObj(trip.start_stop);
+      const tripEnd = getStopObj(trip.end_stop);
+      const routeMins = (tripStart && tripEnd) ? Math.abs(tripEnd.offset - tripStart.offset) : 0;
+
+      let baseDep = trip.base_departure_time || trip.departure_time;
+      let baseArr = trip.base_arrival_time || trip.claimed_arrival_time;
+
+      if (trip.status === "Running" || (trip.trip_date && trip.trip_date !== todayYMD)) {
+        return {
+          dep24: trip.departure_time,
+          arr24: trip.claimed_arrival_time,
+          lagAddedMins: 0
+        };
+      }
+
+      let baseDepMins = timeStrToMins(baseDep);
+      const origSpan = Math.max(routeMins, getEffectiveArrivalMins(baseDep, baseArr) - baseDepMins);
+
+      // Guard against conflicting Live Running Trip by the same Captain Today
+      const sameCaptainLive = allTrips.find(
+        t => t.status === "Running" &&
+             ((t.driver_uid && trip.driver_uid && t.driver_uid === trip.driver_uid) ||
+              (t.driver_id && trip.driver_id && t.driver_id === trip.driver_id))
+      );
+
+      if (sameCaptainLive) {
+        const liveEndObj = getStopObj(sameCaptainLive.end_stop);
+        const liveCurObj = sameCaptainLive.current_stop ? getStopObj(sameCaptainLive.current_stop) : null;
+        let liveArr24 = sameCaptainLive.claimed_arrival_time;
+        if (liveCurObj && liveEndObj && sameCaptainLive.current_stop_time_24) {
+          const remLive = Math.abs(liveEndObj.offset - liveCurObj.offset);
+          liveArr24 = minsToTimeStr(timeStrToMins(sameCaptainLive.current_stop_time_24) + remLive);
+        }
+        const effLiveArrMins = getEffectiveArrivalMins(sameCaptainLive.departure_time, liveArr24);
+        const deadheadMins = (liveEndObj && tripStart) ? Math.abs(tripStart.offset - liveEndObj.offset) : 0;
+        const earliestPossibleDep = effLiveArrMins + deadheadMins + 20;
+
+        if (earliestPossibleDep < 1440 && baseDepMins < earliestPossibleDep) {
+          baseDepMins = earliestPossibleDep;
+        }
+      }
+
+      // Apply +2m -> +5m -> +10m Auto-Lag if clock has reached/passed baseDepMins
+      const now = new Date();
+      const nowMins = now.getHours() * 60 + now.getMinutes();
+
+      if (nowMins < baseDepMins) {
+        return {
+          dep24: minsToTimeStr(baseDepMins),
+          arr24: minsToTimeStr(baseDepMins + origSpan),
+          lagAddedMins: 0
+        };
+      }
+
+      const diff = nowMins - baseDepMins;
+      let lagAddedMins = 0;
+      if (diff < 2) {
+        lagAddedMins = 2; // +2 mins (e.g. 07:38 -> 07:40)
+      } else if (diff < 7) {
+        lagAddedMins = 7; // +2 + 5 = +7 mins (e.g. 07:38 -> 07:45)
+      } else {
+        const extra10Blocks = Math.floor((diff - 7) / 10) + 1;
+        lagAddedMins = 7 + extra10Blocks * 10; // +10m steps (e.g. 07:55, 08:05, 08:15...)
+      }
+
+      const finalDepMins = baseDepMins + lagAddedMins;
+      return {
+        dep24: minsToTimeStr(finalDepMins),
+        arr24: minsToTimeStr(finalDepMins + origSpan),
+        lagAddedMins
+      };
+    }
+
     function isValidAndFreshGoogleMapsUrl(urlStr, trackingUpdatedAt) {
       if (!urlStr || typeof urlStr !== "string") return false;
       const clean = urlStr.trim();
@@ -511,7 +615,7 @@
       const depDate = new Date();
       depDate.setHours(depH, depM, 0, 0);
 
-      const expiryTime = new Date(depDate.getTime() + (safeRouteMins + 75) * 60 * 1000);
+      const expiryTime = new Date(depDate.getTime() + (safeRouteMins + 90) * 60 * 1000);
       if (now > expiryTime) return false;
 
       return true;
@@ -791,7 +895,7 @@
       if (fromStop && toStop) {
         if (fromStop.index === toStop.index) {
           estimateEl.innerHTML = `<span class="text-rose-600 font-semibold">Pickup and Drop stop cannot be the same!</span>`;
-          renderTrips([], null, null);
+          renderTrips([], null, null, allTrips);
           return;
         }
         const safeDuration = Math.abs(toStop.offset - fromStop.offset);
@@ -847,10 +951,10 @@
         return true;
       });
 
-      renderTrips(filtered, fromStop, toStop);
+      renderTrips(filtered, fromStop, toStop, allTrips);
     }
 
-    function renderTrips(trips, userFromStop, userToStop) {
+    function renderTrips(trips, userFromStop, userToStop, allTrips = []) {
       const container = document.getElementById("tripsContainer");
       document.getElementById("tripCount").textContent = trips.length;
 
@@ -898,22 +1002,25 @@
         const rawMapLink = trip.gmaps_link || trip.live_tracking_url || "";
         const hasValidMapLink = isValidAndFreshGoogleMapsUrl(rawMapLink, trip.tracking_updated_at || trip.updated_at);
 
-        const dayWord = getCleanDayLabel(trip);
-        const depTimeFormatted = `${dayWord}, ${convert24To12(trip.departure_time)}`;
+        // Apply Smart Auto-Lag (+2m -> +5m -> +10m) & Deadhead Guard for Scheduled Trips
+        const schedTimes = getEffectiveScheduledTimes(trip, allTrips);
+        const effectiveDep24 = trip.status === "Promised" ? schedTimes.dep24 : trip.departure_time;
+        const effectiveArr24 = trip.status === "Promised" ? schedTimes.arr24 : trip.claimed_arrival_time;
 
-        // Dynamic Destination ETA Calculation based on latest checked-in stop
-        let finalDestETA = convert24To12(trip.claimed_arrival_time);
-        if (trip.status === "Running" && currentStopObj) {
+        const dayWord = getCleanDayLabel(trip);
+        const depTimeFormatted = `${dayWord}, ${convert24To12(effectiveDep24)}`;
+
+        // Dynamic Destination ETA Calculation based on latest checked-in stop (for Live Running trips)
+        let finalDestETA = convert24To12(effectiveArr24);
+        if (trip.status === "Running" && currentStopObj && trip.current_stop_time_24) {
           const remMinsToDest = Math.abs(tripEnd.offset - currentStopObj.offset);
-          if (trip.current_stop_time_24) {
-            finalDestETA = addMinutesToTimeStr(trip.current_stop_time_24, remMinsToDest);
-          }
+          finalDestETA = addMinutesToTimeStr(trip.current_stop_time_24, remMinsToDest);
         }
 
         let liveTrackingBannerHTML = "";
         if (trip.status === "Running") {
           const activeStopName = currentStopObj ? currentStopObj.name : trip.start_stop;
-          const stopTimeLabel = trip.current_stop_time || convert24To12(trip.departure_time);
+          const stopTimeLabel = trip.current_stop_time || convert24To12(effectiveDep24);
 
           let nextStopText = `Heading to ${trip.end_stop}`;
           if (currentStopObj && currentStopObj.name !== trip.end_stop) {
@@ -963,8 +1070,8 @@
           } else {
             const minsToPickup = Math.abs(userFromStop.offset - tripStart.offset);
             const minsToDrop = Math.abs(userToStop.offset - tripStart.offset);
-            pickupETA = addMinutesToTimeStr(trip.departure_time, minsToPickup);
-            dropETA = addMinutesToTimeStr(trip.departure_time, minsToDrop);
+            pickupETA = addMinutesToTimeStr(effectiveDep24, minsToPickup);
+            dropETA = addMinutesToTimeStr(effectiveDep24, minsToDrop);
           }
 
           customTimingHTML = passedNotice
@@ -1266,7 +1373,8 @@
       initDropdowns();
       loadMasterDriverDirectory();
       filterTrips();
-      setInterval(filterTrips, 60000);
+      // Re-evaluates auto-lag (+2m -> +5m -> +10m) every 30 seconds automatically
+      setInterval(filterTrips, 30000);
     });
   </script>
 </body>
