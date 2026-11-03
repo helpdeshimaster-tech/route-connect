@@ -18,7 +18,7 @@
   <!-- Top Security Banner -->
   <div class="bg-emerald-600 text-white text-xs sm:text-sm font-medium py-2 px-4 text-center">
     <i class="fa-solid fa-shield-halved mr-1"></i>
-    RouteConnect Verified Driver Portal • Single-Record Cloud Verification (Zero Data Leak)
+    RouteConnect Verified Driver Portal • Hybrid Stop Check-In & Map Tracking • Dual-Trip Engine
   </div>
 
   <!-- Navbar -->
@@ -146,42 +146,29 @@
         </div>
       </section>
 
-      <!-- B. Publish New Live or Promised Trip -->
+      <!-- B. Publish New Live or Promised Return Trip -->
       <section class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-          <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-            <i class="fa-solid fa-satellite-dish text-emerald-600"></i>
-            <span>2. Publish Live or Scheduled Trip</span>
-          </h3>
-          <span class="text-xs text-slate-400">Auto-expires 45 mins after arrival</span>
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 flex-wrap gap-2">
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+              <i class="fa-solid fa-satellite-dish text-emerald-600"></i>
+              <span>2. Publish Live Trip or Promised Return Trip</span>
+            </h3>
+            <p class="text-[11px] text-slate-500 mt-0.5">
+              You can keep 1 Live Running Trip and 1 Promised Return Trip active at the same time.
+            </p>
+          </div>
+          <button type="button" onclick="prefillKanpurReturnPromise()" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-semibold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate-left"></i> Quick Fill Return Trip
+          </button>
         </div>
 
         <form id="tripForm" onsubmit="publishTrip(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Starting Stop (From) *</label>
-            <select id="tripStartStop" required onchange="calculateSafeETA()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500"></select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Destination Stop (Goes Up To) *</label>
-            <select id="tripEndStop" required onchange="calculateSafeETA()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500"></select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Departure Time *</label>
-            <input type="time" id="tripDepTime" required onchange="calculateSafeETA()" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500" />
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Promised Arrival ETA (Auto-Locked)</label>
-            <input type="time" id="tripArrTime" required readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-300 rounded-xl text-sm font-bold text-emerald-700 outline-none cursor-not-allowed" />
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Current Trip Status *</label>
-            <select id="tripStatus" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500">
-              <option value="Running">🟢 Live On Route (Running Now)</option>
-              <option value="Promised">🗓️ Promised Schedule (Upcoming)</option>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Trip Mode (चालू या वापसी प्रॉमिस) *</label>
+            <select id="tripStatus" onchange="handleTripModeChange()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="Running">🟢 Live On Route (अभी चल रही है)</option>
+              <option value="Promised">🗓️ Promised Return / Upcoming (अग्रिम वापसी बुकिंग)</option>
             </select>
           </div>
 
@@ -190,25 +177,77 @@
             <input type="number" id="tripSeatsLeft" required min="0" max="50" value="12" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-emerald-700 outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
 
-          <div class="sm:col-span-2 pt-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Starting Stop (कहाँ से चलेगी) *</label>
+            <select id="tripStartStop" required onchange="calculateSafeETA()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500"></select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Destination Stop (कहाँ तक जाएगी) *</label>
+            <select id="tripEndStop" required onchange="calculateSafeETA()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500"></select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Departure Time (निकलने का समय) *</label>
+            <input type="time" id="tripDepTime" required onchange="calculateSafeETA()" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500" />
+            <p id="depTimeHint" class="text-[11px] text-slate-400 mt-1"></p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Promised Arrival ETA (पहुँचने का समय - Auto)</label>
+            <input type="time" id="tripArrTime" required readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-300 rounded-xl text-sm font-bold text-emerald-700 outline-none cursor-not-allowed" />
+          </div>
+
+          <!-- Hybrid Tracking Inputs: Optional Google Maps Link + Short Note -->
+          <div class="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-slate-700">
+                <i class="fa-solid fa-location-crosshairs text-blue-600 mr-1"></i>
+                Google Maps Live Location Link (वैकल्पिक - यदि बैटरी/नेटवर्क ठीक हो)
+              </label>
+              <span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200 font-semibold">Strict Google Maps Only</span>
+            </div>
+            <input 
+              type="url" 
+              id="tripGmapsLink" 
+              placeholder="Paste https://maps.app.goo.gl/... link here (or leave blank for Manual Stop Check-In)" 
+              class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p class="text-[11px] text-slate-500 leading-relaxed">
+              💡 <b>बैटरी बचत टिप:</b> यदि आप लिंक नहीं डालना चाहते, तो इसे खाली छोड़ दें। नीचे दिए गए <b>"3. Live Stop Check-In"</b> में सिर्फ चौराहे का बटन दबाकर अपनी लोकेशन अपडेट करें।
+            </p>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Short Message for Passengers (वैकल्पिक सूचना)</label>
+            <input 
+              type="text" 
+              id="tripNote" 
+              maxlength="100"
+              placeholder="उदा. कानपुर से सवारी घर से पिकअप की सुविधा उपलब्ध है / अमौली से सीधे कानपुर" 
+              class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div class="sm:col-span-2 pt-1">
             <button type="submit" id="publishBtn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
-              <i class="fa-solid fa-paper-plane"></i> Publish / Update My Live Trip on RouteConnect
+              <i class="fa-solid fa-paper-plane"></i> Publish / Update Trip on RouteConnect
             </button>
           </div>
         </form>
       </section>
 
-      <!-- C. Active Trips Controlled by This Driver -->
+      <!-- C. Active Trips Controlled by This Driver (Stop Check-In + Seats + Map Link) -->
       <section class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
           <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
             <i class="fa-solid fa-sliders text-emerald-600"></i>
-            <span>3. Quick Seat & Status Controller</span>
+            <span>3. Live Stop Check-In & Seat Controller</span>
           </h3>
-          <span class="text-xs text-slate-500">Instant live sync with passengers</span>
+          <span class="text-xs text-slate-500">1-Tap Battery-Free Tracking</span>
         </div>
 
-        <div id="myActiveTripsContainer" class="space-y-4"></div>
+        <div id="myActiveTripsContainer" class="space-y-5"></div>
       </section>
 
     </div>
@@ -218,7 +257,7 @@
   <footer class="bg-slate-900 text-slate-400 text-xs py-6 px-4 mt-10">
     <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
       <p>© 2026 RouteConnect Driver Portal (Manjhepur – Amauli – Jahanabad – Kanpur).</p>
-      <p class="text-slate-500">Single-Document Firestore Auth • Zero Bulk Data Download</p>
+      <p class="text-slate-500">Single-Document Firestore Auth • Hybrid Stop & Map Tracking</p>
     </div>
   </footer>
 
@@ -282,43 +321,69 @@
       { index: 33, name: "Basant Vihar Chauraha", offset: 145 }
     ];
 
+    // Major Stops for 1-Tap Quick Check-In Buttons
+    const MAJOR_CHECKIN_STOPS = [
+      "Manjhepur",
+      "Maudev",
+      "Sathigavan",
+      "Amauli",
+      "Jahanabad",
+      "Sadh",
+      "Ramaipur",
+      "Naubasta",
+      "Basant Vihar Chauraha"
+    ];
+
     let currentDriverUser = null;
-    let verifiedDriverRecord = null; // Holds ONLY this logged-in driver's record from Firestore
+    let verifiedDriverRecord = null;
     let allLiveTrips = [];
 
-    // ✅ स्मार्ट डेट कन्वर्टर: यह "15/11/2026" (DD/MM/YYYY) और "2026-11-15" (YYYY-MM-DD) दोनों को "2026-11-15" में बदल देता है
+    // ✅ स्मार्ट डेट कन्वर्टर: DD/MM/YYYY और YYYY-MM-DD दोनों को YYYY-MM-DD में बदलता है
     function normalizeDateToYMD(dateInput) {
       if (!dateInput) return "";
       const raw = String(dateInput).trim();
-
-      // 1. अगर फॉर्मेट DD/MM/YYYY या DD-MM-YYYY है (जैसे 15/11/2026)
       const dmyMatch = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
       if (dmyMatch) {
-        const dd = dmyMatch[1].padStart(2, "0");
-        const mm = dmyMatch[2].padStart(2, "0");
-        const yyyy = dmyMatch[3];
-        return `${yyyy}-${mm}-${dd}`;
+        return `${dmyMatch[3]}-${dmyMatch[2].padStart(2, "0")}-${dmyMatch[1].padStart(2, "0")}`;
       }
-
-      // 2. अगर फॉर्मेट पहले से YYYY-MM-DD या YYYY/MM/DD है (जैसे 2026-11-15)
       const ymdMatch = raw.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
       if (ymdMatch) {
-        const yyyy = ymdMatch[1];
-        const mm = ymdMatch[2].padStart(2, "0");
-        const dd = ymdMatch[3].padStart(2, "0");
-        return `${yyyy}-${mm}-${dd}`;
+        return `${ymdMatch[1]}-${ymdMatch[2].padStart(2, "0")}-${ymdMatch[3].padStart(2, "0")}`;
       }
-
-      // 3. कोई अन्य स्टैंडर्ड डेट स्ट्रिंग
       const parsed = new Date(raw);
       if (!isNaN(parsed.getTime())) {
-        const yyyy = parsed.getFullYear();
-        const mm = String(parsed.getMonth() + 1).padStart(2, "0");
-        const dd = String(parsed.getDate()).padStart(2, "0");
-        return `${yyyy}-${mm}-${dd}`;
+        return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
       }
-
       return raw;
+    }
+
+    // ✅ Strict Google Maps URL Validator
+    function isValidGoogleMapsUrl(urlStr) {
+      if (!urlStr || urlStr.trim() === "") return true; // Blank is allowed (Manual mode)
+      const clean = urlStr.trim();
+      const strictPattern = /^https:\/\/(maps\.app\.goo\.gl\/[A-Za-z0-9_\-]+|goo\.gl\/maps\/[A-Za-z0-9_\-]+|(www\.)?google\.(com|co\.in)\/maps\S+)$/i;
+      return strictPattern.test(clean);
+    }
+
+    function timeStrToMins(tStr) {
+      if (!tStr || !tStr.includes(":")) return 0;
+      const [h, m] = tStr.split(":").map(Number);
+      return h * 60 + m;
+    }
+
+    function minsToTimeStr(totalMins) {
+      const norm = ((totalMins % 1440) + 1440) % 1440;
+      const hh = String(Math.floor(norm / 60)).padStart(2, "0");
+      const mm = String(norm % 60).padStart(2, "0");
+      return `${hh}:${mm}`;
+    }
+
+    function format12Hr(tStr) {
+      if (!tStr || !tStr.includes(":")) return tStr || "";
+      const [hh, mm] = tStr.split(":").map(Number);
+      const period = hh >= 12 ? "PM" : "AM";
+      const h12 = hh % 12 || 12;
+      return `${String(h12).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${period}`;
     }
 
     function initStopSelects() {
@@ -353,12 +418,52 @@
       if (!sObj || !eObj) return;
 
       const diffMins = Math.abs(eObj.offset - sObj.offset);
-      const [hh, mm] = depTime.split(":").map(Number);
-      const totalMins = hh * 60 + mm + diffMins;
-      const arrH = String(Math.floor((totalMins / 60) % 24)).padStart(2, "0");
-      const arrM = String(totalMins % 60).padStart(2, "0");
-      document.getElementById("tripArrTime").value = `${arrH}:${arrM}`;
+      const totalMins = timeStrToMins(depTime) + diffMins;
+      document.getElementById("tripArrTime").value = minsToTimeStr(totalMins);
     };
+
+    // Quick Fill button for Return Promised Trip (e.g. Kanpur -> Maudev/Manjhepur)
+    window.prefillKanpurReturnPromise = function () {
+      document.getElementById("tripStatus").value = "Promised";
+      const activeRunning = getMyActiveRunningTrip();
+
+      if (activeRunning) {
+        // Reverse the active running trip's route
+        document.getElementById("tripStartStop").value = activeRunning.end_stop;
+        document.getElementById("tripEndStop").value = activeRunning.start_stop;
+        // Minimum promised departure = Active trip arrival + 25 mins turnaround buffer
+        const minDepMins = timeStrToMins(activeRunning.claimed_arrival_time) + 25;
+        document.getElementById("tripDepTime").value = minsToTimeStr(minDepMins);
+        document.getElementById("depTimeHint").textContent =
+          `🔒 Auto-set 25 mins after your ongoing trip reaches ${activeRunning.end_stop} (${format12Hr(activeRunning.claimed_arrival_time)}).`;
+      } else {
+        document.getElementById("tripStartStop").value = "Basant Vihar Chauraha";
+        document.getElementById("tripEndStop").value = "Manjhepur";
+        const futureMins = new Date().getHours() * 60 + new Date().getMinutes() + 60;
+        document.getElementById("tripDepTime").value = minsToTimeStr(futureMins);
+        document.getElementById("depTimeHint").textContent =
+          "🗓️ Scheduled return trip for advance passenger booking.";
+      }
+      calculateSafeETA();
+    };
+
+    window.handleTripModeChange = function () {
+      const mode = document.getElementById("tripStatus").value;
+      if (mode === "Promised") {
+        window.prefillKanpurReturnPromise();
+      } else {
+        document.getElementById("depTimeHint").textContent = "";
+      }
+    };
+
+    function getMyActiveRunningTrip() {
+      if (!currentDriverUser) return null;
+      return allLiveTrips.find(
+        (t) =>
+          (t.driver_uid === currentDriverUser.uid || t.id === `TRIP_${currentDriverUser.uid}`) &&
+          t.status === "Running"
+      );
+    }
 
     window.loginDriverWithGoogle = async function () {
       const errEl = document.getElementById("authErrorMsg");
@@ -375,7 +480,6 @@
       await signOut(auth);
     };
 
-    // Fetch ONLY this single driver's document from Firestore 'verified_drivers/{email}'
     async function verifySingleDriverFromFirestore(user) {
       const emailKey = user.email.toLowerCase().trim();
       const docRef = doc(db, "verified_drivers", emailKey);
@@ -389,7 +493,6 @@
       const isStatusActive = String(data.status || "").trim().toLowerCase() === "active";
       const isPaid = String(data.payment_status || "Paid").trim().toLowerCase() !== "pending";
 
-      // Compare Expiry Date in IST (Supports both DD/MM/YYYY and YYYY-MM-DD)
       const todayIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10);
       const normalizedExpiry = normalizeDateToYMD(data.expiry_date);
       const isExpired = normalizedExpiry !== "" && normalizedExpiry < todayIST;
@@ -452,18 +555,18 @@
             descEl.textContent = `Your Gmail (${user.email}) is not registered in the RouteConnect Master Sheet. Please submit your offline documents & photo to the Admin to activate your account.`;
           } else if (check.reason === "EXPIRED") {
             titleEl.textContent = "Membership Validity Expired";
-            descEl.textContent = `Your plan expired on ${check.data.expiry_date || "recent date"} (Payment: ${check.data.payment_status || "Pending"}). Please contact Admin to renew your validity. Any active trip has been removed.`;
-            // Auto-remove any lingering live trip for expired driver
+            descEl.textContent = `Your plan expired on ${check.data.expiry_date || "recent date"} (Payment: ${check.data.payment_status || "Pending"}). Please contact Admin to renew your validity. Any active trips have been removed.`;
             deleteDoc(doc(db, "live_trips", `TRIP_${user.uid}`)).catch(() => {});
+            deleteDoc(doc(db, "live_trips", `TRIP_PROMISED_${user.uid}`)).catch(() => {});
           } else {
             titleEl.textContent = "Driver Account Paused / Blocked";
             descEl.textContent = "Your account status is currently set to Blocked by the Admin. Please contact RouteConnect Admin.";
             deleteDoc(doc(db, "live_trips", `TRIP_${user.uid}`)).catch(() => {});
+            deleteDoc(doc(db, "live_trips", `TRIP_PROMISED_${user.uid}`)).catch(() => {});
           }
           return;
         }
 
-        // Driver is Active & Valid! Populate read-only profile
         verifiedDriverRecord = check.data;
         populateLockedProfile(user, verifiedDriverRecord);
         dashboard.classList.remove("hidden");
@@ -504,7 +607,7 @@
       };
     }
 
-    // Publish or Update Live Trip in Firestore (Re-verifies expiry before publishing)
+    // Publish or Update Live / Promised Trip in Firestore
     window.publishTrip = async function (e) {
       e.preventDefault();
       if (!currentDriverUser || !verifiedDriverRecord) {
@@ -519,12 +622,37 @@
         return;
       }
 
+      const gmapsLink = document.getElementById("tripGmapsLink").value.trim();
+      if (!isValidGoogleMapsUrl(gmapsLink)) {
+        alert("⚠️ सुरक्षा चेतावनी: कृपया केवल आधिकारिक Google Maps शेयरिंग लिंक (https://maps.app.goo.gl/...) ही डालें या इसे खाली छोड़ दें।");
+        return;
+      }
+
+      const status = document.getElementById("tripStatus").value;
+      const depTime = document.getElementById("tripDepTime").value;
+
+      // Enforce Anti-Fake Timing Lock if scheduling a Promised Return Trip while a Running Trip is active
+      const activeRunning = getMyActiveRunningTrip();
+      if (status === "Promised" && activeRunning) {
+        const runningArrivalMins = timeStrToMins(activeRunning.claimed_arrival_time);
+        const promisedDepMins = timeStrToMins(depTime);
+        const minAllowedMins = runningArrivalMins + 15; // At least 15 mins after reaching destination
+
+        if (promisedDepMins < minAllowedMins) {
+          alert(
+            `⏳ टाइमिंग लॉक: आपकी चालू ट्रिप (${activeRunning.start_stop} → ${activeRunning.end_stop}) का पहुँचने का समय ${format12Hr(activeRunning.claimed_arrival_time)} है।\n\nआप वापसी की प्रॉमिस ट्रिप कम से कम 15 मिनट के बफ़र (${format12Hr(minsToTimeStr(minAllowedMins))}) या उसके बाद की ही डाल सकते हैं।`
+          );
+          document.getElementById("tripDepTime").value = minsToTimeStr(minAllowedMins);
+          calculateSafeETA();
+          return;
+        }
+      }
+
       const btn = document.getElementById("publishBtn");
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Checking Validity & Publishing...`;
 
       try {
-        // Real-time re-check from Firestore in case Admin blocked/expired the driver mid-session
         const freshCheck = await verifySingleDriverFromFirestore(currentDriverUser);
         if (!freshCheck.allowed) {
           alert("Your account validity has expired or been blocked by Admin. Reloading portal...");
@@ -536,15 +664,21 @@
         calculateSafeETA();
 
         const maxCapacity = Number(d.max_capacity) || 12;
-        const depTime = document.getElementById("tripDepTime").value;
         const arrTime = document.getElementById("tripArrTime").value;
-        const status = document.getElementById("tripStatus").value;
         const seatsAvailable = Math.min(maxCapacity, Math.max(0, Number(document.getElementById("tripSeatsLeft").value)));
+        const noteText = document.getElementById("tripNote").value.trim().replace(/[<>/{}[\]\\]/g, "");
 
-        const tripId = `TRIP_${currentDriverUser.uid}`;
+        // Separate Document IDs so Driver can keep 1 Running Trip + 1 Promised Return Trip simultaneously
+        const tripId = status === "Promised"
+          ? `TRIP_PROMISED_${currentDriverUser.uid}`
+          : `TRIP_${currentDriverUser.uid}`;
+
         const photoUrl = d.photo && d.photo.trim() !== ""
           ? d.photo.trim()
           : (currentDriverUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name)}&background=0f172a&color=fff`);
+
+        const now = new Date();
+        const now24 = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
         const tripPayload = {
           driver_id: d.driver_id || currentDriverUser.uid,
@@ -561,6 +695,13 @@
           expiry_date: normalizeDateToYMD(d.expiry_date) || d.expiry_date || "",
           start_stop: startStop,
           end_stop: endStop,
+          current_stop: status === "Running" ? startStop : "",
+          current_stop_time: status === "Running" ? format12Hr(now24) : "",
+          current_stop_time_24: status === "Running" ? now24 : "",
+          gmaps_link: gmapsLink,
+          tracking_mode: gmapsLink ? "gmaps" : "manual",
+          tracking_updated_at: new Date().toISOString(),
+          note: noteText,
           departure_time: depTime,
           claimed_arrival_time: arrTime,
           status: status,
@@ -571,12 +712,15 @@
         };
 
         await setDoc(doc(db, "live_trips", tripId), tripPayload);
-        alert("Your trip is now LIVE on RouteConnect!");
+        alert(status === "Running"
+          ? "✅ आपकी चालू ट्रिप (Live Trip) पब्लिश हो गई है! अब आप नीचे से 1-क्लिक में अपना चौराहा/स्टॉप अपडेट कर सकते हैं।"
+          : "🗓️ आपकी वापसी की प्रॉमिस ट्रिप (Advance Schedule) पब्लिश हो गई है! अब सवारी आपको बुकिंग के लिए कॉल कर सकती हैं।"
+        );
       } catch (err) {
         alert("Failed to publish trip: " + err.message);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Publish / Update My Live Trip on RouteConnect`;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Publish / Update Trip on RouteConnect`;
       }
     };
 
@@ -594,13 +738,16 @@
       if (!currentDriverUser) return;
 
       const myTrips = allLiveTrips.filter(
-        (t) => t.driver_uid === currentDriverUser.uid || t.id === `TRIP_${currentDriverUser.uid}`
+        (t) =>
+          t.driver_uid === currentDriverUser.uid ||
+          t.id === `TRIP_${currentDriverUser.uid}` ||
+          t.id === `TRIP_PROMISED_${currentDriverUser.uid}`
       );
 
       if (myTrips.length === 0) {
         container.innerHTML = `
           <div class="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-6 text-center text-xs text-slate-500">
-            You have no active trip listed right now. Fill out Step 2 above and click <b>Publish</b> to go live.
+            You have no active or promised trip listed right now. Fill out Section 2 above and click <b>Publish</b>.
           </div>
         `;
         return;
@@ -609,46 +756,168 @@
       container.innerHTML = myTrips.map((trip) => {
         const seats = Number(trip.seats_available);
         const max = Number(trip.max_capacity) || 12;
+        const sObj = ROUTE_STOPS.find(s => s.name === trip.start_stop);
+        const eObj = ROUTE_STOPS.find(s => s.name === trip.end_stop);
+
+        // Filter stops that lie between trip's start_stop and end_stop in correct travel order
+        let routeStopsInOrder = ROUTE_STOPS;
+        if (sObj && eObj) {
+          const minIdx = Math.min(sObj.index, eObj.index);
+          const maxIdx = Math.max(sObj.index, eObj.index);
+          routeStopsInOrder = ROUTE_STOPS.filter(s => s.index >= minIdx && s.index <= maxIdx);
+          if (sObj.index > eObj.index) {
+            routeStopsInOrder = [...routeStopsInOrder].reverse();
+          }
+        }
+
+        // Major quick buttons along this trip's direction
+        const quickStops = routeStopsInOrder.filter(
+          s => MAJOR_CHECKIN_STOPS.includes(s.name) || s.name === trip.start_stop || s.name === trip.end_stop
+        );
+
+        const quickButtonsHTML = trip.status === "Running" ? `
+          <div class="mt-4 pt-3 border-t border-slate-200">
+            <div class="flex items-center justify-between mb-2 flex-wrap gap-1">
+              <span class="text-xs font-bold text-slate-700">
+                <i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>
+                1-Tap Current Stop Check-In (अभी गाड़ी कहाँ पहुँची है?):
+              </span>
+              <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Current: ${trip.current_stop || trip.start_stop} (${trip.current_stop_time || "Just started"})
+              </span>
+            </div>
+
+            <!-- Quick Tap Major Stop Pills -->
+            <div class="flex flex-wrap gap-1.5 mb-2.5">
+              ${quickStops.map(st => {
+                const isCurrent = (trip.current_stop || trip.start_stop) === st.name;
+                return `
+                  <button
+                    type="button"
+                    onclick="checkInStop('${trip.id}', '${st.name}')"
+                    class="px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                      isCurrent
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                        : 'bg-white hover:bg-emerald-50 text-slate-700 border-slate-300'
+                    }"
+                  >
+                    ${isCurrent ? '📍 ' : ''}${st.name}
+                  </button>
+                `;
+              }).join("")}
+            </div>
+
+            <!-- All 34 Sub-Stops Dropdown for exact village check-in -->
+            <div class="flex items-center gap-2">
+              <select id="stopSel_${trip.id}" class="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-medium outline-none">
+                ${routeStopsInOrder.map(st => `
+                  <option value="${st.name}" ${(trip.current_stop || trip.start_stop) === st.name ? 'selected' : ''}>
+                    ${st.name}
+                  </option>
+                `).join("")}
+              </select>
+              <button
+                type="button"
+                onclick="checkInStop('${trip.id}', document.getElementById('stopSel_${trip.id}').value)"
+                class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl transition"
+              >
+                Update Stop
+              </button>
+            </div>
+          </div>
+        ` : `
+          <div class="mt-3 pt-3 border-t border-indigo-100 flex items-center justify-between flex-wrap gap-2 text-xs text-indigo-800">
+            <span><i class="fa-solid fa-clock mr-1"></i> When you start driving this return trip, click <b>"Start Trip Now"</b> to go Live.</span>
+            <button
+              type="button"
+              onclick="activatePromisedTripNow('${trip.id}', '${trip.start_stop}')"
+              class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition"
+            >
+              🟢 Start Trip Now (Go Live)
+            </button>
+          </div>
+        `;
+
         return `
-          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${trip.status === 'Running' ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800'}">
-                  ${trip.status === 'Running' ? '🟢 Live On Route' : '🗓️ Promised Schedule'}
-                </span>
-                <span class="text-xs font-mono font-bold text-slate-700">${trip.vehicle_no}</span>
-              </div>
-              <h4 class="font-bold text-slate-900 text-sm sm:text-base mt-1">
-                ${trip.start_stop} → ${trip.end_stop}
-              </h4>
-              <p class="text-xs text-slate-500 mt-0.5">
-                Departure: <b>${trip.departure_time}</b> • Promised Arrival: <b>${trip.claimed_arrival_time}</b>
-              </p>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200">
-              <div class="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-xl border border-slate-300">
-                <button onclick="adjustSeats('${trip.id}', ${seats - 1}, ${max})" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 font-bold text-sm">-</button>
-                <span class="text-xs font-bold px-2 text-slate-800">${seats} / ${max} Seats</span>
-                <button onclick="adjustSeats('${trip.id}', ${seats + 1}, ${max})" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 font-bold text-sm">+</button>
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${trip.status === 'Running' ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800'}">
+                    ${trip.status === 'Running' ? '🟢 Live Running Trip' : '🗓️ Promised Advance Trip'}
+                  </span>
+                  <span class="text-xs font-mono font-bold text-slate-700">${trip.vehicle_no}</span>
+                  ${trip.gmaps_link ? `<span class="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold"><i class="fa-solid fa-map-pin mr-1"></i>Google Map Linked</span>` : ''}
+                </div>
+                <h4 class="font-bold text-slate-900 text-sm sm:text-base mt-1">
+                  ${trip.start_stop} → ${trip.end_stop}
+                </h4>
+                <p class="text-xs text-slate-500 mt-0.5">
+                  Departure: <b>${format12Hr(trip.departure_time)}</b> • Promised Arrival: <b>${format12Hr(trip.claimed_arrival_time)}</b>
+                </p>
               </div>
 
-              <button onclick="adjustSeats('${trip.id}', 0, ${max})" class="px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-semibold rounded-xl transition">
-                Mark Full
-              </button>
+              <!-- Seat & Delete Controls -->
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200">
+                <div class="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-xl border border-slate-300">
+                  <button onclick="adjustSeats('${trip.id}', ${seats - 1}, ${max})" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 font-bold text-sm">-</button>
+                  <span class="text-xs font-bold px-2 text-slate-800">${seats} / ${max} Seats</span>
+                  <button onclick="adjustSeats('${trip.id}', ${seats + 1}, ${max})" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 font-bold text-sm">+</button>
+                </div>
 
-              <button onclick="toggleTripStatus('${trip.id}', '${trip.status}')" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl transition">
-                Set ${trip.status === 'Running' ? 'Promised' : 'Running'}
-              </button>
+                <button onclick="adjustSeats('${trip.id}', 0, ${max})" class="px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-semibold rounded-xl transition">
+                  Mark Full
+                </button>
 
-              <button onclick="removeTrip('${trip.id}')" title="End / Delete Trip" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl transition">
-                <i class="fa-solid fa-trash-can"></i> End Trip
-              </button>
+                <button onclick="removeTrip('${trip.id}')" title="End / Delete Trip" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl transition">
+                  <i class="fa-solid fa-trash-can"></i> End
+                </button>
+              </div>
             </div>
+
+            ${quickButtonsHTML}
           </div>
         `;
       }).join("");
     }
+
+    // 1-Tap Stop Check-In Handler
+    window.checkInStop = async function (tripDocId, stopName) {
+      const now = new Date();
+      const now24 = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const now12 = format12Hr(now24);
+
+      try {
+        await updateDoc(doc(db, "live_trips", tripDocId), {
+          current_stop: stopName,
+          current_stop_time: now12,
+          current_stop_time_24: now24,
+          updated_at: now.toISOString()
+        });
+      } catch (err) {
+        alert("Failed to update current stop: " + err.message);
+      }
+    };
+
+    // Convert a Promised Trip into an Active Running Trip when driver actually departs
+    window.activatePromisedTripNow = async function (tripDocId, startStopName) {
+      const now = new Date();
+      const now24 = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const now12 = format12Hr(now24);
+
+      try {
+        await updateDoc(doc(db, "live_trips", tripDocId), {
+          status: "Running",
+          departure_time: now24,
+          current_stop: startStopName,
+          current_stop_time: now12,
+          current_stop_time_24: now24,
+          updated_at: now.toISOString()
+        });
+      } catch (err) {
+        alert("Could not activate trip: " + err.message);
+      }
+    };
 
     window.adjustSeats = async function (tripDocId, newSeats, maxCapacity) {
       const clamped = Math.min(maxCapacity, Math.max(0, newSeats));
@@ -659,18 +928,6 @@
         });
       } catch (err) {
         alert("Failed to update seats: " + err.message);
-      }
-    };
-
-    window.toggleTripStatus = async function (tripDocId, currentStatus) {
-      const nextStatus = currentStatus === "Running" ? "Promised" : "Running";
-      try {
-        await updateDoc(doc(db, "live_trips", tripDocId), {
-          status: nextStatus,
-          updated_at: new Date().toISOString()
-        });
-      } catch (err) {
-        alert("Failed to update status: " + err.message);
       }
     };
 
