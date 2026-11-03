@@ -26,7 +26,7 @@
   <!-- Top Security Banner -->
   <div class="bg-amber-500 text-slate-900 text-xs sm:text-sm font-medium py-2 px-4 text-center">
     <i class="fa-solid fa-shield-halved mr-1"></i>
-    Physically Verified Drivers • Google Sign-In Protected • 25-Day Rolling Security Log Active
+    Physically Verified Drivers • Google Sign-In Protected • Auto-Expiring Live Trips • 25-Day Security Log
   </div>
 
   <!-- Navbar -->
@@ -126,7 +126,7 @@
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot"></span>
         <h3 class="font-bold text-slate-800 text-sm sm:text-base">
-          Listed Vehicles (<span id="tripCount">0</span>)
+          Active Vehicles (<span id="tripCount">0</span>)
         </h3>
       </div>
 
@@ -155,7 +155,7 @@
       </div>
 
       <p class="text-xs text-slate-600 mt-3 leading-relaxed">
-        For passenger and driver safety, you must sign in with your Google account before calling a driver, viewing live WhatsApp locations, or submitting ratings.
+        For passenger and driver safety, please enter your mobile number and continue with your Google account before calling a driver, viewing live WhatsApp locations, or submitting ratings.
       </p>
 
       <form id="googleAuthForm" onsubmit="handleGoogleSignIn(event)" class="mt-4 space-y-3">
@@ -248,7 +248,7 @@
   <footer class="bg-slate-900 text-slate-400 text-xs py-6 px-4 mt-10">
     <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
       <p>© 2026 RouteConnect Corridor (Manjhepur – Amauli – Jahanabad – Kanpur).</p>
-      <p class="text-slate-500">Verified Driver Aggregator • 25-Day Automated Security Retention</p>
+      <p class="text-slate-500">Verified Driver Aggregator • Auto-Ghost Trip Protection • 25-Day Security Log</p>
     </div>
   </footer>
 
@@ -277,7 +277,6 @@
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
 
-    // Expose Firebase helpers to main window script
     window.RC_FIREBASE = {
       auth,
       db,
@@ -290,7 +289,7 @@
       addDoc
     };
 
-    // Real-time Firestore listener for live trips (auto-updates UI across all devices)
+    // Real-time Firestore listener for live trips
     onSnapshot(collection(db, "live_trips"), (snapshot) => {
       const liveTrips = [];
       snapshot.forEach((docSnap) => {
@@ -347,17 +346,88 @@
       { index: 33, name: "Basant Vihar Chauraha", offset: 145 }
     ];
 
-    // =========================================================================
-    // 2. PRODUCTION CLEAN STATE (NO FAKE DEMO DRIVERS)
-    // =========================================================================
-    // Real trips added via driver.html or Firebase will populate RC_LIVE_TRIPS
     const DEFAULT_TRIPS = [];
-
+    let MASTER_DRIVER_DIRECTORY = null; // Optional drivers.json directory synced from Google Sheet
     let currentDirectionFilter = "ALL";
     let selectedStarRating = 5;
 
     // =========================================================================
-    // 3. PASSENGER GOOGLE AUTHENTICATION & 25-DAY ROLLING INTERACTION LOG
+    // 2. OPTIONAL DRIVERS.JSON DIRECTORY LOADER (FROM GOOGLE SHEETS)
+    // =========================================================================
+    async function loadMasterDriverDirectory() {
+      try {
+        const res = await fetch(`drivers.json?v=${Date.now()}`, { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            MASTER_DRIVER_DIRECTORY = data;
+            filterTrips();
+          }
+        }
+      } catch (e) {
+        // Works seamlessly even before drivers.json is uploaded
+      }
+    }
+
+    function getVerifiedDriverRecord(trip) {
+      if (!Array.isArray(MASTER_DRIVER_DIRECTORY) || MASTER_DRIVER_DIRECTORY.length === 0) {
+        return { allowed: true, record: null };
+      }
+      const match = MASTER_DRIVER_DIRECTORY.find(d =>
+        (d.email && trip.driver_email && d.email.toLowerCase() === trip.driver_email.toLowerCase()) ||
+        (d.phone && trip.driver_phone && String(d.phone).trim() === String(trip.driver_phone).trim()) ||
+        (d.driver_id && trip.driver_id && d.driver_id === trip.driver_id)
+      );
+      if (!match) return { allowed: false, record: null };
+
+      const isStatusActive = String(match.status || "Active").toLowerCase() === "active";
+      let isNotExpired = true;
+      if (match.expiry_date) {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        isNotExpired = String(match.expiry_date).trim() >= todayStr;
+      }
+      return { allowed: isStatusActive && isNotExpired, record: match };
+    }
+
+    // =========================================================================
+    // 3. AUTO-GHOST TRIP EXPIRY ENGINE (PREVENTS STALE TRIPS)
+    // =========================================================================
+    function isTripStillActive(trip) {
+      // 1. Check timestamp age (if updated_at is older than 6 hours and status is Running, hide it)
+      if (trip.updated_at) {
+        const updatedMs = new Date(trip.updated_at).getTime();
+        if (!isNaN(updatedMs)) {
+          const ageHours = (Date.now() - updatedMs) / (1000 * 60 * 60);
+          if (ageHours > 14) return false; // Never show trips from yesterday
+        }
+      }
+
+      // 2. Check Departure Time + Safe Route Duration + 45 Min Buffer
+      const tripStart = getStopObj(trip.start_stop);
+      const tripEnd = getStopObj(trip.end_stop);
+      if (!tripStart || !tripEnd || !trip.departure_time) return false;
+
+      const safeRouteMins = Math.abs(tripEnd.offset - tripStart.offset);
+      const [depH, depM] = trip.departure_time.split(":").map(Number);
+      if (isNaN(depH) || isNaN(depM)) return false;
+
+      const now = new Date();
+      const depDate = new Date();
+      depDate.setHours(depH, depM, 0, 0);
+
+      // Expiry = Departure + Safe Transit Time + 45 Minutes grace buffer
+      const expiryTime = new Date(depDate.getTime() + (safeRouteMins + 45) * 60 * 1000);
+
+      // If current time has passed the trip's arrival + 45 min buffer, hide ghost vehicle
+      if (now > expiryTime) {
+        return false;
+      }
+
+      return true;
+    }
+
+    // =========================================================================
+    // 4. PASSENGER GOOGLE AUTHENTICATION & 25-DAY ROLLING INTERACTION LOG
     // =========================================================================
     function getLoggedInPassenger() {
       try {
@@ -413,7 +483,6 @@
 
       let uid = "USR_" + btoa(email).slice(0, 10);
 
-      // Verify with Firebase Google Sign-In Popup if available
       if (window.RC_FIREBASE) {
         try {
           const result = await window.RC_FIREBASE.signInWithPopup(
@@ -423,7 +492,7 @@
           if (result && result.user) {
             uid = result.user.uid;
             email = (result.user.email || email).toLowerCase();
-            name = name || result.user.displayName || "Verified Passenger";
+            name = result.user.displayName || name || "Verified Passenger";
           }
         } catch (err) {
           console.warn("Google popup skipped or closed, proceeding with form verification:", err.message);
@@ -438,10 +507,8 @@
         joined_at: new Date().toISOString()
       };
 
-      // Save current session
       localStorage.setItem("RC_PASSENGER_USER", JSON.stringify(passengerObj));
 
-      // Save to Master Passenger CRM Directory (for Admin Database Count)
       let directory = [];
       try {
         directory = JSON.parse(localStorage.getItem("RC_PASSENGER_DIRECTORY") || "[]");
@@ -451,7 +518,6 @@
         localStorage.setItem("RC_PASSENGER_DIRECTORY", JSON.stringify(directory));
       }
 
-      // Sync Passenger to Firestore Database
       if (window.RC_FIREBASE && window.RC_FIREBASE.auth.currentUser) {
         try {
           const { db, doc, setDoc } = window.RC_FIREBASE;
@@ -475,17 +541,15 @@
       renderAuthHeader();
     }
 
-    // Automatically purge interaction logs older than 25 days (600 hours)
     function purgeExpiredInteractionLogs() {
       try {
         const rawLogs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
-        const cutoffTime = Date.now() - (25 * 24 * 60 * 60 * 1000); // 25 Days in ms
+        const cutoffTime = Date.now() - (25 * 24 * 60 * 60 * 1000);
         const validLogs = rawLogs.filter(log => new Date(log.timestamp).getTime() >= cutoffTime);
         localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(validLogs));
       } catch (e) {}
     }
 
-    // Log passenger click (Call or WhatsApp) for 25-day security trace
     function handleProtectedAction(actionType, driverId, driverName, vehicleNo, targetUrl) {
       const user = getLoggedInPassenger();
       if (!user) {
@@ -516,7 +580,6 @@
       logs.push(logEntry);
       localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(logs));
 
-      // Sync security log to Firestore
       if (window.RC_FIREBASE && window.RC_FIREBASE.auth.currentUser) {
         const { db, collection, addDoc } = window.RC_FIREBASE;
         addDoc(collection(db, "interaction_logs"), logEntry).catch(() => {});
@@ -530,7 +593,7 @@
     }
 
     // =========================================================================
-    // 4. TIME & SAFE TRANSIT OFFSET HELPERS
+    // 5. TIME & SAFE TRANSIT OFFSET HELPERS
     // =========================================================================
     function getStopObj(stopName) {
       return ROUTE_STOPS.find(s => s.name === stopName);
@@ -610,7 +673,7 @@
     }
 
     // =========================================================================
-    // 5. SUB-ROUTE MATCHING & LIVE / PROMISED TRIP RENDER ENGINE
+    // 6. SUB-ROUTE MATCHING & LIVE / PROMISED TRIP RENDER ENGINE
     // =========================================================================
     function getActiveTripsData() {
       const saved = localStorage.getItem("RC_LIVE_TRIPS");
@@ -647,6 +710,13 @@
       }
 
       const filtered = allTrips.filter(trip => {
+        // Step A: Block expired Ghost Trips automatically
+        if (!isTripStillActive(trip)) return false;
+
+        // Step B: Verify against Master Driver Directory (if drivers.json is loaded)
+        const dirCheck = getVerifiedDriverRecord(trip);
+        if (!dirCheck.allowed) return false;
+
         const tripStart = getStopObj(trip.start_stop);
         const tripEnd = getStopObj(trip.end_stop);
         if (!tripStart || !tripEnd) return false;
@@ -700,7 +770,7 @@
               <i class="fa-solid fa-van-shuttle"></i>
             </div>
             <h4 class="font-bold text-slate-800 text-base">No Active or Promised Vehicles Listed Right Now</h4>
-            <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Verified drivers update their live departures and promised schedules directly from the Driver Portal. Please check back shortly.</p>
+            <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Verified drivers update their live departures and promised schedules directly from the Driver Portal. Completed trips expire automatically.</p>
           </div>
         `;
         return;
@@ -711,9 +781,20 @@
         const tripEnd = getStopObj(trip.end_stop);
         const isTowardsKanpur = tripEnd.index > tripStart.index;
 
-        const maxSeats = Number(trip.max_capacity) || 12;
+        const dirCheck = getVerifiedDriverRecord(trip);
+        const dirRecord = dirCheck.record;
+
+        const maxSeats = Number((dirRecord && dirRecord.max_capacity) || trip.max_capacity) || 12;
         const seatsLeft = Number(trip.seats_available);
         const isFull = seatsLeft <= 0;
+
+        const photoSrc = (dirRecord && dirRecord.photo)
+          ? dirRecord.photo
+          : (trip.driver_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(trip.driver_name)}&background=0f172a&color=fff`);
+
+        const genderBadge = (dirRecord && dirRecord.gender)
+          ? `<span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">${dirRecord.gender}</span>`
+          : "";
 
         let customTimingHTML = "";
         if (userFromStop && userToStop) {
@@ -736,12 +817,10 @@
           `;
         }
 
-        // Trip Status Badge (Running vs Promised Schedule)
         const statusBadge = trip.status === "Running"
           ? `<span class="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full"><span class="w-2 h-2 rounded-full bg-emerald-600"></span> Live On Route</span>`
           : `<span class="inline-flex items-center gap-1.5 text-xs font-bold bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-full"><i class="fa-regular fa-calendar-check"></i> Promised: ${convert24To12(trip.departure_time)}</span>`;
 
-        // Seat Badge (Controlled solely by Driver)
         const seatBadge = isFull
           ? `<span class="inline-block text-xs font-bold text-rose-600 mt-1.5"><i class="fa-solid fa-ban"></i> Housefull (0/${maxSeats} Seats)</span>`
           : `<span class="inline-block text-xs font-bold text-emerald-700 mt-1.5"><i class="fa-solid fa-chair"></i> ${seatsLeft} of ${maxSeats} Seats Available</span>`;
@@ -757,10 +836,11 @@
             <!-- Top Row: Driver Info + Status -->
             <div class="flex items-start justify-between gap-3">
               <div class="flex items-center gap-3">
-                <img src="${trip.driver_photo}" alt="${trip.driver_name}" class="w-12 h-12 rounded-xl object-cover border border-slate-200" />
+                <img src="${photoSrc}" alt="${trip.driver_name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(trip.driver_name)}&background=0f172a&color=fff'" class="w-12 h-12 rounded-xl object-cover border border-slate-200" />
                 <div>
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <h4 class="font-bold text-slate-900 text-base">${trip.driver_name}</h4>
+                    ${genderBadge}
                     <span class="text-[11px] bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-md border border-blue-200">
                       <i class="fa-solid fa-circle-check"></i> Verified
                     </span>
@@ -839,7 +919,7 @@
     }
 
     // =========================================================================
-    // 6. RATING & REVIEW MODAL + STRICT ANTI-XSS / TEXT-ONLY SANITIZATION
+    // 7. RATING & REVIEW MODAL + STRICT ANTI-XSS / TEXT-ONLY SANITIZATION
     // =========================================================================
     function openRatingModal(driverId, driverTitle) {
       const user = getLoggedInPassenger();
@@ -890,19 +970,12 @@
     }
 
     function sanitizeAndCount(el) {
-      // 1. Strip HTML tags, brackets, slashes, and script characters immediately (Anti-XSS)
       el.value = el.value.replace(/[<>/{}[\]\\`~|$^*]/g, "");
-
-      // 2. Strip any URLs or domain patterns (http, www, .com, .in, etc.)
       el.value = el.value.replace(/(https?:\/\/[^\s]+)|(www\.[^\s]+)|(\.[a-z]{2,4}\b)/gi, "");
-
-      // 3. Enforce strict 50-word limit
       const words = el.value.trim().split(/\s+/).filter(Boolean);
       if (words.length > 50) {
         el.value = words.slice(0, 50).join(" ");
       }
-
-      // 4. Update character counter
       document.getElementById("charCount").textContent = `${el.value.length} / 250 chars`;
     }
 
@@ -943,12 +1016,14 @@
       closeRatingModal();
     }
 
-    // Initialize Page
+    // Initialize Page & Periodic Ghost Trip Sweeper (Every 60 Seconds)
     window.addEventListener("DOMContentLoaded", () => {
       purgeExpiredInteractionLogs();
       renderAuthHeader();
       initDropdowns();
+      loadMasterDriverDirectory();
       filterTrips();
+      setInterval(filterTrips, 60000);
     });
   </script>
 </body>
