@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Captain Portal | RouteConnect Live Corridor</title>
+  <title>Captain Portal | RouteConnect Corridor</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -11,6 +11,14 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
+    .pulse-dot {
+      animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
@@ -18,7 +26,7 @@
   <!-- Top Security Banner -->
   <div class="bg-emerald-600 text-white text-xs sm:text-sm font-medium py-2 px-4 text-center">
     <i class="fa-solid fa-shield-halved mr-1"></i>
-    RouteConnect Verified Captain Portal • Anti-Skip Stop Lock • Smart Auto-Lag Schedule Sync
+    RouteConnect Verified Captain Portal • 1-Tap Housefull • Midnight Safe Sync • Auto-End at Destination
   </div>
 
   <!-- Navbar -->
@@ -53,7 +61,7 @@
       </div>
       <h2 class="text-lg sm:text-xl font-bold text-slate-900">Verified Captain Sign-In</h2>
       <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-        Sign in with your registered Gmail account. Your session stays active automatically so you do not have to sign in repeatedly.
+        Sign in with your registered Gmail account. Your login session stays saved automatically on this device.
       </p>
 
       <button onclick="loginDriverWithGoogle()" class="mt-6 w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm shadow-md flex items-center justify-center gap-2.5 transition">
@@ -66,10 +74,10 @@
     <!-- LOADING STATE -->
     <section id="loadingGate" class="hidden bg-white rounded-2xl p-8 text-center max-w-lg mx-auto my-6 border border-slate-200">
       <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-600 mb-2"></i>
-      <p class="text-xs font-semibold text-slate-600">Verifying Captain membership & validity...</p>
+      <p class="text-xs font-semibold text-slate-600">Verifying Captain credentials in Cloud Record...</p>
     </section>
 
-    <!-- BLOCKED / EXPIRED / UNREGISTERED NOTICE -->
+    <!-- BLOCKED / EXPIRED NOTICE -->
     <section id="blockedNotice" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-6 text-center max-w-lg mx-auto my-6 shadow-sm">
       <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3 text-xl">
         <i class="fa-solid fa-ban"></i>
@@ -84,7 +92,7 @@
     <!-- STEP 2: CAPTAIN DASHBOARD -->
     <div id="driverDashboard" class="hidden space-y-6">
 
-      <!-- Subscription / Validity Banner -->
+      <!-- Validity Banner -->
       <div id="validityBanner" class="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs text-emerald-900 font-medium">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
@@ -101,17 +109,17 @@
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 flex-wrap gap-2">
           <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
             <i class="fa-solid fa-sliders text-emerald-600"></i>
-            <span>1. Active Trips & 1-Tap Stop Controller</span>
+            <span>1. Active Trips & Fast Check-In Controller</span>
           </h3>
           <span class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-lg border border-emerald-200">
-            Real-Time ETA & Lag Sync
+            Real-Time Cloud Sync
           </span>
         </div>
 
         <div id="myActiveTripsContainer" class="space-y-4"></div>
       </section>
 
-      <!-- 2A. WORKSPACE A: START OR UPDATE CURRENT LIVE RUNNING TRIP -->
+      <!-- 2A. LIVE RUNNING TRIP FORM -->
       <section id="liveFormSection" class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 flex-wrap gap-2">
           <div>
@@ -120,7 +128,7 @@
               <span>2A. Start / Update Current Live Trip</span>
             </h3>
             <p class="text-[11px] text-slate-500 mt-0.5">
-              Use this form when your vehicle is currently departing or running on the route.
+              Publish departure when you start driving. System handles late-night & cross-midnight timings automatically.
             </p>
           </div>
           <span id="liveTodayLabel" class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">Today</span>
@@ -144,13 +152,11 @@
 
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="block text-xs font-semibold text-slate-600">Estimated Arrival Time (ETA) *</label>
+              <label class="block text-xs font-semibold text-slate-600">Estimated Arrival (ETA) *</label>
               <span id="liveMinEtaBadge" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Min: --:--</span>
             </div>
             <input type="time" id="liveArrTime" required onchange="validateLiveArrivalFloor()" class="w-full px-3.5 py-2 bg-white border-2 border-emerald-400 rounded-xl text-sm font-bold text-emerald-800 outline-none focus:ring-2 focus:ring-emerald-500" />
-            <p class="text-[11px] text-slate-500 mt-1">
-              You can increase ETA for detours/traffic, but cannot set it below minimum safe travel time.
-            </p>
+            <p id="liveArrNotice" class="text-[11px] text-slate-500 mt-1">Minimum safe travel time locked automatically.</p>
           </div>
 
           <div>
@@ -160,10 +166,10 @@
 
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Short Route Note (Optional)</label>
-            <input type="text" id="liveNote" maxlength="100" placeholder="e.g. Standing at Amauli Chauraha / Non-stop" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+            <input type="text" id="liveNote" maxlength="100" placeholder="e.g. Standing at Amauli / Express non-stop" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
 
-          <!-- Optional Google Maps Live Link -->
+          <!-- Google Maps Link -->
           <div class="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
             <div class="flex items-center justify-between flex-wrap gap-1">
               <label class="block text-xs font-bold text-slate-700">
@@ -175,7 +181,7 @@
             <input 
               type="url" 
               id="liveGmapsLink" 
-              placeholder="Paste https://maps.app.goo.gl/... here (or leave empty to use 1-Tap Stop Check-In)" 
+              placeholder="Paste https://maps.app.goo.gl/... here (or leave empty to use 1-Tap Check-In)" 
               class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -188,7 +194,7 @@
         </form>
       </section>
 
-      <!-- 2B. WORKSPACE B: SEPARATE SCHEDULED RETURN TRIP (TODAY OR TOMORROW) -->
+      <!-- 2B. SCHEDULED RETURN TRIP FORM -->
       <section id="returnFormSection" class="bg-indigo-50/50 rounded-2xl p-4 sm:p-6 shadow-sm border-2 border-indigo-200">
         <div class="flex items-center justify-between border-b border-indigo-100 pb-3 mb-4 flex-wrap gap-2">
           <div>
@@ -197,7 +203,7 @@
               <span id="returnFormTitle">2B. Schedule / Edit Return Trip (Today or Tomorrow)</span>
             </h3>
             <p class="text-[11px] text-indigo-700 mt-0.5">
-              Schedule your next/return trip. System automatically accounts for travel distance from your current destination.
+              Protected by travel distance from your previous trip's destination. Auto-lag caps safely at 60 mins.
             </p>
           </div>
           <button type="button" onclick="autoFillReturnFromLive()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-sm">
@@ -206,9 +212,9 @@
         </div>
 
         <form id="returnTripForm" onsubmit="publishPromisedReturnTrip(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Date Selector: Today vs Tomorrow -->
+          <!-- Date Selector -->
           <div class="sm:col-span-2">
-            <label class="block text-xs font-bold text-indigo-950 mb-1.5">Select Return Trip Day *</label>
+            <label class="block text-xs font-bold text-indigo-950 mb-1.5">Select Trip Day *</label>
             <div class="grid grid-cols-2 gap-3">
               <button type="button" id="dateBtn_TODAY" onclick="selectReturnDateMode('TODAY')" class="py-2.5 px-3 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-indigo-600 text-white border-indigo-600 shadow-sm">
                 <i class="fa-solid fa-sun"></i>
@@ -244,9 +250,7 @@
               <span id="retMinEtaBadge" class="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200">Min: --:--</span>
             </div>
             <input type="time" id="retArrTime" required onchange="validateReturnArrivalFloor()" class="w-full px-3.5 py-2 bg-white border-2 border-indigo-400 rounded-xl text-sm font-bold text-indigo-900 outline-none focus:ring-2 focus:ring-indigo-500" />
-            <p class="text-[11px] text-indigo-700 mt-1">
-              You can increase ETA if needed, but cannot set it below minimum safe travel time.
-            </p>
+            <p class="text-[11px] text-indigo-700 mt-1">Minimum safe travel time automatically locked.</p>
           </div>
 
           <div>
@@ -256,7 +260,7 @@
 
           <div>
             <label class="block text-xs font-semibold text-indigo-950 mb-1">Booking Note (Optional)</label>
-            <input type="text" id="retNote" maxlength="100" placeholder="e.g. Call now for seat booking" class="w-full px-3.5 py-2 bg-white border border-indigo-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input type="text" id="retNote" maxlength="100" placeholder="e.g. Call now for advance booking" class="w-full px-3.5 py-2 bg-white border border-indigo-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
 
           <div class="sm:col-span-2 pt-1">
@@ -267,16 +271,14 @@
         </form>
       </section>
 
-      <!-- 3. Admin-Locked Captain & Vehicle Profile Card -->
+      <!-- 3. PROFILE CARD -->
       <section class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
           <div class="flex items-center gap-3">
             <img id="profPhotoPreview" src="" alt="Captain" class="w-11 h-11 rounded-xl object-cover border border-slate-300 bg-slate-100" />
             <div>
-              <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-1.5">
-                <span>Registered Vehicle & Captain Profile</span>
-              </h3>
-              <p class="text-[11px] text-slate-400">Synced from Admin Master Record (Read-Only)</p>
+              <h3 class="font-bold text-slate-900 text-sm sm:text-base">Registered Vehicle & Profile</h3>
+              <p class="text-[11px] text-slate-400">Synced directly from Firestore Master Record</p>
             </div>
           </div>
           <span class="text-[11px] bg-slate-100 text-slate-700 font-semibold px-2.5 py-1 rounded-lg border border-slate-200">
@@ -296,12 +298,12 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1">Registered Mobile / WhatsApp</label>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Registered Phone</label>
             <input type="tel" id="profPhone" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 cursor-not-allowed outline-none" />
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1">Vehicle Number (Plate)</label>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Vehicle Plate</label>
             <input type="text" id="profVehicleNo" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-800 uppercase cursor-not-allowed outline-none" />
           </div>
 
@@ -311,7 +313,7 @@
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1">Approved Seat Capacity</label>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Seat Capacity</label>
             <input type="number" id="profMaxSeats" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 cursor-not-allowed outline-none" />
           </div>
         </div>
@@ -320,16 +322,14 @@
     </div>
   </main>
 
-  <!-- Footer -->
   <footer class="bg-slate-900 text-slate-400 text-xs py-6 px-4 mt-10">
     <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
       <p>© 2026 RouteConnect Captain Portal (Manjhepur – Amauli – Jahanabad – Kanpur).</p>
-      <p class="text-slate-500">Anti-Teleportation Stop Check-In • Deadhead Turnaround Lock • Auto-Lag Sync</p>
+      <p class="text-slate-500">Fast Seat Toggles • Anti-Teleportation Travel Lock • Midnight Guard</p>
     </div>
   </footer>
-
   <!-- ========================================================================= -->
-  <!-- FIREBASE CLOUD ENGINE                                                     -->
+  <!-- FIREBASE CLOUD ENGINE & JAVASCRIPT ENGINE (PART 2)                        -->
   <!-- ========================================================================= -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -473,10 +473,11 @@
       return Math.abs(eObj.offset - sObj.offset);
     }
 
+    // Midnight-safe arrival check: allows crossing into the next day without error
     function isArrivalValidAgainstFloor(depTimeStr, arrTimeStr, minSafeMins) {
       const depM = timeStrToMins(depTimeStr);
       let arrM = timeStrToMins(arrTimeStr);
-      if (arrM < depM && (arrM + 1440 - depM) <= 480) {
+      if (arrM < depM && (arrM + 1440 - depM) <= 720) {
         arrM += 1440;
       }
       return (arrM - depM) >= minSafeMins;
@@ -491,13 +492,7 @@
       return arrM;
     }
 
-    // =========================================================================
-    // SMART AUTO-LAG STEPPER FOR UNSTARTED SCHEDULED TRIPS (+2m -> +5m -> +10m)
-    // =========================================================================
-    // If scheduled time T is reached and Captain hasn't pressed Start:
-    // T + 0..1 min  -> shifts by +2 mins (e.g. 07:38 -> 07:40)
-    // T + 2..6 mins -> shifts by +7 mins total (+2 + 5 = e.g. 07:45)
-    // T + 7+ mins   -> shifts in +10 min blocks (e.g. 07:55, 08:05, 08:15...)
+    // Auto-lag with a strict 60-minute ceiling (Prevents infinite delay loops)
     function getAutoLaggedScheduleTimes(trip) {
       const todayYMD = formatYMDLocal(getISTDateObj(0));
       const baseDep = trip.base_departure_time || trip.departure_time;
@@ -507,7 +502,8 @@
         return {
           dep24: trip.departure_time,
           arr24: trip.claimed_arrival_time,
-          lagAddedMins: 0
+          lagAddedMins: 0,
+          isExpiredByDelay: false
         };
       }
 
@@ -519,19 +515,30 @@
         return {
           dep24: baseDep,
           arr24: baseArr,
-          lagAddedMins: 0
+          lagAddedMins: 0,
+          isExpiredByDelay: false
         };
       }
 
       const diff = nowMins - baseDepMins;
+      // If delay exceeds 60 minutes, trip is marked for auto-removal
+      if (diff > 60) {
+        return {
+          dep24: baseDep,
+          arr24: baseArr,
+          lagAddedMins: diff,
+          isExpiredByDelay: true
+        };
+      }
+
       let lagAddedMins = 0;
       if (diff < 2) {
         lagAddedMins = 2;
       } else if (diff < 7) {
-        lagAddedMins = 7; // +2 mins then +5 mins
+        lagAddedMins = 7;
       } else {
         const extra10Blocks = Math.floor((diff - 7) / 10) + 1;
-        lagAddedMins = 7 + extra10Blocks * 10; // +17, +27, +37 (i.e. 7:45 -> 7:55 -> 8:05)
+        lagAddedMins = Math.min(60, 7 + extra10Blocks * 10);
       }
 
       const laggedDepMins = baseDepMins + lagAddedMins;
@@ -542,7 +549,8 @@
       return {
         dep24: minsToTimeStr(laggedDepMins),
         arr24: minsToTimeStr(laggedArrMins),
-        lagAddedMins
+        lagAddedMins,
+        isExpiredByDelay: false
       };
     }
 
@@ -643,11 +651,8 @@
     };
 
     // =========================================================================
-    // WORKSPACE 2B: STRICT DEADHEAD + TURNAROUND RETURN TIME LOCK
+    // WORKSPACE 2B: DEADHEAD + TURNAROUND RETURN TIME LOCK
     // =========================================================================
-    // Includes Deadhead Repositioning Time if Return Start Stop != Live End Stop!
-    // Example: Live trip ends at Manjhepur at 07:26 AM. If Captain sets next trip from Basant Vihar Chauraha,
-    // vehicle must first travel Manjhepur -> Basant Vihar (145 mins) + 20 mins buffer = 165 mins!
     function getEarliestAllowedReturnMinsForToday() {
       const activeRunning = getMyActiveRunningTrip();
       const plannedReturnStart = document.getElementById("retStartStop")?.value || "";
@@ -940,15 +945,15 @@
 
           if (check.reason === "NOT_FOUND") {
             titleEl.textContent = "Gmail ID Not Registered";
-            descEl.textContent = `Your Gmail (${user.email}) is not registered in the RouteConnect Master Record. Please contact the Admin to activate your Captain account.`;
+            descEl.textContent = `Your Gmail (${user.email}) is not registered in the RouteConnect Master Record. Please contact Admin to register.`;
           } else if (check.reason === "EXPIRED") {
-            titleEl.textContent = "Membership Validity Expired";
-            descEl.textContent = `Your plan expired on ${check.data.expiry_date || "recent date"} (Payment: ${check.data.payment_status || "Pending"}). Please contact Admin to renew your validity.`;
+            titleEl.textContent = "Plan Validity Expired";
+            descEl.textContent = `Your subscription expired on ${check.data.expiry_date || "recent date"}. Please contact Admin to renew.`;
             deleteDoc(doc(db, "live_trips", `TRIP_${user.uid}`)).catch(() => {});
             deleteDoc(doc(db, "live_trips", `TRIP_PROMISED_${user.uid}`)).catch(() => {});
           } else {
-            titleEl.textContent = "Captain Account Paused / Blocked";
-            descEl.textContent = "Your account status is currently set to Blocked by the Admin. Please contact RouteConnect Admin.";
+            titleEl.textContent = "Captain Account Blocked";
+            descEl.textContent = "Your account status is currently set to Blocked. Please contact RouteConnect Support.";
             deleteDoc(doc(db, "live_trips", `TRIP_${user.uid}`)).catch(() => {});
             deleteDoc(doc(db, "live_trips", `TRIP_PROMISED_${user.uid}`)).catch(() => {});
           }
@@ -964,7 +969,7 @@
         loadingGate.classList.add("hidden");
         blockedNotice.classList.remove("hidden");
         document.getElementById("blockedTitle").textContent = "Verification Error";
-        document.getElementById("blockedDesc").textContent = "Could not verify your Captain record: " + err.message;
+        document.getElementById("blockedDesc").textContent = "Could not verify Captain record: " + err.message;
       }
     });
 
@@ -998,7 +1003,7 @@
     }
 
     // =========================================================================
-    // PUBLISH 2A: CURRENT LIVE RUNNING TRIP
+    // PUBLISH 2A: LIVE RUNNING TRIP
     // =========================================================================
     window.publishLiveRunningTrip = async function (e) {
       e.preventDefault();
@@ -1015,7 +1020,7 @@
 
       const gmapsLink = document.getElementById("liveGmapsLink").value.trim();
       if (!isValidGoogleMapsUrl(gmapsLink)) {
-        alert("Security Notice: Please paste only an official Google Maps share link (https://maps.app.goo.gl/...) or leave it empty.");
+        alert("Security Notice: Please paste only an official Google Maps link (https://maps.app.goo.gl/...) or leave it empty.");
         return;
       }
 
@@ -1026,7 +1031,7 @@
       try {
         const freshCheck = await verifySingleDriverFromFirestore(currentDriverUser);
         if (!freshCheck.allowed) {
-          alert("Your account validity has expired or been blocked by Admin. Reloading...");
+          alert("Your account validity has expired or been paused. Reloading...");
           window.location.reload();
           return;
         }
@@ -1087,7 +1092,7 @@
 
         await setDoc(doc(db, "live_trips", tripId), tripPayload);
 
-        // Also ensure any existing Same-Day Scheduled Return Trip obeys Deadhead + Turnaround Buffer
+        // Check if Scheduled Return Trip needs auto-shift for turnaround
         const promisedReturn = getMyPromisedReturnTrip();
         if (promisedReturn && (!promisedReturn.trip_date || promisedReturn.trip_date === todayYMD)) {
           const effLiveArr = getEffectiveArrivalMins(depTime, arrTime);
@@ -1109,7 +1114,7 @@
         }
 
         window.scrollTo({ top: 0, behavior: "smooth" });
-        alert("Live Running Trip published! Use the 1-Tap Stop buttons as you physically reach each stop.");
+        alert("Live Running Trip published! You can now check in at each stop as you drive.");
       } catch (err) {
         alert("Failed to publish live trip: " + err.message);
       } finally {
@@ -1119,7 +1124,7 @@
     };
 
     // =========================================================================
-    // PUBLISH 2B: SCHEDULED RETURN TRIP (WITH DEADHEAD REPOSITIONING LOCK)
+    // PUBLISH 2B: SCHEDULED RETURN TRIP
     // =========================================================================
     window.publishPromisedReturnTrip = async function (e) {
       e.preventDefault();
@@ -1185,7 +1190,7 @@
       try {
         const freshCheck = await verifySingleDriverFromFirestore(currentDriverUser);
         if (!freshCheck.allowed) {
-          alert("Your account validity has expired or been blocked by Admin. Reloading...");
+          alert("Your account validity has expired or been paused. Reloading...");
           window.location.reload();
           return;
         }
@@ -1347,7 +1352,7 @@
         const displayArr24 = trip.status === "Promised" ? lagInfo.arr24 : trip.claimed_arrival_time;
 
         const autoLagNoticeHTML = (trip.status === "Promised" && lagInfo.lagAddedMins > 0)
-          ? `<span class="text-[11px] bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded font-bold">Auto-Delayed +${lagInfo.lagAddedMins}m (Press Start Now to reset to actual time)</span>`
+          ? `<span class="text-[11px] bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded font-bold">Auto-Delayed +${lagInfo.lagAddedMins}m (Press Start to reset)</span>`
           : "";
 
         const bottomControlsHTML = trip.status === "Running" ? `
@@ -1355,7 +1360,7 @@
             <div class="flex items-center justify-between mb-2 flex-wrap gap-1">
               <span class="text-xs font-bold text-slate-800">
                 <i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>
-                1-Tap Current Stop Check-In (Protected by Physical Travel Time Lock):
+                1-Tap Current Stop Check-In:
               </span>
               <span class="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-md border border-emerald-300">
                 Current: ${trip.current_stop || trip.start_stop} (${trip.current_stop_time || "Just started"})
@@ -1402,7 +1407,7 @@
           </div>
         ` : `
           <div class="mt-3 pt-3 border-t border-indigo-200 flex items-center justify-between flex-wrap gap-2 text-xs text-indigo-900">
-            <span><i class="fa-solid fa-clock text-indigo-600 mr-1"></i> When you press <b>Start Trip Now</b>, departure resets to exact current time:</span>
+            <span><i class="fa-solid fa-clock text-indigo-600 mr-1"></i> Ready to leave? Press <b>Start Trip Now</b> to sync exact departure:</span>
             <div class="flex items-center gap-2">
               <button
                 type="button"
@@ -1421,6 +1426,11 @@
             </div>
           </div>
         `;
+
+        // 1-Tap Housefull / Full vs Reset Quick Buttons
+        const quickSeatToggleHTML = seats > 0
+          ? `<button onclick="adjustSeats('${trip.id}', 0, ${max})" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg text-xs font-bold transition flex items-center gap-1" title="Instantly show 0 seats on passenger view"><i class="fa-solid fa-ban"></i> Housefull</button>`
+          : `<button onclick="adjustSeats('${trip.id}', ${max}, ${max})" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold transition flex items-center gap-1" title="Reset seats back to maximum capacity"><i class="fa-solid fa-rotate-left"></i> Reset (${max})</button>`;
 
         return `
           <div class="${trip.status === 'Running' ? 'bg-emerald-50/60 border-emerald-300' : 'bg-indigo-50/60 border-indigo-300'} rounded-2xl p-4 border-2 shadow-sm">
@@ -1445,15 +1455,16 @@
                 ${trip.note ? `<p class="text-xs text-amber-800 font-medium mt-1"><i class="fa-solid fa-bullhorn mr-1"></i>${trip.note}</p>` : ''}
               </div>
 
-              <!-- Seat & Edit/Delete Controls -->
+              <!-- Fast Seat Toggles & Action Buttons -->
               <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200">
-                <div class="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-xl border border-slate-300">
+                <div class="flex items-center gap-1.5 bg-white px-2 py-1.5 rounded-xl border border-slate-300">
                   <button onclick="adjustSeats('${trip.id}', ${seats - 1}, ${max})" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 font-bold text-sm">-</button>
-                  <span class="text-xs font-bold px-2 text-slate-800">${seats} / ${max} Seats</span>
+                  <span class="text-xs font-bold px-1.5 text-slate-800">${seats}/${max}</span>
                   <button onclick="adjustSeats('${trip.id}', ${seats + 1}, ${max})" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 font-bold text-sm">+</button>
+                  ${quickSeatToggleHTML}
                 </div>
 
-                <button onclick="loadTripIntoEditor('${trip.id}')" title="Edit Time or Route" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold rounded-xl transition">
+                <button onclick="loadTripIntoEditor('${trip.id}')" title="Edit Trip Details" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold rounded-xl transition">
                   <i class="fa-solid fa-pen"></i> Edit
                 </button>
 
@@ -1470,9 +1481,8 @@
     }
 
     // =========================================================================
-    // 1-TAP STOP CHECK-IN WITH ANTI-TELEPORTATION LOCK & DYNAMIC ETA SHIFT
+    // 1-TAP STOP CHECK-IN (ANTI-SKIP & DESTINATION REACHED PROMPT)
     // =========================================================================
-    // Prevents checking into Sathigavan 2 mins after Galla Mandi when minimum travel time is 113 mins!
     window.checkInStop = async function (tripDocId, stopName) {
       const now = new Date();
       const now24 = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -1482,16 +1492,16 @@
       const trip = allLiveTrips.find(t => t.id === tripDocId);
       if (!trip) return;
 
-      // 1. Validate against Departure Time & Previous Stop Check-In Time (Anti-Skip / Anti-Teleportation Lock)
+      // 1. Anti-Teleportation Transit Check
       const minMinsFromStartToTarget = getSafeRouteMins(trip.start_stop, stopName);
       const depMins = timeStrToMins(trip.departure_time);
       let elapsedSinceStart = curMins - depMins;
-      if (elapsedSinceStart < -720) elapsedSinceStart += 1440; // Midnight wrap
+      if (elapsedSinceStart < -720) elapsedSinceStart += 1440;
 
       if (stopName !== trip.start_stop && elapsedSinceStart < minMinsFromStartToTarget) {
         const earliestReachStr = minsToTimeStr(depMins + minMinsFromStartToTarget);
         alert(
-          `Physical Travel Time Lock:\nFrom ${trip.start_stop} (${format12Hr(trip.departure_time)}) to ${stopName}, minimum travel time is ${minMinsFromStartToTarget} minutes.\n\nYou cannot check in at ${stopName} at ${now12} (after only ${Math.max(0, elapsedSinceStart)} mins)!\nEarliest valid check-in time for ${stopName} is ${format12Hr(earliestReachStr)}.`
+          `Physical Travel Time Lock:\nFrom ${trip.start_stop} (${format12Hr(trip.departure_time)}) to ${stopName}, travel takes at least ${minMinsFromStartToTarget} minutes.\n\nYou cannot check in at ${stopName} at ${now12}!\nEarliest valid time is ${format12Hr(earliestReachStr)}.`
         );
         return;
       }
@@ -1507,13 +1517,27 @@
         if (elapsedSincePrev < minMinsBetweenStops) {
           const earliestSegReachStr = minsToTimeStr(prevMins + minMinsBetweenStops);
           alert(
-            `Physical Travel Time Lock:\nMinimum travel time from ${prevStopName} (${format12Hr(prevStopTime24)}) to ${stopName} is ${minMinsBetweenStops} minutes.\n\nYou cannot reach ${stopName} in ${Math.max(0, elapsedSincePrev)} minutes!\nEarliest valid check-in time for ${stopName} is ${format12Hr(earliestSegReachStr)}.`
+            `Physical Travel Time Lock:\nMinimum travel from ${prevStopName} to ${stopName} is ${minMinsBetweenStops} minutes.\n\nYou cannot reach ${stopName} in ${Math.max(0, elapsedSincePrev)} minutes!\nEarliest check-in for this stop is ${format12Hr(earliestSegReachStr)}.`
           );
           return;
         }
       }
 
-      // 2. Calculate new Destination ETA based on actual check-in time + remaining route offset
+      // 2. Check if Destination Reached -> Offer Auto-End
+      if (stopName === trip.end_stop) {
+        const shouldEnd = confirm(
+          `Destination Check-In:\nYou have reached the final stop (${trip.end_stop}) at ${now12}!\n\nDo you want to mark this trip as Completed and remove it from Passenger View now?`
+        );
+        if (shouldEnd) {
+          try {
+            await deleteDoc(doc(db, "live_trips", tripDocId));
+            alert(`Trip to ${trip.end_stop} marked completed!`);
+            return;
+          } catch (e) {}
+        }
+      }
+
+      // 3. Recalculate Destination ETA
       const remainingMins = getSafeRouteMins(stopName, trip.end_stop);
       const dynamicMinArrMins = curMins + remainingMins;
       const updatedArr24 = minsToTimeStr(dynamicMinArrMins);
@@ -1528,7 +1552,7 @@
         };
         await updateDoc(doc(db, "live_trips", tripDocId), updatePayload);
 
-        // 3. Auto-shift Same-Day Scheduled Return Trip if Live Arrival + Deadhead + 20m pushes past Return Departure
+        // Auto-shift return trip if delayed
         const promisedReturn = getMyPromisedReturnTrip();
         const todayYMD = formatYMDLocal(getISTDateObj(0));
         if (promisedReturn && (!promisedReturn.trip_date || promisedReturn.trip_date === todayYMD)) {
@@ -1556,18 +1580,15 @@
     };
 
     // =========================================================================
-    // PROMOTE SCHEDULED TRIP TO LIVE ("BACK TO PAVILION" EXACT CURRENT TIME)
+    // START TRIP NOW (EXACT REAL TIME RESET)
     // =========================================================================
-    // Even if auto-lag had pushed display time to 7:45 or 7:55, pressing Start resets departure
-    // to exact current clock time (now24) and recalculates all stops & ETA from now24!
     window.promoteReturnToLiveRunning = async function (promisedDocId) {
       const promisedTrip = allLiveTrips.find(t => t.id === promisedDocId);
       if (!promisedTrip || !currentDriverUser) return;
 
-      // Ensure Captain isn't starting a return trip before finishing or reaching from an active conflicting route
       const activeRunning = getMyActiveRunningTrip();
       if (activeRunning && activeRunning.current_stop !== activeRunning.end_stop) {
-        if (!confirm(`Your previous trip (${activeRunning.start_stop} → ${activeRunning.end_stop}) is still marked active. End it and start ${promisedTrip.start_stop} → ${promisedTrip.end_stop} right now?`)) {
+        if (!confirm(`Your previous trip (${activeRunning.start_stop} → ${activeRunning.end_stop}) is still active. End it and start ${promisedTrip.start_stop} → ${promisedTrip.end_stop} right now?`)) {
           return;
         }
       } else {
@@ -1603,19 +1624,28 @@
         if (promisedDocId !== liveDocId) {
           await deleteDoc(doc(db, "live_trips", promisedDocId));
         }
-        alert(`Trip is now Live On Route starting at exact time ${now12}! Destination ETA set to ${format12Hr(newArr24)}.`);
+        alert(`Trip is now Live On Route at ${now12}! Destination ETA set to ${format12Hr(newArr24)}.`);
       } catch (err) {
         alert("Could not start trip: " + err.message);
       }
     };
 
-    // Background Auto-Lag Syncer (Every 30 seconds updates Firestore if scheduled time has passed)
+    // Auto-lag syncer with auto-expiration of delayed phantom trips (>60m)
     setInterval(async () => {
       if (!currentDriverUser) return;
       const promised = getMyPromisedReturnTrip();
       if (!promised) return;
 
       const lagInfo = getAutoLaggedScheduleTimes(promised);
+
+      // If scheduled trip has been idle for more than 60 minutes after base time, auto-cancel
+      if (lagInfo.isExpiredByDelay) {
+        try {
+          await deleteDoc(doc(db, "live_trips", promised.id));
+        } catch (e) {}
+        return;
+      }
+
       if (lagInfo.lagAddedMins > 0 && (promised.departure_time !== lagInfo.dep24 || promised.claimed_arrival_time !== lagInfo.arr24)) {
         try {
           await updateDoc(doc(db, "live_trips", promised.id), {
