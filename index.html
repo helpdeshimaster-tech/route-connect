@@ -26,7 +26,12 @@
   <!-- Top Security Banner -->
   <div class="bg-amber-500 text-slate-900 text-xs sm:text-sm font-medium py-2 px-4 text-center">
     <i class="fa-solid fa-shield-halved mr-1"></i>
-    Verified Captains • Ground-Calibrated Route Times • 60-Min Cancellation Ceiling • 24h Review Spam Protection
+    Verified Captains • Direct WhatsApp & Call Booking • Real-Time Corridor Tracking • Verified Security Log
+  </div>
+
+  <!-- Offline Network Banner -->
+  <div id="offlineNotice" class="hidden bg-rose-600 text-white text-xs font-semibold py-1.5 px-4 text-center">
+    <i class="fa-solid fa-wifi-slash mr-1.5"></i> Network disconnected. Showing offline cached vehicle timings...
   </div>
 
   <!-- Navbar -->
@@ -42,9 +47,9 @@
         </div>
       </div>
 
-      <!-- Right Actions: Passenger Google Auth + Captain Portal Link -->
+      <!-- Right Actions: Passenger Google Auth + History + Captain Portal Link -->
       <div class="flex items-center gap-2">
-        <div id="authSection">
+        <div id="authSection" class="flex items-center gap-2">
           <button onclick="openAuthModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
             <i class="fa-brands fa-google text-rose-500"></i>
             <span>Sign In</span>
@@ -141,6 +146,30 @@
     <div id="tripsContainer" class="space-y-4"></div>
   </main>
 
+  <!-- PASSENGER ACTIVITY & CONTACT HISTORY MODAL -->
+  <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900 text-base leading-tight">My Contact & Booking History</h4>
+            <p class="text-[11px] text-slate-500">Only genuine Call & WhatsApp contacts from last 25 days</p>
+          </div>
+        </div>
+        <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="overflow-y-auto pr-1 space-y-3 mt-4 flex-1" id="historyListContainer">
+        <!-- Rendered by JavaScript -->
+      </div>
+    </div>
+  </div>
+
   <!-- Google Sign-In Modal -->
   <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
@@ -155,7 +184,7 @@
       </div>
 
       <p class="text-xs text-slate-600 mt-3 leading-relaxed">
-        For passenger and Captain safety, please enter your mobile number and continue with your Google account before calling a Captain, viewing live map locations, or submitting reviews.
+        For passenger and Captain safety, please enter your mobile number and continue with your Google account before calling a Captain, booking on WhatsApp, or submitting reviews.
       </p>
 
       <form id="googleAuthForm" onsubmit="handleGoogleSignIn(event)" class="mt-4 space-y-3">
@@ -168,7 +197,7 @@
           <input type="email" id="authEmail" required placeholder="yourname@gmail.com" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number (For 25-Day Security Log)</label>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number (For Safety Record)</label>
           <input type="tel" id="authPhone" required pattern="[6-9][0-9]{9}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="10-digit mobile number" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
         </div>
 
@@ -320,7 +349,21 @@
       updateDoc
     };
 
-    // Real-time synchronization of Captain verification directly from Firestore
+    // Online / Offline Status Detection
+    function updateOnlineStatus() {
+      const banner = document.getElementById("offlineNotice");
+      if (!banner) return;
+      if (navigator.onLine) {
+        banner.classList.add("hidden");
+      } else {
+        banner.classList.remove("hidden");
+      }
+    }
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
+    updateOnlineStatus();
+
+    // 100% Firestore-only Captain Verification (Eliminates drivers.json conflict)
     onSnapshot(collection(db, "verified_drivers"), (snapshot) => {
       const liveDirectory = [];
       snapshot.forEach((docSnap) => {
@@ -369,7 +412,7 @@
 
   <!-- RouteConnect Application Engine -->
   <script>
-    // Ground-calibrated micro-offsets synchronized with driver.html
+    // Exact match with driver.html ground-calibrated offsets (145 mins total corridor duration)
     const ROUTE_STOPS = [
       { index: 0,  name: "Manjhepur", offset: 0 },
       { index: 1,  name: "Barwa", offset: 4 },
@@ -581,6 +624,7 @@
       const depDate = new Date();
       depDate.setHours(depH, depM, 0, 0);
 
+      // Handle midnight crossing trip departures: if depDate is ahead of now by over 12 hours, treat as yesterday's late run
       if (depDate.getTime() - now.getTime() > 12 * 60 * 60 * 1000) {
         depDate.setDate(depDate.getDate() - 1);
       }
@@ -718,9 +762,13 @@
       const authContainer = document.getElementById("authSection");
       if (user && user.email) {
         authContainer.innerHTML = `
+          <button onclick="openHistoryModal()" title="View Booking & Contact History" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
+            <span class="hidden sm:inline">My Activity</span>
+          </button>
           <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs">
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="font-semibold text-slate-200 truncate max-w-[110px]">${user.name}</span>
+            <span class="font-semibold text-slate-200 truncate max-w-[100px]">${user.name}</span>
             <button onclick="signOutPassenger()" title="Sign Out" class="text-slate-400 hover:text-rose-400 ml-1">
               <i class="fa-solid fa-right-from-bracket"></i>
             </button>
@@ -757,6 +805,89 @@
     function closeMapGateModal() {
       document.getElementById("mapGateModal").classList.add("hidden");
       document.getElementById("mapGateModal").classList.remove("flex");
+    }
+
+    // =========================================================================
+    // PASSENGER BOOKING & CONTACT HISTORY LOGIC
+    // =========================================================================
+    function openHistoryModal() {
+      const user = getLoggedInPassenger();
+      if (!user) {
+        openAuthModal();
+        return;
+      }
+      renderCustomerHistory(user);
+      document.getElementById("historyModal").classList.remove("hidden");
+      document.getElementById("historyModal").classList.add("flex");
+    }
+
+    function closeHistoryModal() {
+      document.getElementById("historyModal").classList.add("hidden");
+      document.getElementById("historyModal").classList.remove("flex");
+    }
+
+    function renderCustomerHistory(user) {
+      const listEl = document.getElementById("historyListContainer");
+      if (!listEl) return;
+
+      purgeExpiredInteractionLogs();
+
+      let logs = [];
+      try {
+        logs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
+      } catch (e) {}
+
+      // Filter: Only Call & WhatsApp events belonging strictly to this passenger (Maps excluded from logs)
+      const myLogs = logs
+        .filter(l => (l.passenger_uid === user.uid || (l.passenger_email && l.passenger_email === user.email)))
+        .filter(l => l.action_type === "CALL" || l.action_type === "WHATSAPP")
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      if (myLogs.length === 0) {
+        listEl.innerHTML = `
+          <div class="py-8 text-center text-xs text-slate-500 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-4">
+            <i class="fa-solid fa-address-book text-slate-300 text-3xl mb-2 block"></i>
+            No contact history yet. When you call a Captain or book seats via WhatsApp, your activity will appear here.
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = myLogs.map(item => {
+        const dateObj = new Date(item.timestamp);
+        const timeFormatted = dateObj.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+        const dateFormatted = dateObj.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+
+        const isCall = item.action_type === "CALL";
+        const badgeHTML = isCall
+          ? `<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1"><i class="fa-solid fa-phone"></i> Call Placed</span>`
+          : `<span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> WhatsApp Booking</span>`;
+
+        return `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3 shadow-sm hover:bg-white transition">
+            <div class="flex items-start gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+                <i class="fa-solid ${isCall ? 'fa-phone-volume text-blue-400' : 'fa-comment-dots text-emerald-400'}"></i>
+              </div>
+              <div>
+                <h5 class="font-bold text-slate-900 text-xs sm:text-sm leading-tight">${item.driver_name || "Verified Captain"}</h5>
+                <p class="text-[11px] font-mono text-slate-600 mt-0.5">${item.vehicle_no || "Route Vehicle"}</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">${dateFormatted} • ${timeFormatted}</p>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+              ${badgeHTML}
+              <button 
+                onclick="closeHistoryModal(); openRatingModal('${item.driver_id}', '${item.driver_name} (${item.vehicle_no})')" 
+                class="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline flex items-center gap-1"
+              >
+                <i class="fa-solid fa-star text-amber-500"></i> Rate Captain
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
     }
 
     async function handleGoogleSignIn(e) {
@@ -817,12 +948,20 @@
       } catch (e) {}
     }
 
+    // Records ONLY Call & WhatsApp interactions (Google Maps live viewing is completely excluded to prevent spam logs)
     function handleProtectedAction(actionType, driverId, captainName, vehicleNo, targetUrl) {
       const user = getLoggedInPassenger();
       if (!user) {
         openAuthModal();
         return;
       }
+
+      // Map viewing opens without polluting database records
+      if (actionType === "GMAPS_LIVE") {
+        openMapGateModal(captainName, vehicleNo, targetUrl);
+        return;
+      }
+
       purgeExpiredInteractionLogs();
 
       let logs = [];
@@ -830,8 +969,15 @@
 
       const logEntry = {
         log_id: "LOG_" + Date.now(),
-        passenger_uid: user.uid, passenger_name: user.name, passenger_email: user.email, passenger_phone: user.phone,
-        driver_id: driverId, driver_name: captainName, vehicle_no: vehicleNo, action_type: actionType, timestamp: new Date().toISOString()
+        passenger_uid: user.uid,
+        passenger_name: user.name,
+        passenger_email: user.email,
+        passenger_phone: user.phone,
+        driver_id: driverId,
+        driver_name: captainName,
+        vehicle_no: vehicleNo,
+        action_type: actionType, // CALL or WHATSAPP
+        timestamp: new Date().toISOString()
       };
 
       logs.push(logEntry);
@@ -844,8 +990,6 @@
 
       if (actionType === "CALL") {
         window.location.href = targetUrl;
-      } else if (actionType === "GMAPS_LIVE") {
-        openMapGateModal(captainName, vehicleNo, targetUrl);
       } else {
         window.open(targetUrl, "_blank", "noopener,noreferrer");
       }
@@ -1088,10 +1232,10 @@
           let dropETA = "";
           let passedNotice = "";
 
-          // Check if vehicle has already crossed user's selected pickup stop
+          // Clear "Crossed / Already Passed" logic when Captain auto-catches up or skips intermediate stops
           const alreadyPassedPickup = currentStopObj && (
-            (isTowardsKanpur && currentStopObj.index > userFromStop.index) ||
-            (!isTowardsKanpur && currentStopObj.index < userFromStop.index)
+            (isTowardsKanpur && currentStopObj.index >= userFromStop.index) ||
+            (!isTowardsKanpur && currentStopObj.index <= userFromStop.index)
           );
 
           if (trip.status === "Running" && alreadyPassedPickup) {
