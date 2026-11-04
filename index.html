@@ -26,7 +26,7 @@
   <!-- Top Security Banner -->
   <div class="bg-amber-500 text-slate-900 text-xs sm:text-sm font-medium py-2 px-4 text-center">
     <i class="fa-solid fa-shield-halved mr-1"></i>
-    Verified Captains • Live Stop & Dynamic ETA • 60-Min Auto-Lag Ceiling • 24-Hour Review Spam Protection
+    Verified Captains • Ground-Calibrated Route Times • 60-Min Cancellation Ceiling • 24h Review Spam Protection
   </div>
 
   <!-- Navbar -->
@@ -101,7 +101,7 @@
           </div>
         </div>
 
-        <!-- Safe Transit Estimate & Actions -->
+        <!-- Safe Transit Time Estimate & Action Buttons -->
         <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
           <div id="routeTravelEstimate" class="text-xs text-slate-600 font-medium">
             Select Pickup & Drop stops to calculate exact safe transit time and passing vehicles.
@@ -289,7 +289,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc, addDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAJnefI6TOx8WN2CfFpABebiZEjC4Cn0p4",
@@ -317,8 +317,7 @@
       doc,
       setDoc,
       addDoc,
-      updateDoc,
-      deleteDoc
+      updateDoc
     };
 
     // Real-time synchronization of Captain verification directly from Firestore
@@ -370,39 +369,40 @@
 
   <!-- RouteConnect Application Engine -->
   <script>
+    // Ground-calibrated micro-offsets synchronized with driver.html
     const ROUTE_STOPS = [
       { index: 0,  name: "Manjhepur", offset: 0 },
-      { index: 1,  name: "Barwa", offset: 5 },
-      { index: 2,  name: "Maudev", offset: 10 },
-      { index: 3,  name: "Bhikhanipur", offset: 15 },
-      { index: 4,  name: "Harijanpur", offset: 18 },
-      { index: 5,  name: "Budhanda", offset: 20 },
-      { index: 6,  name: "Salhepur", offset: 22 },
-      { index: 7,  name: "Sathigavan", offset: 25 },
-      { index: 8,  name: "Kauh Mod", offset: 30 },
-      { index: 9,  name: "Bilari Mod", offset: 35 },
-      { index: 10, name: "Makandapur Mod", offset: 38 },
-      { index: 11, name: "Kulkheda Mod (Nayara Petrol Pump)", offset: 40 },
-      { index: 12, name: "Madri", offset: 42 },
-      { index: 13, name: "Amauli", offset: 45 },
-      { index: 14, name: "Behta Khurd", offset: 50 },
-      { index: 15, name: "Jamuiya (Harkundi Baba)", offset: 55 },
-      { index: 16, name: "Birnai", offset: 58 },
-      { index: 17, name: "Ranupur", offset: 60 },
-      { index: 18, name: "Lahuri Sarai", offset: 63 },
-      { index: 19, name: "Kalana", offset: 66 },
-      { index: 20, name: "Jahanabad", offset: 70 },
-      { index: 21, name: "Mathurapur", offset: 75 },
-      { index: 22, name: "Birhar Mod", offset: 80 },
-      { index: 23, name: "Sadh", offset: 95 },
-      { index: 24, name: "Majhawan", offset: 105 },
-      { index: 25, name: "Ramaipur", offset: 120 },
-      { index: 26, name: "Magrasa", offset: 125 },
-      { index: 27, name: "Sen Paschim Para Mod", offset: 128 },
-      { index: 28, name: "Bingawan", offset: 132 },
-      { index: 29, name: "Pipauri Mod", offset: 135 },
-      { index: 30, name: "Galla Mandi", offset: 138 },
-      { index: 31, name: "Naubasta", offset: 140 },
+      { index: 1,  name: "Barwa", offset: 4 },
+      { index: 2,  name: "Maudev", offset: 8 },
+      { index: 3,  name: "Bhikhanipur", offset: 12 },
+      { index: 4,  name: "Harijanpur", offset: 14 },
+      { index: 5,  name: "Budhanda", offset: 16 },
+      { index: 6,  name: "Salhepur", offset: 18 },
+      { index: 7,  name: "Sathigavan", offset: 21 },
+      { index: 8,  name: "Kauh Mod", offset: 23 },
+      { index: 9,  name: "Bilari Mod", offset: 24 },
+      { index: 10, name: "Makandapur Mod", offset: 25 },
+      { index: 11, name: "Kulkheda Mod (Nayara Petrol Pump)", offset: 27 },
+      { index: 12, name: "Madri", offset: 29 },
+      { index: 13, name: "Amauli", offset: 33 },
+      { index: 14, name: "Behta Khurd", offset: 38 },
+      { index: 15, name: "Jamuiya (Harkundi Baba)", offset: 43 },
+      { index: 16, name: "Birnai", offset: 46 },
+      { index: 17, name: "Ranupur", offset: 49 },
+      { index: 18, name: "Lahuri Sarai", offset: 52 },
+      { index: 19, name: "Kalana", offset: 55 },
+      { index: 20, name: "Jahanabad", offset: 60 },
+      { index: 21, name: "Mathurapur", offset: 65 },
+      { index: 22, name: "Birhar Mod", offset: 70 },
+      { index: 23, name: "Sadh", offset: 85 },
+      { index: 24, name: "Majhawan", offset: 98 },
+      { index: 25, name: "Ramaipur", offset: 115 },
+      { index: 26, name: "Magrasa", offset: 120 },
+      { index: 27, name: "Sen Paschim Para Mod", offset: 124 },
+      { index: 28, name: "Bingawan", offset: 128 },
+      { index: 29, name: "Pipauri Mod", offset: 132 },
+      { index: 30, name: "Galla Mandi", offset: 136 },
+      { index: 31, name: "Naubasta", offset: 139 },
       { index: 32, name: "Baudh Nagar", offset: 142 },
       { index: 33, name: "Basant Vihar Chauraha", offset: 145 }
     ];
@@ -581,7 +581,6 @@
       const depDate = new Date();
       depDate.setHours(depH, depM, 0, 0);
 
-      // Handle midnight crossing trip departures: if depDate is ahead of now by over 12 hours, treat as yesterday's late run
       if (depDate.getTime() - now.getTime() > 12 * 60 * 60 * 1000) {
         depDate.setDate(depDate.getDate() - 1);
       }
@@ -1034,7 +1033,7 @@
         const rawMapLink = trip.gmaps_link || trip.live_tracking_url || "";
         const hasValidMapLink = isValidAndFreshGoogleMapsUrl(rawMapLink, trip.tracking_updated_at || trip.updated_at);
 
-        // Calculate auto-lagged departure for scheduled trips
+        // Auto-lagged departure handling for scheduled trips
         const schedTimes = getEffectiveScheduledTimes(trip, allTrips);
         const effectiveDep24 = trip.status === "Promised" ? schedTimes.dep24 : trip.departure_time;
         const effectiveArr24 = trip.status === "Promised" ? schedTimes.arr24 : trip.claimed_arrival_time;
@@ -1089,6 +1088,7 @@
           let dropETA = "";
           let passedNotice = "";
 
+          // Check if vehicle has already crossed user's selected pickup stop
           const alreadyPassedPickup = currentStopObj && (
             (isTowardsKanpur && currentStopObj.index > userFromStop.index) ||
             (!isTowardsKanpur && currentStopObj.index < userFromStop.index)
@@ -1199,7 +1199,7 @@
                   <div class="absolute inset-y-0 left-0 ${trip.status === 'Running' ? 'bg-emerald-500' : 'bg-indigo-400'} rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
                 </div>
                 <span class="text-[10px] text-slate-500 mt-1">
-                  ${hasValidMapLink ? "🟢 Live Map + Stop Tracking" : (trip.status === 'Running' ? "📍 1-Tap Stop Check-In" : "Scheduled Trip")}
+                  ${hasValidMapLink ? "🟢 Live Map + Hub Tracking" : (trip.status === 'Running' ? "📍 1-Tap Hub Check-In" : "Scheduled Trip")}
                 </span>
               </div>
 
@@ -1342,7 +1342,6 @@
       const captainTitle = document.getElementById("modalDriverTitleHidden").value;
       const comment = document.getElementById("reviewerComment").value.trim();
 
-      // Check if this passenger already reviewed this Captain in the past 24 hours
       const existingReviews = getAllPermanentReviews();
       const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
       const recentReview = existingReviews.find(r =>
@@ -1420,7 +1419,7 @@
       renderAuthHeader();
       initDropdowns();
       filterTrips();
-      // Re-evaluates auto-lag (+2m -> +5m -> +10m) every 30 seconds automatically
+      // Re-evaluates auto-lag (+2m -> +5m -> +10m) and auto-catchup every 30 seconds
       setInterval(filterTrips, 30000);
     });
   </script>
