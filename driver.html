@@ -113,7 +113,7 @@
               <span>1. Active Trips & Fast Check-In Controller</span>
             </h3>
             <p class="text-[11px] text-slate-500 mt-0.5">
-              Tap major stops as you arrive. Intermediate sub-stops auto-catchup without locking.
+              Tap major stops as you arrive. Intermediate micro-stops auto-catchup without locking.
             </p>
           </div>
           <span class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-lg border border-emerald-200">
@@ -334,7 +334,7 @@
     </div>
   </footer>
   <!-- ========================================================================= -->
-  <!-- FIREBASE CLOUD ENGINE & JAVASCRIPT ENGINE (PART 2)                        -->
+  <!-- FIREBASE CLOUD ENGINE & JAVASCRIPT ENGINE (DRIVER PART 2)                 -->
   <!-- ========================================================================= -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -358,8 +358,7 @@
 
     setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-    // Realistic ground-calibrated offsets (Total corridor time: 145 mins)
-    // Micro-stops like Kauh Mod -> Bilari Mod -> Makandapur Mod are calibrated to realistic 30s-1m gaps.
+    // Ground-calibrated micro-offsets (Total corridor duration: 145 mins)
     const ROUTE_STOPS = [
       { index: 0,  name: "Manjhepur", offset: 0 },
       { index: 1,  name: "Barwa", offset: 4 },
@@ -397,7 +396,6 @@
       { index: 33, name: "Basant Vihar Chauraha", offset: 145 }
     ];
 
-    // Key hubs displayed for one-tap driving check-in
     const MAJOR_CHECKIN_STOPS = [
       "Manjhepur",
       "Maudev",
@@ -499,7 +497,7 @@
       return arrM;
     }
 
-    // Auto-lag logic: +2m, +5m, +10m progression with a 60-minute cancellation ceiling
+    // Auto-lag with 60-minute cancellation ceiling
     function getAutoLaggedScheduleTimes(trip) {
       const todayYMD = formatYMDLocal(getISTDateObj(0));
       const baseDep = trip.base_departure_time || trip.departure_time;
@@ -1488,7 +1486,6 @@
     // =========================================================================
     // FLEXIBLE AUTO-CATCHUP STOP CHECK-IN
     // =========================================================================
-    // Provides 40% generous speed allowance; skips intermediate stops without locking Captain.
     window.checkInStop = async function (tripDocId, stopName) {
       const now = new Date();
       const now24 = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -1502,7 +1499,6 @@
       let elapsedSinceStart = curMins - depMins;
       if (elapsedSinceStart < -720) elapsedSinceStart += 1440;
 
-      // Generous anti-teleportation threshold (allows up to 40% faster driving over standard speed)
       const rawDistMins = getSafeRouteMins(trip.start_stop, stopName);
       const minimumSensibleMins = Math.floor(rawDistMins * 0.5);
 
@@ -1513,7 +1509,6 @@
         return;
       }
 
-      // Check if vehicle reached final destination
       if (stopName === trip.end_stop) {
         const shouldEnd = confirm(
           `Destination Reached:\nYou have arrived at ${trip.end_stop} at ${now12}!\n\nDo you want to mark this trip as Completed and remove it from Passenger View now?`
@@ -1527,7 +1522,6 @@
         }
       }
 
-      // Auto-catchup: Recalculate remaining trip ETA from this checked-in stop
       const remainingMins = getSafeRouteMins(stopName, trip.end_stop);
       const updatedArr24 = minsToTimeStr(curMins + remainingMins);
 
@@ -1541,7 +1535,6 @@
         };
         await updateDoc(doc(db, "live_trips", tripDocId), updatePayload);
 
-        // Turnaround shift for same-day return trip if live trip experienced delay
         const promisedReturn = getMyPromisedReturnTrip();
         const todayYMD = formatYMDLocal(getISTDateObj(0));
         if (promisedReturn && (!promisedReturn.trip_date || promisedReturn.trip_date === todayYMD)) {
