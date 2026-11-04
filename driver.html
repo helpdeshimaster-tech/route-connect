@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RouteConnect | Manjhepur - Amauli - Jahanabad - Kanpur Live Corridor</title>
+  <title>Captain Portal | RouteConnect Corridor</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons -->
@@ -24,9 +24,9 @@
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
   <!-- Top Security Banner -->
-  <div class="bg-amber-500 text-slate-900 text-xs sm:text-sm font-medium py-2 px-4 text-center">
+  <div class="bg-emerald-600 text-white text-xs sm:text-sm font-medium py-2 px-4 text-center">
     <i class="fa-solid fa-shield-halved mr-1"></i>
-    Verified Captains • Live Stop & Dynamic ETA • 60-Min Auto-Lag Ceiling • 24-Hour Review Spam Protection
+    RouteConnect Captain Portal • Major Hub Check-In • Auto-Catchup • 1-Tap Housefull
   </div>
 
   <!-- Navbar -->
@@ -37,259 +37,309 @@
           <i class="fa-solid fa-van-shuttle"></i>
         </div>
         <div>
-          <h1 class="font-bold text-base sm:text-lg tracking-tight leading-none">RouteConnect</h1>
+          <h1 class="font-bold text-base sm:text-lg tracking-tight leading-none">Captain Portal</h1>
           <p class="text-[11px] text-slate-400 mt-0.5">Manjhepur • Amauli • Jahanabad • Kanpur</p>
         </div>
       </div>
 
-      <!-- Right Actions: Passenger Google Auth + Captain Portal Link -->
       <div class="flex items-center gap-2">
-        <div id="authSection">
-          <button onclick="openAuthModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
-            <i class="fa-brands fa-google text-rose-500"></i>
-            <span>Sign In</span>
-          </button>
-        </div>
-
-        <a href="driver.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
-          <i class="fa-solid fa-id-card text-emerald-400"></i>
-          <span class="hidden sm:inline">Captain Portal</span>
+        <div id="driverAuthBadge"></div>
+        <a href="index.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+          <i class="fa-solid fa-arrow-left text-emerald-400"></i>
+          <span>Passenger View</span>
         </a>
       </div>
     </div>
   </header>
 
-  <!-- Search Hero Section -->
-  <section class="bg-gradient-to-b from-slate-900 to-slate-800 text-white pt-4 pb-8 px-4 shadow-md">
-    <div class="max-w-4xl mx-auto">
-      <div class="bg-white text-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl border border-slate-200">
-        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-          <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-route text-emerald-600"></i> Search Live & Scheduled Vehicles
-          </h2>
-          <span id="currentDateBadge" class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-full border border-emerald-200"></span>
+  <main class="max-w-4xl mx-auto w-full px-4 py-6 flex-1 space-y-6">
+
+    <!-- STEP 1: GOOGLE SIGN-IN GATE -->
+    <section id="loginGate" class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border border-slate-200 text-center max-w-lg mx-auto my-6">
+      <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-4 text-2xl">
+        <i class="fa-solid fa-id-card"></i>
+      </div>
+      <h2 class="text-lg sm:text-xl font-bold text-slate-900">Verified Captain Sign-In</h2>
+      <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+        Sign in with your registered Gmail account. Your login session stays active automatically on this browser.
+      </p>
+
+      <button onclick="loginDriverWithGoogle()" class="mt-6 w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm shadow-md flex items-center justify-center gap-2.5 transition">
+        <i class="fa-brands fa-google text-emerald-400 text-base"></i>
+        <span>Sign In with Google Account</span>
+      </button>
+      <p id="authErrorMsg" class="text-xs text-rose-600 font-medium mt-3 hidden"></p>
+    </section>
+
+    <!-- LOADING STATE -->
+    <section id="loadingGate" class="hidden bg-white rounded-2xl p-8 text-center max-w-lg mx-auto my-6 border border-slate-200">
+      <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-600 mb-2"></i>
+      <p class="text-xs font-semibold text-slate-600">Verifying Captain credentials in Cloud Directory...</p>
+    </section>
+
+    <!-- BLOCKED / EXPIRED NOTICE -->
+    <section id="blockedNotice" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-6 text-center max-w-lg mx-auto my-6 shadow-sm">
+      <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3 text-xl">
+        <i class="fa-solid fa-ban"></i>
+      </div>
+      <h3 id="blockedTitle" class="font-bold text-rose-900 text-base">Access Restricted</h3>
+      <p id="blockedDesc" class="text-xs text-rose-700 mt-1.5 leading-relaxed"></p>
+      <button onclick="logoutDriver()" class="mt-5 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl transition shadow-sm">
+        Sign Out & Switch Account
+      </button>
+    </section>
+
+    <!-- STEP 2: CAPTAIN DASHBOARD -->
+    <div id="driverDashboard" class="hidden space-y-6">
+
+      <!-- Plan / Validity Banner -->
+      <div id="validityBanner" class="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs text-emerald-900 font-medium">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+          <span>Verified Captain (<span id="bannerDriverId" class="font-mono font-bold"></span>)</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="paymentBadgeText" class="bg-white px-2.5 py-0.5 rounded-md border border-emerald-200 font-semibold"></span>
+          <span id="expiryBadgeText" class="font-bold text-emerald-700"></span>
+        </div>
+      </div>
+
+      <!-- 1. LIVE CONTROLLER AT THE TOP -->
+      <section class="bg-white rounded-2xl p-4 sm:p-6 shadow-md border-2 border-emerald-500/30">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 flex-wrap gap-2">
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-emerald-600"></i>
+              <span>1. Active Trips & Fast Check-In Controller</span>
+            </h3>
+            <p class="text-[11px] text-slate-500 mt-0.5">
+              Tap major stops as you arrive. Intermediate sub-stops auto-catchup without locking.
+            </p>
+          </div>
+          <span class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-lg border border-emerald-200">
+            Real-Time Cloud Sync
+          </span>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-11 gap-3 items-center">
-          <!-- From Stop -->
-          <div class="sm:col-span-5">
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Pickup Stop (From)</label>
-            <div class="relative">
-              <i class="fa-solid fa-location-dot absolute left-3.5 top-3.5 text-emerald-600"></i>
-              <select id="fromStop" onchange="filterTrips()" class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
-                <option value="">-- All Pickup Stops --</option>
-              </select>
+        <div id="myActiveTripsContainer" class="space-y-4"></div>
+      </section>
+
+      <!-- 2A. LIVE RUNNING TRIP FORM -->
+      <section id="liveFormSection" class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 flex-wrap gap-2">
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+              <span>2A. Start / Update Current Live Trip</span>
+            </h3>
+            <p class="text-[11px] text-slate-500 mt-0.5">
+              Publish departure when you start driving. Midnight crossings and safe travel times are handled automatically.
+            </p>
+          </div>
+          <span id="liveTodayLabel" class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">Today</span>
+        </div>
+
+        <form id="liveTripForm" onsubmit="publishLiveRunningTrip(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Starting Stop *</label>
+            <select id="liveStartStop" required onchange="updateLiveMinETA(true)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500"></select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Destination Stop *</label>
+            <select id="liveEndStop" required onchange="updateLiveMinETA(true)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-emerald-500"></select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Departure Time *</label>
+            <input type="time" id="liveDepTime" required onchange="updateLiveMinETA(true)" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-semibold text-slate-600">Estimated Arrival (ETA) *</label>
+              <span id="liveMinEtaBadge" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Min: --:--</span>
+            </div>
+            <input type="time" id="liveArrTime" required onchange="validateLiveArrivalFloor()" class="w-full px-3.5 py-2 bg-white border-2 border-emerald-400 rounded-xl text-sm font-bold text-emerald-800 outline-none focus:ring-2 focus:ring-emerald-500" />
+            <p class="text-[11px] text-slate-500 mt-1">Realistic route duration calculated based on ground corridor speeds.</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Available Empty Seats *</label>
+            <input type="number" id="liveSeatsLeft" required min="0" max="50" value="12" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-emerald-700 outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Short Route Note (Optional)</label>
+            <input type="text" id="liveNote" maxlength="100" placeholder="e.g. Standing at Amauli / Express direct run" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+
+          <!-- Google Maps Live Link -->
+          <div class="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between flex-wrap gap-1">
+              <label class="block text-xs font-bold text-slate-700">
+                <i class="fa-solid fa-location-crosshairs text-blue-600 mr-1"></i>
+                Google Maps Live Location Link (Optional)
+              </label>
+              <span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200 font-semibold">Official Google Maps Only</span>
+            </div>
+            <input 
+              type="url" 
+              id="liveGmapsLink" 
+              placeholder="Paste https://maps.app.goo.gl/... here (or leave empty to use 1-Tap Hub Check-In)" 
+              class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div class="sm:col-span-2 pt-1">
+            <button type="submit" id="publishLiveBtn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-satellite-dish"></i> Publish / Update Live Running Trip
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- 2B. SCHEDULED RETURN TRIP FORM -->
+      <section id="returnFormSection" class="bg-indigo-50/50 rounded-2xl p-4 sm:p-6 shadow-sm border-2 border-indigo-200">
+        <div class="flex items-center justify-between border-b border-indigo-100 pb-3 mb-4 flex-wrap gap-2">
+          <div>
+            <h3 class="font-bold text-indigo-950 text-sm sm:text-base flex items-center gap-2">
+              <i class="fa-solid fa-calendar-check text-indigo-600"></i>
+              <span id="returnFormTitle">2B. Schedule / Edit Return Trip (Today or Tomorrow)</span>
+            </h3>
+            <p class="text-[11px] text-indigo-700 mt-0.5">
+              Protected by travel distance from your current destination. Auto-lag caps safely at 60 minutes.
+            </p>
+          </div>
+          <button type="button" onclick="autoFillReturnFromLive()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Reverse from Live Route
+          </button>
+        </div>
+
+        <form id="returnTripForm" onsubmit="publishPromisedReturnTrip(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Date Selector -->
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-indigo-950 mb-1.5">Select Trip Day *</label>
+            <div class="grid grid-cols-2 gap-3">
+              <button type="button" id="dateBtn_TODAY" onclick="selectReturnDateMode('TODAY')" class="py-2.5 px-3 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-indigo-600 text-white border-indigo-600 shadow-sm">
+                <i class="fa-solid fa-sun"></i>
+                <span id="labelTodayDate">Today</span>
+              </button>
+              <button type="button" id="dateBtn_TOMORROW" onclick="selectReturnDateMode('TOMORROW')" class="py-2.5 px-3 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-white text-slate-700 border-slate-300 hover:border-indigo-400">
+                <i class="fa-solid fa-calendar-day"></i>
+                <span id="labelTomorrowDate">Tomorrow</span>
+              </button>
+            </div>
+            <input type="hidden" id="retDateMode" value="TODAY" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-indigo-950 mb-1">Return Starting Stop *</label>
+            <select id="retStartStop" required onchange="handleReturnStopOrTimeChange(true)" class="w-full px-3.5 py-2.5 bg-white border border-indigo-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"></select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-indigo-950 mb-1">Return Destination Stop *</label>
+            <select id="retEndStop" required onchange="updateReturnMinETA(true)" class="w-full px-3.5 py-2.5 bg-white border border-indigo-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500"></select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-indigo-950 mb-1">Return Departure Time *</label>
+            <input type="time" id="retDepTime" required onchange="handleReturnStopOrTimeChange(false)" class="w-full px-3.5 py-2 bg-white border border-indigo-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500" />
+            <p id="retDepHint" class="text-[11px] text-indigo-700 font-medium mt-1"></p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-semibold text-indigo-950">Return Arrival ETA *</label>
+              <span id="retMinEtaBadge" class="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200">Min: --:--</span>
+            </div>
+            <input type="time" id="retArrTime" required onchange="validateReturnArrivalFloor()" class="w-full px-3.5 py-2 bg-white border-2 border-indigo-400 rounded-xl text-sm font-bold text-indigo-900 outline-none focus:ring-2 focus:ring-indigo-500" />
+            <p class="text-[11px] text-indigo-700 mt-1">Minimum safe travel time automatically verified.</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-indigo-950 mb-1">Seats Available for Booking *</label>
+            <input type="number" id="retSeatsLeft" required min="0" max="50" value="12" class="w-full px-3.5 py-2 bg-white border border-indigo-200 rounded-xl text-sm font-bold text-indigo-800 outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-indigo-950 mb-1">Booking Note (Optional)</label>
+            <input type="text" id="retNote" maxlength="100" placeholder="e.g. Call now for advance booking" class="w-full px-3.5 py-2 bg-white border border-indigo-200 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div class="sm:col-span-2 pt-1">
+            <button type="submit" id="publishRetBtn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-calendar-plus"></i> Save / Update Return Trip Schedule
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- 3. PROFILE CARD -->
+      <section class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+          <div class="flex items-center gap-3">
+            <img id="profPhotoPreview" src="" alt="Captain" class="w-11 h-11 rounded-xl object-cover border border-slate-300 bg-slate-100" />
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm sm:text-base">Registered Vehicle & Profile</h3>
+              <p class="text-[11px] text-slate-400">Synced directly from Firestore Master Record</p>
             </div>
           </div>
-
-          <!-- Swap Button -->
-          <div class="sm:col-span-1 flex justify-center sm:pt-5">
-            <button onclick="swapStops()" title="Reverse Route" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-700 border border-slate-300 flex items-center justify-center transition">
-              <i class="fa-solid fa-right-left"></i>
-            </button>
-          </div>
-
-          <!-- To Stop -->
-          <div class="sm:col-span-5">
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Drop Stop (To)</label>
-            <div class="relative">
-              <i class="fa-solid fa-flag-checkered absolute left-3.5 top-3.5 text-rose-600"></i>
-              <select id="toStop" onchange="filterTrips()" class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
-                <option value="">-- All Drop Stops --</option>
-              </select>
-            </div>
-          </div>
+          <span class="text-[11px] bg-slate-100 text-slate-700 font-semibold px-2.5 py-1 rounded-lg border border-slate-200">
+            <i class="fa-solid fa-lock text-slate-400 mr-1"></i> Admin Locked
+          </span>
         </div>
 
-        <!-- Safe Transit Estimate & Actions -->
-        <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-          <div id="routeTravelEstimate" class="text-xs text-slate-600 font-medium">
-            Select Pickup & Drop stops to calculate exact safe transit time and passing vehicles.
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Captain Full Name</label>
+            <input type="text" id="profName" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 cursor-not-allowed outline-none" />
           </div>
-          <div class="flex gap-2 w-full sm:w-auto">
-            <button onclick="resetFilters()" class="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
-              Reset
-            </button>
-            <button onclick="filterTrips()" class="flex-1 sm:flex-initial px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition flex items-center justify-center gap-2">
-              <i class="fa-solid fa-magnifying-glass"></i> Find Vehicles
-            </button>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Gender</label>
+            <input type="text" id="profGender" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 cursor-not-allowed outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Registered Phone</label>
+            <input type="tel" id="profPhone" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 cursor-not-allowed outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Vehicle Plate</label>
+            <input type="text" id="profVehicleNo" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-800 uppercase cursor-not-allowed outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Vehicle Type</label>
+            <input type="text" id="profVehicleType" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 cursor-not-allowed outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Seat Capacity</label>
+            <input type="number" id="profMaxSeats" readonly class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 cursor-not-allowed outline-none" />
           </div>
         </div>
-      </div>
+      </section>
+
     </div>
-  </section>
-
-  <!-- Main Vehicle Listings -->
-  <main class="max-w-4xl mx-auto w-full px-4 py-6 flex-1">
-    <!-- Direction & Status Filters -->
-    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-      <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot"></span>
-        <h3 class="font-bold text-slate-800 text-sm sm:text-base">
-          Available Vehicles (<span id="tripCount">0</span>)
-        </h3>
-      </div>
-
-      <div class="flex bg-white p-1 rounded-xl border border-slate-200 text-xs font-semibold">
-        <button onclick="setDirectionFilter('ALL')" id="dirBtn_ALL" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white transition">All</button>
-        <button onclick="setDirectionFilter('TO_KANPUR')" id="dirBtn_TO_KANPUR" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Towards Kanpur</button>
-        <button onclick="setDirectionFilter('TO_MANJHEPUR')" id="dirBtn_TO_MANJHEPUR" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Towards Manjhepur</button>
-      </div>
-    </div>
-
-    <!-- Cards Container -->
-    <div id="tripsContainer" class="space-y-4"></div>
   </main>
 
-  <!-- Google Sign-In Modal -->
-  <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-2">
-          <i class="fa-brands fa-google text-rose-500 text-lg"></i>
-          <h4 class="font-bold text-slate-900 text-base">Passenger Verification</h4>
-        </div>
-        <button onclick="closeAuthModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <p class="text-xs text-slate-600 mt-3 leading-relaxed">
-        For passenger and Captain safety, please enter your mobile number and continue with your Google account before calling a Captain, viewing live map locations, or submitting reviews.
-      </p>
-
-      <form id="googleAuthForm" onsubmit="handleGoogleSignIn(event)" class="mt-4 space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
-          <input type="text" id="authName" required maxlength="60" placeholder="Enter your full name" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Gmail Address</label>
-          <input type="email" id="authEmail" required placeholder="yourname@gmail.com" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number (For 25-Day Security Log)</label>
-          <input type="tel" id="authPhone" required pattern="[6-9][0-9]{9}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="10-digit mobile number" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-        </div>
-
-        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm shadow flex items-center justify-center gap-2 transition">
-          <i class="fa-brands fa-google text-emerald-400"></i> Continue with Google Account
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Safe External Google Maps Redirect Gate Modal -->
-  <div id="mapGateModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center">
-      <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3 text-xl">
-        <i class="fa-solid fa-map-location-dot"></i>
-      </div>
-      <h4 class="font-bold text-slate-900 text-base">Open Official Google Maps</h4>
-      <p id="mapGateDesc" class="text-xs text-slate-600 mt-2 leading-relaxed">
-        You are opening the live Google Maps location shared by the Captain.
-      </p>
-      <div class="mt-5 flex gap-2">
-        <button onclick="closeMapGateModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
-          Cancel
-        </button>
-        <a id="mapGateConfirmBtn" href="#" target="_blank" rel="noopener noreferrer" onclick="closeMapGateModal()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5 shadow">
-          <i class="fa-solid fa-up-right-from-square"></i> Open Map
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Rating & Review Modal (Spam Guard: 1 Review per Captain per 24 Hours) -->
-  <div id="ratingModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <div>
-          <h4 class="font-bold text-slate-900 text-base">Captain Reviews & Rating</h4>
-          <p id="modalDriverName" class="text-xs text-slate-500 mt-0.5"></p>
-        </div>
-        <button onclick="closeRatingModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="overflow-y-auto pr-1 space-y-4 mt-3 flex-1">
-        <!-- Submit New Review Form -->
-        <form id="ratingForm" onsubmit="submitReview(event)" class="space-y-3.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-          <input type="hidden" id="modalDriverId" />
-          <input type="hidden" id="modalDriverTitleHidden" />
-
-          <div class="text-center">
-            <p class="text-[11px] font-semibold uppercase text-slate-500 mb-1.5">Write a Permanent Review</p>
-            <div id="starSelector" class="flex justify-center gap-2 text-2xl text-amber-400 cursor-pointer">
-              <i onclick="setStarRating(1)" class="fa-solid fa-star" data-star="1"></i>
-              <i onclick="setStarRating(2)" class="fa-solid fa-star" data-star="2"></i>
-              <i onclick="setStarRating(3)" class="fa-solid fa-star" data-star="3"></i>
-              <i onclick="setStarRating(4)" class="fa-solid fa-star" data-star="4"></i>
-              <i onclick="setStarRating(5)" class="fa-solid fa-star" data-star="5"></i>
-            </div>
-            <span id="starRatingText" class="text-xs font-bold text-emerald-600 mt-1 block">5 Stars - Excellent Service</span>
-          </div>
-
-          <div>
-            <p class="text-xs font-semibold text-slate-600 mb-1.5">Quick Tags (Optional):</p>
-            <div id="tagContainer" class="flex flex-wrap gap-1.5">
-              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">On Time</button>
-              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Safe Driving</button>
-              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Clean Vehicle</button>
-              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Polite Captain</button>
-              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-rose-200 bg-white text-rose-600 hover:border-rose-500">Overloading</button>
-              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-rose-200 bg-white text-rose-600 hover:border-rose-500">Late Departure</button>
-            </div>
-          </div>
-
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-xs font-semibold text-slate-600">Your Feedback</label>
-              <span id="charCount" class="text-[11px] font-medium text-slate-400">0 / 250 chars</span>
-            </div>
-            <textarea 
-              id="reviewerComment" 
-              rows="2" 
-              maxlength="250"
-              oninput="sanitizeAndCount(this)"
-              placeholder="Share your travel experience with this Captain..." 
-              class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500"
-            ></textarea>
-          </div>
-
-          <button type="submit" id="submitReviewBtn" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-xs sm:text-sm shadow transition">
-            Submit Permanent Review
-          </button>
-        </form>
-
-        <!-- Permanent Reviews List -->
-        <div>
-          <h5 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
-            <span>All Passenger Reviews</span>
-            <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">Permanent Record</span>
-          </h5>
-          <div id="driverReviewsList" class="space-y-2.5"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer -->
   <footer class="bg-slate-900 text-slate-400 text-xs py-6 px-4 mt-10">
     <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-      <p>© 2026 RouteConnect Corridor (Manjhepur – Amauli – Jahanabad – Kanpur).</p>
-      <p class="text-slate-500">Verified Captain Aggregator • Hybrid Stop & Map Tracking</p>
+      <p>© 2026 RouteConnect Captain Portal (Manjhepur – Amauli – Jahanabad – Kanpur).</p>
+      <p class="text-slate-500">Major Hub Check-In • Auto-Catchup Progress • 1-Tap Housefull</p>
     </div>
   </footer>
   <!-- ========================================================================= -->
-  <!-- FIREBASE CLOUD ENGINE & APPLICATION LOGIC (PART 2)                        -->
+  <!-- FIREBASE CLOUD ENGINE & JAVASCRIPT ENGINE (PART 2)                        -->
   <!-- ========================================================================= -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAJnefI6TOx8WN2CfFpABebiZEjC4Cn0p4",
@@ -302,114 +352,68 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    try { getAnalytics(app); } catch (e) {}
     const auth = getAuth(app);
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
 
-    window.RC_FIREBASE = {
-      auth,
-      db,
-      googleProvider,
-      signInWithPopup,
-      signOut,
-      collection,
-      doc,
-      setDoc,
-      addDoc,
-      updateDoc,
-      deleteDoc
-    };
+    setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-    // Real-time synchronization of Captain verification directly from Firestore
-    onSnapshot(collection(db, "verified_drivers"), (snapshot) => {
-      const liveDirectory = [];
-      snapshot.forEach((docSnap) => {
-        liveDirectory.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      localStorage.setItem("RC_FIRESTORE_DRIVERS", JSON.stringify(liveDirectory));
-      if (typeof window.filterTrips === "function") {
-        window.filterTrips();
-      }
-    }, (err) => {
-      console.warn("Firestore verified_drivers listener notice:", err.message);
-    });
-
-    // Real-time synchronization of active and scheduled trips
-    onSnapshot(collection(db, "live_trips"), (snapshot) => {
-      const liveTrips = [];
-      snapshot.forEach((docSnap) => {
-        liveTrips.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      localStorage.setItem("RC_LIVE_TRIPS", JSON.stringify(liveTrips));
-      if (typeof window.filterTrips === "function") {
-        window.filterTrips();
-      }
-    }, (err) => {
-      console.warn("Firestore live_trips listener notice:", err.message);
-    });
-
-    // Real-time synchronization of permanent captain reviews
-    onSnapshot(collection(db, "reviews"), (snapshot) => {
-      const allReviews = [];
-      snapshot.forEach((docSnap) => {
-        allReviews.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      localStorage.setItem("RC_PERMANENT_REVIEWS", JSON.stringify(allReviews));
-      if (typeof window.filterTrips === "function") {
-        window.filterTrips();
-      }
-      const openDriverId = document.getElementById("modalDriverId")?.value;
-      if (openDriverId && typeof window.renderCaptainReviewsList === "function") {
-        window.renderCaptainReviewsList(openDriverId);
-      }
-    }, (err) => {
-      console.warn("Firestore reviews listener notice:", err.message);
-    });
-  </script>
-
-  <!-- RouteConnect Application Engine -->
-  <script>
+    // Realistic ground-calibrated offsets (Total corridor time: 145 mins)
+    // Micro-stops like Kauh Mod -> Bilari Mod -> Makandapur Mod are calibrated to realistic 30s-1m gaps.
     const ROUTE_STOPS = [
       { index: 0,  name: "Manjhepur", offset: 0 },
-      { index: 1,  name: "Barwa", offset: 5 },
-      { index: 2,  name: "Maudev", offset: 10 },
-      { index: 3,  name: "Bhikhanipur", offset: 15 },
-      { index: 4,  name: "Harijanpur", offset: 18 },
-      { index: 5,  name: "Budhanda", offset: 20 },
-      { index: 6,  name: "Salhepur", offset: 22 },
-      { index: 7,  name: "Sathigavan", offset: 25 },
-      { index: 8,  name: "Kauh Mod", offset: 30 },
-      { index: 9,  name: "Bilari Mod", offset: 35 },
-      { index: 10, name: "Makandapur Mod", offset: 38 },
-      { index: 11, name: "Kulkheda Mod (Nayara Petrol Pump)", offset: 40 },
-      { index: 12, name: "Madri", offset: 42 },
-      { index: 13, name: "Amauli", offset: 45 },
-      { index: 14, name: "Behta Khurd", offset: 50 },
-      { index: 15, name: "Jamuiya (Harkundi Baba)", offset: 55 },
-      { index: 16, name: "Birnai", offset: 58 },
-      { index: 17, name: "Ranupur", offset: 60 },
-      { index: 18, name: "Lahuri Sarai", offset: 63 },
-      { index: 19, name: "Kalana", offset: 66 },
-      { index: 20, name: "Jahanabad", offset: 70 },
-      { index: 21, name: "Mathurapur", offset: 75 },
-      { index: 22, name: "Birhar Mod", offset: 80 },
-      { index: 23, name: "Sadh", offset: 95 },
-      { index: 24, name: "Majhawan", offset: 105 },
-      { index: 25, name: "Ramaipur", offset: 120 },
-      { index: 26, name: "Magrasa", offset: 125 },
-      { index: 27, name: "Sen Paschim Para Mod", offset: 128 },
-      { index: 28, name: "Bingawan", offset: 132 },
-      { index: 29, name: "Pipauri Mod", offset: 135 },
-      { index: 30, name: "Galla Mandi", offset: 138 },
-      { index: 31, name: "Naubasta", offset: 140 },
+      { index: 1,  name: "Barwa", offset: 4 },
+      { index: 2,  name: "Maudev", offset: 8 },
+      { index: 3,  name: "Bhikhanipur", offset: 12 },
+      { index: 4,  name: "Harijanpur", offset: 14 },
+      { index: 5,  name: "Budhanda", offset: 16 },
+      { index: 6,  name: "Salhepur", offset: 18 },
+      { index: 7,  name: "Sathigavan", offset: 21 },
+      { index: 8,  name: "Kauh Mod", offset: 23 },
+      { index: 9,  name: "Bilari Mod", offset: 24 },
+      { index: 10, name: "Makandapur Mod", offset: 25 },
+      { index: 11, name: "Kulkheda Mod (Nayara Petrol Pump)", offset: 27 },
+      { index: 12, name: "Madri", offset: 29 },
+      { index: 13, name: "Amauli", offset: 33 },
+      { index: 14, name: "Behta Khurd", offset: 38 },
+      { index: 15, name: "Jamuiya (Harkundi Baba)", offset: 43 },
+      { index: 16, name: "Birnai", offset: 46 },
+      { index: 17, name: "Ranupur", offset: 49 },
+      { index: 18, name: "Lahuri Sarai", offset: 52 },
+      { index: 19, name: "Kalana", offset: 55 },
+      { index: 20, name: "Jahanabad", offset: 60 },
+      { index: 21, name: "Mathurapur", offset: 65 },
+      { index: 22, name: "Birhar Mod", offset: 70 },
+      { index: 23, name: "Sadh", offset: 85 },
+      { index: 24, name: "Majhawan", offset: 98 },
+      { index: 25, name: "Ramaipur", offset: 115 },
+      { index: 26, name: "Magrasa", offset: 120 },
+      { index: 27, name: "Sen Paschim Para Mod", offset: 124 },
+      { index: 28, name: "Bingawan", offset: 128 },
+      { index: 29, name: "Pipauri Mod", offset: 132 },
+      { index: 30, name: "Galla Mandi", offset: 136 },
+      { index: 31, name: "Naubasta", offset: 139 },
       { index: 32, name: "Baudh Nagar", offset: 142 },
       { index: 33, name: "Basant Vihar Chauraha", offset: 145 }
     ];
 
-    const DEFAULT_TRIPS = [];
-    let currentDirectionFilter = "ALL";
-    let selectedStarRating = 5;
+    // Key hubs displayed for one-tap driving check-in
+    const MAJOR_CHECKIN_STOPS = [
+      "Manjhepur",
+      "Maudev",
+      "Sathigavan",
+      "Amauli",
+      "Jahanabad",
+      "Sadh",
+      "Ramaipur",
+      "Naubasta",
+      "Basant Vihar Chauraha"
+    ];
+
+    let currentDriverUser = null;
+    let verifiedDriverRecord = null;
+    let allLiveTrips = [];
+    let allPermanentReviews = [];
 
     function getISTDateObj(offsetDays = 0) {
       const now = new Date();
@@ -442,6 +446,13 @@
       return raw;
     }
 
+    function isValidGoogleMapsUrl(urlStr) {
+      if (!urlStr || urlStr.trim() === "") return true;
+      const clean = urlStr.trim();
+      const strictPattern = /^https:\/\/(maps\.app\.goo\.gl\/[A-Za-z0-9_\-]+|goo\.gl\/maps\/[A-Za-z0-9_\-]+|(www\.)?google\.(com|co\.in)\/maps\S+)$/i;
+      return strictPattern.test(clean);
+    }
+
     function timeStrToMins(tStr) {
       if (!tStr || !tStr.includes(":")) return 0;
       const [h, m] = tStr.split(":").map(Number);
@@ -455,45 +466,28 @@
       return `${hh}:${mm}`;
     }
 
-    function format12Hour(hh, mm) {
+    function format12Hr(tStr) {
+      if (!tStr || !tStr.includes(":")) return tStr || "";
+      const [hh, mm] = tStr.split(":").map(Number);
       const period = hh >= 12 ? "PM" : "AM";
-      const hour12 = hh % 12 || 12;
-      return `${String(hour12).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${period}`;
+      const h12 = hh % 12 || 12;
+      return `${String(h12).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${period}`;
     }
 
-    function convert24To12(timeStr) {
-      if (!timeStr || !timeStr.includes(":")) return timeStr || "--:--";
-      const [hh, mm] = timeStr.split(":").map(Number);
-      if (isNaN(hh) || isNaN(mm)) return timeStr;
-      return format12Hour(hh, mm);
+    function getSafeRouteMins(startName, endName) {
+      const sObj = ROUTE_STOPS.find((s) => s.name === startName);
+      const eObj = ROUTE_STOPS.find((s) => s.name === endName);
+      if (!sObj || !eObj) return 0;
+      return Math.abs(eObj.offset - sObj.offset);
     }
 
-    function addMinutesToTimeStr(timeStr, minutesToAdd) {
-      if (!timeStr || !timeStr.includes(":")) return "--:--";
-      const [hh, mm] = timeStr.split(":").map(Number);
-      const totalMins = hh * 60 + mm + minutesToAdd;
-      const finalH = Math.floor((totalMins / 60) % 24);
-      const finalM = totalMins % 60;
-      return format12Hour(finalH, finalM);
-    }
-
-    function getStopObj(stopName) {
-      return ROUTE_STOPS.find(s => s.name === stopName);
-    }
-
-    function formatDuration(mins) {
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
-      if (h > 0 && m > 0) return `${h} hr ${m} min`;
-      if (h > 0) return `${h} hr`;
-      return `${m} min`;
-    }
-
-    function getCleanDayLabel(trip) {
-      const tomorrowYMD = formatYMDLocal(getISTDateObj(1));
-      if (trip.trip_date === tomorrowYMD) return "Tomorrow";
-      if (trip.trip_date_label && /कल|tomorrow/i.test(trip.trip_date_label)) return "Tomorrow";
-      return "Today";
+    function isArrivalValidAgainstFloor(depTimeStr, arrTimeStr, minSafeMins) {
+      const depM = timeStrToMins(depTimeStr);
+      let arrM = timeStrToMins(arrTimeStr);
+      if (arrM < depM && (arrM + 1440 - depM) <= 720) {
+        arrM += 1440;
+      }
+      return (arrM - depM) >= minSafeMins;
     }
 
     function getEffectiveArrivalMins(depTimeStr, arrTimeStr) {
@@ -505,102 +499,11 @@
       return arrM;
     }
 
-    function isValidAndFreshGoogleMapsUrl(urlStr, trackingUpdatedAt) {
-      if (!urlStr || typeof urlStr !== "string") return false;
-      const clean = urlStr.trim();
-      const strictPattern = /^https:\/\/(maps\.app\.goo\.gl\/[A-Za-z0-9_\-]+|goo\.gl\/maps\/[A-Za-z0-9_\-]+|(www\.)?google\.(com|co\.in)\/maps\S+)$/i;
-      if (!strictPattern.test(clean)) return false;
-
-      if (trackingUpdatedAt) {
-        const ts = new Date(trackingUpdatedAt).getTime();
-        if (!isNaN(ts)) {
-          const ageHours = (Date.now() - ts) / (1000 * 60 * 60);
-          if (ageHours > 12) return false;
-        }
-      }
-      return true;
-    }
-
-    function getMasterDriverDirectory() {
-      try {
-        const raw = JSON.parse(localStorage.getItem("RC_FIRESTORE_DRIVERS") || "[]");
-        if (Array.isArray(raw) && raw.length > 0) return raw;
-      } catch (e) {}
-      return [];
-    }
-
-    function getVerifiedDriverRecord(trip) {
+    // Auto-lag logic: +2m, +5m, +10m progression with a 60-minute cancellation ceiling
+    function getAutoLaggedScheduleTimes(trip) {
       const todayYMD = formatYMDLocal(getISTDateObj(0));
-      if (trip.expiry_date) {
-        const normTripExp = normalizeDateToYMD(trip.expiry_date);
-        if (normTripExp && normTripExp < todayYMD) {
-          return { allowed: false, record: null };
-        }
-      }
-
-      const directory = getMasterDriverDirectory();
-      if (directory.length === 0) {
-        return { allowed: true, record: null };
-      }
-
-      const match = directory.find(d =>
-        (d.email && trip.driver_email && d.email.toLowerCase() === trip.driver_email.toLowerCase()) ||
-        (d.phone && trip.driver_phone && String(d.phone).trim() === String(trip.driver_phone).trim()) ||
-        (d.driver_id && trip.driver_id && d.driver_id === trip.driver_id)
-      );
-
-      if (!match) return { allowed: false, record: null };
-
-      const isStatusActive = String(match.status || "Active").trim().toLowerCase() === "active";
-      let isNotExpired = true;
-      if (match.expiry_date) {
-        const normExp = normalizeDateToYMD(match.expiry_date);
-        isNotExpired = normExp >= todayYMD;
-      }
-      return { allowed: isStatusActive && isNotExpired, record: match };
-    }
-
-    // Midnight-safe Active Trip Validator with 90-minute completion margin
-    function isTripStillActive(trip) {
-      const todayYMD = formatYMDLocal(getISTDateObj(0));
-      const tomorrowYMD = formatYMDLocal(getISTDateObj(1));
-      const tripDate = trip.trip_date || todayYMD;
-
-      if (tripDate < todayYMD) return false;
-      if (tripDate === tomorrowYMD) return true;
-
-      const tripStart = getStopObj(trip.start_stop);
-      const tripEnd = getStopObj(trip.end_stop);
-      if (!tripStart || !tripEnd || !trip.departure_time) return false;
-
-      const safeRouteMins = Math.abs(tripEnd.offset - tripStart.offset);
-      const [depH, depM] = trip.departure_time.split(":").map(Number);
-      if (isNaN(depH) || isNaN(depM)) return false;
-
-      const now = new Date();
-      const depDate = new Date();
-      depDate.setHours(depH, depM, 0, 0);
-
-      // Handle midnight crossing trip departures: if depDate is ahead of now by over 12 hours, treat as yesterday's late run
-      if (depDate.getTime() - now.getTime() > 12 * 60 * 60 * 1000) {
-        depDate.setDate(depDate.getDate() - 1);
-      }
-
-      const expiryTime = new Date(depDate.getTime() + (safeRouteMins + 90) * 60 * 1000);
-      if (now > expiryTime) return false;
-
-      return true;
-    }
-
-    // Smart Auto-Lag (+2m -> +5m -> +10m) with 60-Minute Cancellation Ceiling
-    function getEffectiveScheduledTimes(trip, allTrips) {
-      const todayYMD = formatYMDLocal(getISTDateObj(0));
-      const tripStart = getStopObj(trip.start_stop);
-      const tripEnd = getStopObj(trip.end_stop);
-      const routeMins = (tripStart && tripEnd) ? Math.abs(tripEnd.offset - tripStart.offset) : 0;
-
-      let baseDep = trip.base_departure_time || trip.departure_time;
-      let baseArr = trip.base_arrival_time || trip.claimed_arrival_time;
+      const baseDep = trip.base_departure_time || trip.departure_time;
+      const baseArr = trip.base_arrival_time || trip.claimed_arrival_time;
 
       if (trip.status === "Running" || (trip.trip_date && trip.trip_date !== todayYMD)) {
         return {
@@ -611,52 +514,24 @@
         };
       }
 
-      let baseDepMins = timeStrToMins(baseDep);
-      const origSpan = Math.max(routeMins, getEffectiveArrivalMins(baseDep, baseArr) - baseDepMins);
-
-      // Turnaround distance buffer check against any live running trip by the same Captain Today
-      const sameCaptainLive = allTrips.find(
-        t => t.status === "Running" &&
-             ((t.driver_uid && trip.driver_uid && t.driver_uid === trip.driver_uid) ||
-              (t.driver_id && trip.driver_id && t.driver_id === trip.driver_id))
-      );
-
-      if (sameCaptainLive) {
-        const liveEndObj = getStopObj(sameCaptainLive.end_stop);
-        const liveCurObj = sameCaptainLive.current_stop ? getStopObj(sameCaptainLive.current_stop) : null;
-        let liveArr24 = sameCaptainLive.claimed_arrival_time;
-        if (liveCurObj && liveEndObj && sameCaptainLive.current_stop_time_24) {
-          const remLive = Math.abs(liveEndObj.offset - liveCurObj.offset);
-          liveArr24 = minsToTimeStr(timeStrToMins(sameCaptainLive.current_stop_time_24) + remLive);
-        }
-        const effLiveArrMins = getEffectiveArrivalMins(sameCaptainLive.departure_time, liveArr24);
-        const deadheadMins = (liveEndObj && tripStart) ? Math.abs(tripStart.offset - liveEndObj.offset) : 0;
-        const earliestPossibleDep = effLiveArrMins + deadheadMins + 20;
-
-        if (earliestPossibleDep < 1440 && baseDepMins < earliestPossibleDep) {
-          baseDepMins = earliestPossibleDep;
-        }
-      }
-
       const now = new Date();
       const nowMins = now.getHours() * 60 + now.getMinutes();
+      const baseDepMins = timeStrToMins(baseDep);
 
       if (nowMins < baseDepMins) {
         return {
-          dep24: minsToTimeStr(baseDepMins),
-          arr24: minsToTimeStr(baseDepMins + origSpan),
+          dep24: baseDep,
+          arr24: baseArr,
           lagAddedMins: 0,
           isExpiredByDelay: false
         };
       }
 
       const diff = nowMins - baseDepMins;
-
-      // 60-Minute Cancellation Ceiling: If Captain has not pressed start within 60 minutes, expire trip
       if (diff > 60) {
         return {
-          dep24: minsToTimeStr(baseDepMins),
-          arr24: minsToTimeStr(baseDepMins + origSpan),
+          dep24: baseDep,
+          arr24: baseArr,
           lagAddedMins: diff,
           isExpiredByDelay: true
         };
@@ -672,757 +547,1127 @@
         lagAddedMins = Math.min(60, 7 + extra10Blocks * 10);
       }
 
-      const finalDepMins = baseDepMins + lagAddedMins;
+      const laggedDepMins = baseDepMins + lagAddedMins;
+      const routeMins = getSafeRouteMins(trip.start_stop, trip.end_stop);
+      const origSpan = Math.max(routeMins, getEffectiveArrivalMins(baseDep, baseArr) - baseDepMins);
+      const laggedArrMins = laggedDepMins + origSpan;
+
       return {
-        dep24: minsToTimeStr(finalDepMins),
-        arr24: minsToTimeStr(finalDepMins + origSpan),
+        dep24: minsToTimeStr(laggedDepMins),
+        arr24: minsToTimeStr(laggedArrMins),
         lagAddedMins,
         isExpiredByDelay: false
       };
     }
 
-    function getAllPermanentReviews() {
-      try {
-        const raw = JSON.parse(localStorage.getItem("RC_PERMANENT_REVIEWS") || "[]");
-        return Array.isArray(raw) ? raw : [];
-      } catch (e) {
-        return [];
-      }
-    }
-
-    function getCaptainRatingSummary(driverId, fallbackRating, fallbackCount) {
-      const allReviews = getAllPermanentReviews().filter(r => r.driver_id === driverId);
-      if (allReviews.length === 0) {
+    function getCaptainPermanentRating(driverId, fallbackRating, fallbackCount) {
+      const matching = allPermanentReviews.filter(r => r.driver_id === driverId);
+      if (matching.length === 0) {
         return {
-          avg: fallbackRating || "5.0",
-          count: Number(fallbackCount) || 0
+          rating: fallbackRating || "5.0",
+          review_count: Number(fallbackCount) || 0
         };
       }
-      const sum = allReviews.reduce((acc, r) => acc + (Number(r.stars) || 5), 0);
-      const avg = (sum / allReviews.length).toFixed(1);
+      const sum = matching.reduce((acc, r) => acc + (Number(r.stars) || 5), 0);
       return {
-        avg,
-        count: allReviews.length
+        rating: (sum / matching.length).toFixed(1),
+        review_count: matching.length
       };
     }
 
-    function getLoggedInPassenger() {
-      try {
-        return JSON.parse(localStorage.getItem("RC_PASSENGER_USER"));
-      } catch (e) {
-        return null;
-      }
-    }
+    function initForms() {
+      const liveStart = document.getElementById("liveStartStop");
+      const liveEnd = document.getElementById("liveEndStop");
+      const retStart = document.getElementById("retStartStop");
+      const retEnd = document.getElementById("retEndStop");
 
-    function renderAuthHeader() {
-      const user = getLoggedInPassenger();
-      const authContainer = document.getElementById("authSection");
-      if (user && user.email) {
-        authContainer.innerHTML = `
-          <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="font-semibold text-slate-200 truncate max-w-[110px]">${user.name}</span>
-            <button onclick="signOutPassenger()" title="Sign Out" class="text-slate-400 hover:text-rose-400 ml-1">
-              <i class="fa-solid fa-right-from-bracket"></i>
-            </button>
-          </div>
-        `;
-      } else {
-        authContainer.innerHTML = `
-          <button onclick="openAuthModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
-            <i class="fa-brands fa-google text-rose-500"></i>
-            <span>Sign In</span>
-          </button>
-        `;
-      }
-    }
+      liveStart.innerHTML = "";
+      liveEnd.innerHTML = "";
+      retStart.innerHTML = "";
+      retEnd.innerHTML = "";
 
-    function openAuthModal() {
-      document.getElementById("authModal").classList.remove("hidden");
-      document.getElementById("authModal").classList.add("flex");
-    }
-
-    function closeAuthModal() {
-      document.getElementById("authModal").classList.add("hidden");
-      document.getElementById("authModal").classList.remove("flex");
-    }
-
-    function openMapGateModal(captainName, vehicleNo, mapUrl) {
-      document.getElementById("mapGateDesc").textContent =
-        `You are opening the live Google Maps location shared by Captain ${captainName} (${vehicleNo}).`;
-      document.getElementById("mapGateConfirmBtn").href = mapUrl;
-      document.getElementById("mapGateModal").classList.remove("hidden");
-      document.getElementById("mapGateModal").classList.add("flex");
-    }
-
-    function closeMapGateModal() {
-      document.getElementById("mapGateModal").classList.add("hidden");
-      document.getElementById("mapGateModal").classList.remove("flex");
-    }
-
-    async function handleGoogleSignIn(e) {
-      e.preventDefault();
-      let name = document.getElementById("authName").value.trim().replace(/[<>/{}[\]\\]/g, "");
-      let email = document.getElementById("authEmail").value.trim().toLowerCase();
-      const phone = document.getElementById("authPhone").value.trim();
-
-      if (!email.endsWith("@gmail.com")) {
-        alert("Please sign in using a valid @gmail.com address.");
-        return;
-      }
-
-      let uid = "USR_" + btoa(email).slice(0, 10);
-
-      if (window.RC_FIREBASE) {
-        try {
-          const result = await window.RC_FIREBASE.signInWithPopup(
-            window.RC_FIREBASE.auth,
-            window.RC_FIREBASE.googleProvider
-          );
-          if (result && result.user) {
-            uid = result.user.uid;
-            email = (result.user.email || email).toLowerCase();
-            name = result.user.displayName || name || "Verified Passenger";
-          }
-        } catch (err) {}
-      }
-
-      const passengerObj = { uid, name, email, phone, joined_at: new Date().toISOString() };
-      localStorage.setItem("RC_PASSENGER_USER", JSON.stringify(passengerObj));
-
-      if (window.RC_FIREBASE && window.RC_FIREBASE.auth.currentUser) {
-        try {
-          const { db, doc, setDoc } = window.RC_FIREBASE;
-          await setDoc(doc(db, "passengers", uid), passengerObj, { merge: true });
-        } catch (err) {}
-      }
-
-      closeAuthModal();
-      renderAuthHeader();
-    }
-
-    async function signOutPassenger() {
-      if (window.RC_FIREBASE) {
-        try { await window.RC_FIREBASE.signOut(window.RC_FIREBASE.auth); } catch (e) {}
-      }
-      localStorage.removeItem("RC_PASSENGER_USER");
-      renderAuthHeader();
-    }
-
-    function purgeExpiredInteractionLogs() {
-      try {
-        const rawLogs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
-        const cutoffTime = Date.now() - (25 * 24 * 60 * 60 * 1000);
-        const validLogs = rawLogs.filter(log => new Date(log.timestamp).getTime() >= cutoffTime);
-        localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(validLogs));
-      } catch (e) {}
-    }
-
-    function handleProtectedAction(actionType, driverId, captainName, vehicleNo, targetUrl) {
-      const user = getLoggedInPassenger();
-      if (!user) {
-        openAuthModal();
-        return;
-      }
-      purgeExpiredInteractionLogs();
-
-      let logs = [];
-      try { logs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]"); } catch (e) {}
-
-      const logEntry = {
-        log_id: "LOG_" + Date.now(),
-        passenger_uid: user.uid, passenger_name: user.name, passenger_email: user.email, passenger_phone: user.phone,
-        driver_id: driverId, driver_name: captainName, vehicle_no: vehicleNo, action_type: actionType, timestamp: new Date().toISOString()
-      };
-
-      logs.push(logEntry);
-      localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(logs));
-
-      if (window.RC_FIREBASE && window.RC_FIREBASE.auth.currentUser) {
-        const { db, collection, addDoc } = window.RC_FIREBASE;
-        addDoc(collection(db, "interaction_logs"), logEntry).catch(() => {});
-      }
-
-      if (actionType === "CALL") {
-        window.location.href = targetUrl;
-      } else if (actionType === "GMAPS_LIVE") {
-        openMapGateModal(captainName, vehicleNo, targetUrl);
-      } else {
-        window.open(targetUrl, "_blank", "noopener,noreferrer");
-      }
-    }
-
-    function initDropdowns() {
-      const fromSelect = document.getElementById("fromStop");
-      const toSelect = document.getElementById("toStop");
-
-      ROUTE_STOPS.forEach(stop => {
-        fromSelect.add(new Option(stop.name, stop.name));
-        toSelect.add(new Option(stop.name, stop.name));
+      ROUTE_STOPS.forEach((s) => {
+        liveStart.add(new Option(s.name, s.name));
+        liveEnd.add(new Option(s.name, s.name));
+        retStart.add(new Option(s.name, s.name));
+        retEnd.add(new Option(s.name, s.name));
       });
 
-      const today = new Date().toLocaleDateString("en-US", {
-        weekday: "short", day: "numeric", month: "short", year: "numeric"
-      });
-      document.getElementById("currentDateBadge").textContent = today;
-    }
+      liveStart.value = "Manjhepur";
+      liveEnd.value = "Basant Vihar Chauraha";
+      retStart.value = "Basant Vihar Chauraha";
+      retEnd.value = "Manjhepur";
 
-    function swapStops() {
-      const fromSelect = document.getElementById("fromStop");
-      const toSelect = document.getElementById("toStop");
-      const temp = fromSelect.value;
-      fromSelect.value = toSelect.value;
-      toSelect.value = temp;
-      filterTrips();
-    }
+      document.getElementById("liveTodayLabel").textContent = "Today";
+      document.getElementById("labelTodayDate").textContent = "Today";
+      document.getElementById("labelTomorrowDate").textContent = "Tomorrow";
 
-    function resetFilters() {
-      document.getElementById("fromStop").value = "";
-      document.getElementById("toStop").value = "";
-      setDirectionFilter("ALL");
-      document.getElementById("routeTravelEstimate").innerHTML =
-        "Select Pickup & Drop stops to calculate exact safe transit time and passing vehicles.";
-      filterTrips();
-    }
+      const now = new Date();
+      const nowStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      document.getElementById("liveDepTime").value = nowStr;
+      updateLiveMinETA(true);
 
-    function setDirectionFilter(dir) {
-      currentDirectionFilter = dir;
-      ["ALL", "TO_KANPUR", "TO_MANJHEPUR"].forEach(key => {
-        const btn = document.getElementById(`dirBtn_${key}`);
-        if (key === dir) {
-          btn.className = "px-3 py-1.5 rounded-lg bg-slate-900 text-white transition";
-        } else {
-          btn.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition";
-        }
-      });
-      filterTrips();
-    }
-
-    function getActiveTripsData() {
-      const saved = localStorage.getItem("RC_LIVE_TRIPS");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) return parsed;
-        } catch (e) {}
+      const retDefMins = timeStrToMins(nowStr) + 180;
+      if (retDefMins >= 1440) {
+        selectReturnDateMode("TOMORROW");
       }
-      return DEFAULT_TRIPS;
+      document.getElementById("retDepTime").value = minsToTimeStr(retDefMins);
+      updateReturnMinETA(true);
     }
 
-    function filterTrips() {
-      const fromName = document.getElementById("fromStop").value;
-      const toName = document.getElementById("toStop").value;
-      const allTrips = getActiveTripsData();
+    // =========================================================================
+    // WORKSPACE 2A: LIVE TRIP ETA FLOOR LOGIC
+    // =========================================================================
+    window.updateLiveMinETA = function (resetToMinimum = false) {
+      const sName = document.getElementById("liveStartStop").value;
+      const eName = document.getElementById("liveEndStop").value;
+      const depTime = document.getElementById("liveDepTime").value;
+      if (!sName || !eName || !depTime) return;
 
-      const fromStop = getStopObj(fromName);
-      const toStop = getStopObj(toName);
+      const minMins = getSafeRouteMins(sName, eName);
+      const minArrStr = minsToTimeStr(timeStrToMins(depTime) + minMins);
+      document.getElementById("liveMinEtaBadge").textContent = `Min ETA: ${format12Hr(minArrStr)}`;
 
-      const estimateEl = document.getElementById("routeTravelEstimate");
-      if (fromStop && toStop) {
-        if (fromStop.index === toStop.index) {
-          estimateEl.innerHTML = `<span class="text-rose-600 font-semibold">Pickup and Drop stop cannot be the same!</span>`;
-          renderTrips([], null, null, allTrips);
-          return;
-        }
-        const safeDuration = Math.abs(toStop.offset - fromStop.offset);
-        const dirLabel = toStop.index > fromStop.index ? "Towards Kanpur" : "Towards Manjhepur";
-        estimateEl.innerHTML = `
-          <span class="text-emerald-700 font-semibold"><i class="fa-solid fa-clock mr-1"></i>Minimum Safe Travel Time (${fromStop.name} → ${toStop.name}): ${formatDuration(safeDuration)}</span>
-          <span class="ml-2 text-slate-500">• Direction: ${dirLabel}</span>
-        `;
+      const arrInput = document.getElementById("liveArrTime");
+      if (resetToMinimum || !arrInput.value || !isArrivalValidAgainstFloor(depTime, arrInput.value, minMins)) {
+        arrInput.value = minArrStr;
       }
-
-      const filtered = allTrips.filter(trip => {
-        if (!isTripStillActive(trip)) return false;
-
-        // Auto-expire scheduled trips delayed by more than 60 minutes without starting
-        if (trip.status === "Promised") {
-          const checkTimes = getEffectiveScheduledTimes(trip, allTrips);
-          if (checkTimes.isExpiredByDelay) return false;
-        }
-
-        const dirCheck = getVerifiedDriverRecord(trip);
-        if (!dirCheck.allowed) return false;
-
-        const tripStart = getStopObj(trip.start_stop);
-        const tripEnd = getStopObj(trip.end_stop);
-        if (!tripStart || !tripEnd) return false;
-
-        const isTowardsKanpur = tripEnd.index > tripStart.index;
-
-        if (currentDirectionFilter === "TO_KANPUR" && !isTowardsKanpur) return false;
-        if (currentDirectionFilter === "TO_MANJHEPUR" && isTowardsKanpur) return false;
-
-        if (fromStop && toStop) {
-          const userTowardsKanpur = toStop.index > fromStop.index;
-          if (isTowardsKanpur !== userTowardsKanpur) return false;
-
-          if (isTowardsKanpur) {
-            return tripStart.index <= fromStop.index && tripEnd.index >= toStop.index;
-          } else {
-            return tripStart.index >= fromStop.index && tripEnd.index <= toStop.index;
-          }
-        }
-
-        if (fromStop && !toStop) {
-          if (isTowardsKanpur) {
-            return tripStart.index <= fromStop.index && tripEnd.index > fromStop.index;
-          } else {
-            return tripStart.index >= fromStop.index && tripEnd.index < fromStop.index;
-          }
-        }
-
-        if (!fromStop && toStop) {
-          if (isTowardsKanpur) {
-            return tripStart.index < toStop.index && tripEnd.index >= toStop.index;
-          } else {
-            return tripStart.index > toStop.index && tripEnd.index <= toStop.index;
-          }
-        }
-
-        return true;
-      });
-
-      renderTrips(filtered, fromStop, toStop, allTrips);
-    }
-
-    function renderTrips(trips, userFromStop, userToStop, allTrips = []) {
-      const container = document.getElementById("tripsContainer");
-      document.getElementById("tripCount").textContent = trips.length;
-
-      if (trips.length === 0) {
-        container.innerHTML = `
-          <div class="bg-white rounded-2xl p-8 text-center border border-slate-200 shadow-sm">
-            <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
-              <i class="fa-solid fa-van-shuttle"></i>
-            </div>
-            <h4 class="font-bold text-slate-800 text-base">No Active or Scheduled Vehicles Right Now</h4>
-            <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Verified Captains update their live departures and return schedules directly from the Captain Portal.</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = trips.map(trip => {
-        const tripStart = getStopObj(trip.start_stop);
-        const tripEnd = getStopObj(trip.end_stop);
-        const currentStopObj = trip.current_stop ? getStopObj(trip.current_stop) : null;
-        const isTowardsKanpur = tripEnd.index > tripStart.index;
-
-        const dirCheck = getVerifiedDriverRecord(trip);
-        const dirRecord = dirCheck.record;
-
-        const maxSeats = Number((dirRecord && dirRecord.max_capacity) || trip.max_capacity) || 12;
-        const seatsLeft = Number(trip.seats_available);
-        const isFull = seatsLeft <= 0;
-
-        const photoSrc = (dirRecord && dirRecord.photo)
-          ? dirRecord.photo
-          : (trip.driver_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(trip.driver_name)}&background=0f172a&color=fff`);
-
-        const genderBadge = (dirRecord && dirRecord.gender || trip.driver_gender)
-          ? `<span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">${(dirRecord && dirRecord.gender) || trip.driver_gender}</span>`
-          : "";
-
-        let progressPercent = trip.status === "Running" ? 25 : 0;
-        if (trip.status === "Running" && currentStopObj) {
-          const totalSpan = Math.abs(tripEnd.offset - tripStart.offset) || 1;
-          const coveredSpan = Math.abs(currentStopObj.offset - tripStart.offset);
-          progressPercent = Math.min(100, Math.max(8, Math.round((coveredSpan / totalSpan) * 100)));
-        }
-
-        const rawMapLink = trip.gmaps_link || trip.live_tracking_url || "";
-        const hasValidMapLink = isValidAndFreshGoogleMapsUrl(rawMapLink, trip.tracking_updated_at || trip.updated_at);
-
-        // Calculate auto-lagged departure for scheduled trips
-        const schedTimes = getEffectiveScheduledTimes(trip, allTrips);
-        const effectiveDep24 = trip.status === "Promised" ? schedTimes.dep24 : trip.departure_time;
-        const effectiveArr24 = trip.status === "Promised" ? schedTimes.arr24 : trip.claimed_arrival_time;
-
-        const dayWord = getCleanDayLabel(trip);
-        const depTimeFormatted = `${dayWord}, ${convert24To12(effectiveDep24)}`;
-
-        // Dynamic Destination ETA Calculation based on latest checked-in stop
-        let finalDestETA = convert24To12(effectiveArr24);
-        if (trip.status === "Running" && currentStopObj) {
-          const remMinsToDest = Math.abs(tripEnd.offset - currentStopObj.offset);
-          if (trip.current_stop_time_24) {
-            finalDestETA = addMinutesToTimeStr(trip.current_stop_time_24, remMinsToDest);
-          }
-        }
-
-        let liveTrackingBannerHTML = "";
-        if (trip.status === "Running") {
-          const activeStopName = currentStopObj ? currentStopObj.name : trip.start_stop;
-          const stopTimeLabel = trip.current_stop_time || convert24To12(effectiveDep24);
-
-          let nextStopText = `Heading to ${trip.end_stop}`;
-          if (currentStopObj && currentStopObj.name !== trip.end_stop) {
-            const nextIdx = isTowardsKanpur ? currentStopObj.index + 1 : currentStopObj.index - 1;
-            const nextStopObj = ROUTE_STOPS.find(s => s.index === nextIdx);
-            if (nextStopObj) {
-              const minsAway = Math.abs(nextStopObj.offset - currentStopObj.offset);
-              nextStopText = `Next Stop: <b>${nextStopObj.name}</b> (~${minsAway} mins)`;
-            }
-          }
-
-          liveTrackingBannerHTML = `
-            <div class="mt-3 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 pulse-dot flex-shrink-0"></span>
-                <div>
-                  <span class="text-slate-600">Current Stop:</span>
-                  <span class="font-bold text-emerald-900 ml-1">${activeStopName}</span>
-                  <span class="text-[11px] text-emerald-700 font-medium ml-1">(${stopTimeLabel})</span>
-                </div>
-              </div>
-              <div class="text-slate-600 text-[11px] sm:text-xs">
-                <i class="fa-solid fa-location-arrow text-emerald-600 mr-1"></i>${nextStopText}
-              </div>
-            </div>
-          `;
-        }
-
-        let customTimingHTML = "";
-        if (userFromStop && userToStop) {
-          let pickupETA = "";
-          let dropETA = "";
-          let passedNotice = "";
-
-          const alreadyPassedPickup = currentStopObj && (
-            (isTowardsKanpur && currentStopObj.index > userFromStop.index) ||
-            (!isTowardsKanpur && currentStopObj.index < userFromStop.index)
-          );
-
-          if (trip.status === "Running" && alreadyPassedPickup) {
-            passedNotice = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Vehicle has already crossed ${userFromStop.name}</span>`;
-          } else if (trip.status === "Running" && currentStopObj && trip.current_stop_time_24) {
-            const minsFromCurrentToPickup = Math.abs(userFromStop.offset - currentStopObj.offset);
-            const minsFromCurrentToDrop = Math.abs(userToStop.offset - currentStopObj.offset);
-            pickupETA = addMinutesToTimeStr(trip.current_stop_time_24, minsFromCurrentToPickup);
-            dropETA = addMinutesToTimeStr(trip.current_stop_time_24, minsFromCurrentToDrop);
-          } else {
-            const minsToPickup = Math.abs(userFromStop.offset - tripStart.offset);
-            const minsToDrop = Math.abs(userToStop.offset - tripStart.offset);
-            pickupETA = addMinutesToTimeStr(effectiveDep24, minsToPickup);
-            dropETA = addMinutesToTimeStr(effectiveDep24, minsToDrop);
-          }
-
-          customTimingHTML = passedNotice
-            ? `<div class="mt-2 bg-rose-50 border border-rose-200 rounded-xl p-2.5 text-xs">${passedNotice}</div>`
-            : `
-              <div class="mt-2 bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <div>
-                  <span class="text-slate-500">Est. Pickup at <b>${userFromStop.name}</b>:</span>
-                  <span class="font-bold text-emerald-700 ml-1">${pickupETA}</span>
-                </div>
-                <div>
-                  <span class="text-slate-500">Safe Arrival at <b>${userToStop.name}</b>:</span>
-                  <span class="font-bold text-slate-800 ml-1">${dropETA}</span>
-                </div>
-              </div>
-            `;
-        }
-
-        const liveTopBadge = trip.status === "Running"
-          ? `<span class="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full mb-1"><span class="w-2 h-2 rounded-full bg-emerald-600"></span> Live On Route</span>`
-          : "";
-
-        const seatBadge = isFull
-          ? `<span class="inline-block text-xs font-bold text-rose-600"><i class="fa-solid fa-ban"></i> Housefull (0/${maxSeats} Seats)</span>`
-          : `<span class="inline-block text-xs font-bold text-emerald-700"><i class="fa-solid fa-chair"></i> ${seatsLeft} of ${maxSeats} Seats Available</span>`;
-
-        const ratingInfo = getCaptainRatingSummary(trip.driver_id, trip.rating, trip.review_count);
-
-        const pickupText = userFromStop ? ` from ${userFromStop.name}` : "";
-        const dropText = userToStop ? ` to ${userToStop.name}` : "";
-        const whatsappMsg = encodeURIComponent(
-          `Hello Captain ${trip.driver_name} (${trip.vehicle_no}), I saw your trip from ${trip.start_stop} to ${trip.end_stop} (${depTimeFormatted}) on RouteConnect. I want to book a seat${pickupText}${dropText}.`
-        );
-        const waUrl = `https://wa.me/91${trip.driver_phone}?text=${whatsappMsg}`;
-        const telUrl = `tel:${trip.driver_phone}`;
-
-        const googleMapsBtnHTML = hasValidMapLink
-          ? `
-            <button 
-              onclick="handleProtectedAction('GMAPS_LIVE', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${rawMapLink.trim()}')" 
-              class="flex-1 sm:flex-initial px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition shadow-sm"
-            >
-              <i class="fa-solid fa-location-crosshairs"></i> Live Google Map
-            </button>
-          `
-          : "";
-
-        return `
-          <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:shadow-md transition">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex items-center gap-3">
-                <img src="${photoSrc}" alt="${trip.driver_name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(trip.driver_name)}&background=0f172a&color=fff'" class="w-12 h-12 rounded-xl object-cover border border-slate-200" />
-                <div>
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <h4 class="font-bold text-slate-900 text-base">${trip.driver_name}</h4>
-                    ${genderBadge}
-                  </div>
-                  <p class="text-xs font-semibold text-slate-600 mt-0.5">
-                    ${trip.vehicle_type} • <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 font-mono">${trip.vehicle_no}</span>
-                  </p>
-                  <div class="flex items-center gap-2 mt-1">
-                    <button onclick="openRatingModal('${trip.driver_id}', '${trip.driver_name} (${trip.vehicle_no})')" class="text-xs font-bold text-amber-600 hover:underline flex items-center gap-1">
-                      <i class="fa-solid fa-star"></i> ${ratingInfo.avg}
-                      <span class="text-[11px] text-slate-500 font-medium">(${ratingInfo.count} reviews)</span>
-                    </button>
-                    <button onclick="openRatingModal('${trip.driver_id}', '${trip.driver_name} (${trip.vehicle_no})')" class="text-[11px] text-emerald-600 hover:underline font-semibold ml-1">
-                      + Rate Captain
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div class="text-right flex flex-col items-end">
-                ${liveTopBadge}
-                <div>${seatBadge}</div>
-              </div>
-            </div>
-
-            <!-- Route Timeline Bar -->
-            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs sm:text-sm">
-              <div>
-                <span class="text-[10px] uppercase font-bold text-slate-400 block">Starts From</span>
-                <span class="font-bold text-slate-900">${trip.start_stop}</span>
-                <span class="block text-xs font-bold text-emerald-600 mt-0.5">${depTimeFormatted}</span>
-              </div>
-
-              <div class="flex-1 px-3 flex flex-col items-center">
-                <span class="text-[10px] font-semibold text-slate-500 mb-1">
-                  ${isTowardsKanpur ? "Towards Kanpur →" : "← Towards Manjhepur"}
-                </span>
-                <div class="w-full h-1.5 bg-slate-200 rounded-full relative overflow-hidden">
-                  <div class="absolute inset-y-0 left-0 ${trip.status === 'Running' ? 'bg-emerald-500' : 'bg-indigo-400'} rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
-                </div>
-                <span class="text-[10px] text-slate-500 mt-1">
-                  ${hasValidMapLink ? "🟢 Live Map + Stop Tracking" : (trip.status === 'Running' ? "📍 1-Tap Stop Check-In" : "Scheduled Trip")}
-                </span>
-              </div>
-
-              <div class="text-right">
-                <span class="text-[10px] uppercase font-bold text-slate-400 block">Goes Up To</span>
-                <span class="font-bold text-slate-900">${trip.end_stop}</span>
-                <span class="block text-xs font-semibold text-slate-700 mt-0.5">ETA: ${finalDestETA}</span>
-              </div>
-            </div>
-
-            ${liveTrackingBannerHTML}
-            ${customTimingHTML}
-
-            <!-- Action Buttons -->
-            <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                ${trip.note ? `<span class="inline-block text-xs bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg font-medium"><i class="fa-solid fa-bullhorn mr-1"></i>${trip.note}</span>` : ""}
-              </div>
-
-              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end ml-auto">
-                ${googleMapsBtnHTML}
-                <button 
-                  onclick="handleProtectedAction('CALL', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${telUrl}')" 
-                  class="flex-1 sm:flex-initial px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition"
-                >
-                  <i class="fa-solid fa-phone"></i> Call Captain
-                </button>
-                <button 
-                  onclick="handleProtectedAction('WHATSAPP', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${waUrl}')" 
-                  class="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition"
-                >
-                  <i class="fa-brands fa-whatsapp text-sm"></i> ${trip.status === 'Promised' ? 'Book on WhatsApp' : 'WhatsApp'}
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function openRatingModal(driverId, captainTitle) {
-      const user = getLoggedInPassenger();
-      if (!user) { openAuthModal(); return; }
-      document.getElementById("modalDriverId").value = driverId;
-      document.getElementById("modalDriverTitleHidden").value = captainTitle;
-      document.getElementById("modalDriverName").textContent = captainTitle;
-      document.getElementById("charCount").textContent = "0 / 250 chars";
-      setStarRating(5);
-      renderCaptainReviewsList(driverId);
-      document.getElementById("ratingModal").classList.remove("hidden");
-      document.getElementById("ratingModal").classList.add("flex");
-    }
-
-    function closeRatingModal() {
-      document.getElementById("ratingModal").classList.add("hidden");
-      document.getElementById("ratingModal").classList.remove("flex");
-      document.getElementById("ratingForm").reset();
-      document.querySelectorAll("#tagContainer .tag-btn").forEach(btn => {
-        btn.classList.remove("bg-emerald-600", "text-white");
-        btn.classList.add("bg-white");
-      });
-    }
-
-    function setStarRating(star) {
-      selectedStarRating = star;
-      const labels = {
-        1: "1 Star - Poor Service",
-        2: "2 Stars - Below Average",
-        3: "3 Stars - Average",
-        4: "4 Stars - Good Service",
-        5: "5 Stars - Excellent Service"
-      };
-      document.getElementById("starRatingText").textContent = labels[star] || "5 Stars";
-      document.querySelectorAll("#starSelector i").forEach(icon => {
-        const iconStar = Number(icon.getAttribute("data-star"));
-        icon.className = iconStar <= star ? "fa-solid fa-star text-amber-400" : "fa-regular fa-star text-slate-300";
-      });
-    }
-
-    function toggleTag(btn) {
-      btn.classList.toggle("bg-emerald-600");
-      btn.classList.toggle("text-white");
-      btn.classList.toggle("bg-white");
-    }
-
-    function sanitizeAndCount(el) {
-      el.value = el.value.replace(/[<>/{}[\]\\`~|$^*]/g, "").replace(/(https?:\/\/[^\s]+)/gi, "");
-      document.getElementById("charCount").textContent = `${el.value.length} / 250 chars`;
-    }
-
-    window.renderCaptainReviewsList = function (driverId) {
-      const listEl = document.getElementById("driverReviewsList");
-      if (!listEl) return;
-
-      const matching = getAllPermanentReviews()
-        .filter(r => r.driver_id === driverId)
-        .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-
-      if (matching.length === 0) {
-        listEl.innerHTML = `
-          <div class="text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400">
-            No passenger reviews yet for this Captain. Be the first to rate!
-          </div>
-        `;
-        return;
-      }
-
-      listEl.innerHTML = matching.map(r => {
-        const starsHTML = Array.from({ length: 5 }, (_, idx) =>
-          `<i class="${idx < (Number(r.stars) || 5) ? 'fa-solid text-amber-400' : 'fa-regular text-slate-300'} fa-star text-[11px]"></i>`
-        ).join("");
-        const dateStr = r.created_at
-          ? new Date(r.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
-          : "";
-        const tagsHTML = Array.isArray(r.tags) && r.tags.length > 0
-          ? `<div class="flex flex-wrap gap-1 mt-1.5">${r.tags.map(t => `<span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${t}</span>`).join("")}</div>`
-          : "";
-
-        return `
-          <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-xs">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-slate-800">${r.passenger_name || "Verified Passenger"}</span>
-              <span class="text-[10px] text-slate-400">${dateStr}</span>
-            </div>
-            <div class="mt-0.5">${starsHTML}</div>
-            ${r.comment ? `<p class="text-slate-600 mt-1.5 leading-relaxed">${r.comment}</p>` : ""}
-            ${tagsHTML}
-          </div>
-        `;
-      }).join("");
+      updateReturnMinETA(false);
     };
 
-    // Review Submission with 24-Hour Anti-Spam Protection
-    async function submitReview(e) {
-      e.preventDefault();
-      const user = getLoggedInPassenger();
-      if (!user) { openAuthModal(); return; }
+    window.validateLiveArrivalFloor = function () {
+      const sName = document.getElementById("liveStartStop").value;
+      const eName = document.getElementById("liveEndStop").value;
+      const depTime = document.getElementById("liveDepTime").value;
+      const arrInput = document.getElementById("liveArrTime");
+      if (!sName || !eName || !depTime || !arrInput.value) return false;
 
-      const driverId = document.getElementById("modalDriverId").value;
-      const captainTitle = document.getElementById("modalDriverTitleHidden").value;
-      const comment = document.getElementById("reviewerComment").value.trim();
+      const minMins = getSafeRouteMins(sName, eName);
+      const minArrStr = minsToTimeStr(timeStrToMins(depTime) + minMins);
 
-      // Check if this passenger already reviewed this Captain in the past 24 hours
-      const existingReviews = getAllPermanentReviews();
-      const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-      const recentReview = existingReviews.find(r =>
-        r.driver_id === driverId &&
-        (r.passenger_uid === user.uid || (r.passenger_email && r.passenger_email === user.email)) &&
-        new Date(r.created_at || 0).getTime() > oneDayAgo
+      if (!isArrivalValidAgainstFloor(depTime, arrInput.value, minMins)) {
+        alert(
+          `Minimum Safe Time Lock:\nTravel from ${sName} to ${eName} takes at least ${minMins} minutes.\n\nArrival ETA cannot be earlier than ${format12Hr(minArrStr)}. You may set it later if needed.`
+        );
+        arrInput.value = minArrStr;
+        return false;
+      }
+      updateReturnMinETA(false);
+      return true;
+    };
+
+    // =========================================================================
+    // WORKSPACE 2B: DEADHEAD + TURNAROUND RETURN TIME LOCK
+    // =========================================================================
+    function getEarliestAllowedReturnMinsForToday() {
+      const activeRunning = getMyActiveRunningTrip();
+      const plannedReturnStart = document.getElementById("retStartStop")?.value || "";
+
+      if (activeRunning) {
+        const effArrMins = getEffectiveArrivalMins(
+          activeRunning.departure_time,
+          activeRunning.claimed_arrival_time
+        );
+        const deadheadMins = plannedReturnStart
+          ? getSafeRouteMins(activeRunning.end_stop, plannedReturnStart)
+          : 0;
+        const turnaroundBuffer = 20;
+        return {
+          hasActive: true,
+          minAllowedMins: effArrMins + deadheadMins + turnaroundBuffer,
+          deadheadMins,
+          turnaroundBuffer,
+          refStart: activeRunning.start_stop,
+          refEnd: activeRunning.end_stop,
+          refArrStr: format12Hr(activeRunning.claimed_arrival_time),
+          plannedReturnStart
+        };
+      }
+      return {
+        hasActive: false,
+        minAllowedMins: 0,
+        deadheadMins: 0,
+        turnaroundBuffer: 20
+      };
+    }
+
+    window.selectReturnDateMode = function (mode) {
+      const todayRule = getEarliestAllowedReturnMinsForToday();
+
+      if (mode === "TODAY" && todayRule.hasActive && todayRule.minAllowedMins >= 1440) {
+        const deadheadNote = todayRule.deadheadMins > 0
+          ? ` plus ${todayRule.deadheadMins} mins travel from ${todayRule.refEnd} to ${todayRule.plannedReturnStart}`
+          : "";
+        alert(
+          `Turnaround & Repositioning Lock:\nYour current live trip arrives at ${todayRule.refEnd} at ${todayRule.refArrStr}.\nWith a 20-minute buffer${deadheadNote}, you cannot depart from ${todayRule.plannedReturnStart} Today before midnight.\n\nSwitching schedule day to Tomorrow.`
+        );
+        mode = "TOMORROW";
+      }
+
+      document.getElementById("retDateMode").value = mode;
+      const btnToday = document.getElementById("dateBtn_TODAY");
+      const btnTomorrow = document.getElementById("dateBtn_TOMORROW");
+
+      if (mode === "TODAY") {
+        btnToday.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-indigo-600 text-white border-indigo-600 shadow-sm";
+        btnTomorrow.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-white text-slate-700 border-slate-300 hover:border-indigo-400";
+
+        if (todayRule.hasActive) {
+          const curDepMins = timeStrToMins(document.getElementById("retDepTime").value);
+          if (curDepMins < todayRule.minAllowedMins) {
+            document.getElementById("retDepTime").value = minsToTimeStr(todayRule.minAllowedMins);
+          }
+        }
+      } else {
+        btnTomorrow.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-indigo-600 text-white border-indigo-600 shadow-sm";
+        btnToday.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-white text-slate-700 border-slate-300 hover:border-indigo-400";
+      }
+      updateReturnMinETA(true);
+    };
+
+    window.handleReturnStopOrTimeChange = function (resetEta = true) {
+      const dateMode = document.getElementById("retDateMode").value;
+      const depInput = document.getElementById("retDepTime");
+      const depMins = timeStrToMins(depInput.value);
+
+      if (dateMode === "TODAY") {
+        const todayRule = getEarliestAllowedReturnMinsForToday();
+        if (todayRule.hasActive) {
+          if (todayRule.minAllowedMins >= 1440) {
+            const dhMsg = todayRule.deadheadMins > 0
+              ? ` and ${todayRule.deadheadMins} mins repositioning to ${todayRule.plannedReturnStart}`
+              : "";
+            alert(
+              `Turnaround Lock:\nYour live trip reaches ${todayRule.refEnd} at ${todayRule.refArrStr}${dhMsg}, so starting from ${todayRule.plannedReturnStart} Today is not possible. Switching to Tomorrow.`
+            );
+            selectReturnDateMode("TOMORROW");
+            return;
+          }
+          if (depMins < todayRule.minAllowedMins) {
+            const minStr = minsToTimeStr(todayRule.minAllowedMins);
+            const dhExplanation = todayRule.deadheadMins > 0
+              ? `\n• Repositioning (${todayRule.refEnd} → ${todayRule.plannedReturnStart}): ${todayRule.deadheadMins} mins`
+              : "";
+            alert(
+              `Impossible Schedule Time:\n• Live trip reaches ${todayRule.refEnd} at: ${todayRule.refArrStr}${dhExplanation}\n• Mandatory turnaround buffer: 20 mins\n\nYou cannot start a trip from ${todayRule.plannedReturnStart} at ${format12Hr(depInput.value)} Today! Earliest possible time is ${format12Hr(minStr)}.`
+            );
+            depInput.value = minStr;
+          }
+        }
+      }
+      updateReturnMinETA(resetEta);
+    };
+
+    window.updateReturnMinETA = function (resetToMinimum = false) {
+      const sName = document.getElementById("retStartStop").value;
+      const eName = document.getElementById("retEndStop").value;
+      const depTime = document.getElementById("retDepTime").value;
+      const dateMode = document.getElementById("retDateMode").value;
+      if (!sName || !eName || !depTime) return;
+
+      const minMins = getSafeRouteMins(sName, eName);
+      const minArrStr = minsToTimeStr(timeStrToMins(depTime) + minMins);
+      document.getElementById("retMinEtaBadge").textContent = `Min ETA: ${format12Hr(minArrStr)}`;
+
+      const arrInput = document.getElementById("retArrTime");
+      if (resetToMinimum || !arrInput.value || !isArrivalValidAgainstFloor(depTime, arrInput.value, minMins)) {
+        arrInput.value = minArrStr;
+      }
+
+      const todayRule = getEarliestAllowedReturnMinsForToday();
+      const hintEl = document.getElementById("retDepHint");
+      if (dateMode === "TODAY" && todayRule.hasActive && todayRule.minAllowedMins < 1440) {
+        const minAllowedStr = minsToTimeStr(todayRule.minAllowedMins);
+        const dhText = todayRule.deadheadMins > 0
+          ? ` + ${todayRule.deadheadMins}m (${todayRule.refEnd}→${todayRule.plannedReturnStart})`
+          : "";
+        hintEl.textContent = `Live ends at ${todayRule.refEnd} (${todayRule.refArrStr})${dhText} + 20m buffer = Earliest Today: ${format12Hr(minAllowedStr)}.`;
+      } else if (dateMode === "TOMORROW") {
+        hintEl.textContent = `Tomorrow selected: You can choose any morning or evening departure time.`;
+      } else {
+        hintEl.textContent = "";
+      }
+    };
+
+    window.validateReturnArrivalFloor = function () {
+      const sName = document.getElementById("retStartStop").value;
+      const eName = document.getElementById("retEndStop").value;
+      const depTime = document.getElementById("retDepTime").value;
+      const arrInput = document.getElementById("retArrTime");
+      if (!sName || !eName || !depTime || !arrInput.value) return false;
+
+      const minMins = getSafeRouteMins(sName, eName);
+      const minArrStr = minsToTimeStr(timeStrToMins(depTime) + minMins);
+
+      if (!isArrivalValidAgainstFloor(depTime, arrInput.value, minMins)) {
+        alert(
+          `Minimum Safe Time Lock:\nTravel from ${sName} to ${eName} takes at least ${minMins} minutes.\n\nReturn Arrival ETA cannot be earlier than ${format12Hr(minArrStr)}.`
+        );
+        arrInput.value = minArrStr;
+        return false;
+      }
+      return true;
+    };
+
+    window.autoFillReturnFromLive = function () {
+      const activeRunning = getMyActiveRunningTrip();
+      if (activeRunning) {
+        document.getElementById("retStartStop").value = activeRunning.end_stop;
+        document.getElementById("retEndStop").value = activeRunning.start_stop;
+        const effArrMins = getEffectiveArrivalMins(activeRunning.departure_time, activeRunning.claimed_arrival_time);
+        const suggestedDepMins = effArrMins + 25;
+
+        if (suggestedDepMins >= 1440) {
+          selectReturnDateMode("TOMORROW");
+          document.getElementById("retDepTime").value = "06:30";
+        } else {
+          selectReturnDateMode("TODAY");
+          document.getElementById("retDepTime").value = minsToTimeStr(suggestedDepMins);
+        }
+        updateReturnMinETA(true);
+      } else {
+        const lStart = document.getElementById("liveStartStop").value;
+        const lEnd = document.getElementById("liveEndStop").value;
+        const lDep = document.getElementById("liveDepTime").value;
+        const lArr = document.getElementById("liveArrTime").value;
+        document.getElementById("retStartStop").value = lEnd;
+        document.getElementById("retEndStop").value = lStart;
+        if (lDep && lArr) {
+          const effArr = getEffectiveArrivalMins(lDep, lArr);
+          if (effArr + 25 >= 1440) {
+            selectReturnDateMode("TOMORROW");
+            document.getElementById("retDepTime").value = "06:30";
+          } else {
+            selectReturnDateMode("TODAY");
+            document.getElementById("retDepTime").value = minsToTimeStr(effArr + 25);
+          }
+        }
+        updateReturnMinETA(true);
+      }
+    };
+
+    function getMyActiveRunningTrip() {
+      if (!currentDriverUser) return null;
+      return allLiveTrips.find(
+        (t) =>
+          (t.driver_uid === currentDriverUser.uid || t.id === `TRIP_${currentDriverUser.uid}`) &&
+          t.status === "Running"
       );
+    }
 
-      if (recentReview) {
-        alert("Anti-Spam Security:\nYou have already submitted a review for this Captain in the last 24 hours. To ensure fairness, passengers can review the same Captain once every 24 hours.");
+    function getMyPromisedReturnTrip() {
+      if (!currentDriverUser) return null;
+      return allLiveTrips.find(
+        (t) =>
+          (t.driver_uid === currentDriverUser.uid && t.status === "Promised") ||
+          t.id === `TRIP_PROMISED_${currentDriverUser.uid}`
+      );
+    }
+
+    window.loginDriverWithGoogle = async function () {
+      const errEl = document.getElementById("authErrorMsg");
+      errEl.classList.add("hidden");
+      try {
+        await signInWithPopup(auth, googleProvider);
+      } catch (err) {
+        errEl.textContent = "Sign-In failed: " + err.message;
+        errEl.classList.remove("hidden");
+      }
+    };
+
+    window.logoutDriver = async function () {
+      await signOut(auth);
+    };
+
+    async function verifySingleDriverFromFirestore(user) {
+      const emailKey = user.email.toLowerCase().trim();
+      const docRef = doc(db, "verified_drivers", emailKey);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        return { allowed: false, reason: "NOT_FOUND" };
+      }
+
+      const data = docSnap.data();
+      const isStatusActive = String(data.status || "").trim().toLowerCase() === "active";
+      const isPaid = String(data.payment_status || "Paid").trim().toLowerCase() !== "pending";
+
+      const todayIST = formatYMDLocal(getISTDateObj(0));
+      const normalizedExpiry = normalizeDateToYMD(data.expiry_date);
+      const isExpired = normalizedExpiry !== "" && normalizedExpiry < todayIST;
+
+      if (!isStatusActive) {
+        return { allowed: false, reason: "BLOCKED", data };
+      }
+      if (!isPaid || isExpired) {
+        return { allowed: false, reason: "EXPIRED", data };
+      }
+
+      return { allowed: true, data };
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      currentDriverUser = user;
+      verifiedDriverRecord = null;
+
+      const loginGate = document.getElementById("loginGate");
+      const loadingGate = document.getElementById("loadingGate");
+      const dashboard = document.getElementById("driverDashboard");
+      const blockedNotice = document.getElementById("blockedNotice");
+      const badge = document.getElementById("driverAuthBadge");
+
+      if (!user) {
+        loginGate.classList.remove("hidden");
+        loadingGate.classList.add("hidden");
+        dashboard.classList.add("hidden");
+        blockedNotice.classList.add("hidden");
+        badge.innerHTML = "";
         return;
       }
 
-      const selectedTags = [];
-      document.querySelectorAll("#tagContainer .tag-btn.bg-emerald-600").forEach(btn => {
-        selectedTags.push(btn.textContent.trim());
-      });
+      loginGate.classList.add("hidden");
+      dashboard.classList.add("hidden");
+      blockedNotice.classList.add("hidden");
+      loadingGate.classList.remove("hidden");
 
-      const btn = document.getElementById("submitReviewBtn");
-      btn.disabled = true;
-      btn.textContent = "Saving Permanent Review...";
-
-      const reviewPayload = {
-        review_id: "REV_" + Date.now(),
-        driver_id: driverId,
-        captain_title: captainTitle,
-        passenger_uid: user.uid,
-        passenger_name: user.name,
-        passenger_email: user.email,
-        stars: selectedStarRating,
-        tags: selectedTags,
-        comment: comment,
-        created_at: new Date().toISOString()
-      };
+      badge.innerHTML = `
+        <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="font-semibold text-slate-200 truncate max-w-[110px]">${user.email}</span>
+          <button onclick="logoutDriver()" title="Sign Out" class="text-slate-400 hover:text-rose-400 ml-1">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      `;
 
       try {
-        existingReviews.unshift(reviewPayload);
-        localStorage.setItem("RC_PERMANENT_REVIEWS", JSON.stringify(existingReviews));
+        const check = await verifySingleDriverFromFirestore(user);
+        loadingGate.classList.add("hidden");
 
-        if (window.RC_FIREBASE) {
-          const { db, collection, addDoc, doc, updateDoc } = window.RC_FIREBASE;
-          await addDoc(collection(db, "reviews"), reviewPayload);
+        if (!check.allowed) {
+          blockedNotice.classList.remove("hidden");
+          const titleEl = document.getElementById("blockedTitle");
+          const descEl = document.getElementById("blockedDesc");
 
-          const summary = getCaptainRatingSummary(driverId, "5.0", 1);
-          const activeTrips = getActiveTripsData().filter(t => t.driver_id === driverId);
-          for (const t of activeTrips) {
-            if (t.id) {
-              updateDoc(doc(db, "live_trips", t.id), {
-                rating: summary.avg,
-                review_count: summary.count
-              }).catch(() => {});
-            }
+          if (check.reason === "NOT_FOUND") {
+            titleEl.textContent = "Gmail ID Not Registered";
+            descEl.textContent = `Your Gmail (${user.email}) is not registered in the RouteConnect Master Record. Please contact Admin to register.`;
+          } else if (check.reason === "EXPIRED") {
+            titleEl.textContent = "Plan Validity Expired";
+            descEl.textContent = `Your subscription expired on ${check.data.expiry_date || "recent date"}. Please contact Admin to renew.`;
+            deleteDoc(doc(db, "live_trips", `TRIP_${user.uid}`)).catch(() => {});
+            deleteDoc(doc(db, "live_trips", `TRIP_PROMISED_${user.uid}`)).catch(() => {});
+          } else {
+            titleEl.textContent = "Captain Account Blocked";
+            descEl.textContent = "Your account status is currently set to Blocked. Please contact RouteConnect Support.";
+            deleteDoc(doc(db, "live_trips", `TRIP_${user.uid}`)).catch(() => {});
+            deleteDoc(doc(db, "live_trips", `TRIP_PROMISED_${user.uid}`)).catch(() => {});
+          }
+          return;
+        }
+
+        verifiedDriverRecord = check.data;
+        populateLockedProfile(user, verifiedDriverRecord);
+        dashboard.classList.remove("hidden");
+        renderDriverTrips();
+
+      } catch (err) {
+        loadingGate.classList.add("hidden");
+        blockedNotice.classList.remove("hidden");
+        document.getElementById("blockedTitle").textContent = "Verification Error";
+        document.getElementById("blockedDesc").textContent = "Could not verify Captain record: " + err.message;
+      }
+    });
+
+    function populateLockedProfile(user, d) {
+      document.getElementById("bannerDriverId").textContent = d.driver_id || "VERIFIED";
+      document.getElementById("paymentBadgeText").textContent = `Payment: ${d.payment_status || "Paid"}`;
+      document.getElementById("expiryBadgeText").textContent = d.expiry_date ? `Valid till: ${d.expiry_date}` : "Active";
+
+      document.getElementById("profName").value = d.name || user.displayName || "";
+      document.getElementById("profGender").value = d.gender || "Male";
+      document.getElementById("profPhone").value = d.phone || "";
+      document.getElementById("profVehicleNo").value = (d.vehicle_no || "").toUpperCase();
+      document.getElementById("profVehicleType").value = d.vehicle_type || "Winger";
+
+      const maxCap = Number(d.max_capacity) || 12;
+      document.getElementById("profMaxSeats").value = maxCap;
+      document.getElementById("liveSeatsLeft").max = maxCap;
+      document.getElementById("liveSeatsLeft").value = maxCap;
+      document.getElementById("retSeatsLeft").max = maxCap;
+      document.getElementById("retSeatsLeft").value = maxCap;
+
+      const photoUrl = d.photo && d.photo.trim() !== ""
+        ? d.photo.trim()
+        : (user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name || "Captain")}&background=0f172a&color=fff`);
+
+      const imgEl = document.getElementById("profPhotoPreview");
+      imgEl.src = photoUrl;
+      imgEl.onerror = () => {
+        imgEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name || "Captain")}&background=0f172a&color=fff`;
+      };
+    }
+
+    // =========================================================================
+    // PUBLISH 2A: LIVE RUNNING TRIP
+    // =========================================================================
+    window.publishLiveRunningTrip = async function (e) {
+      e.preventDefault();
+      if (!currentDriverUser || !verifiedDriverRecord) return;
+
+      const startStop = document.getElementById("liveStartStop").value;
+      const endStop = document.getElementById("liveEndStop").value;
+      if (startStop === endStop) {
+        alert("Starting Stop and Destination Stop cannot be the same!");
+        return;
+      }
+
+      if (!validateLiveArrivalFloor()) return;
+
+      const gmapsLink = document.getElementById("liveGmapsLink").value.trim();
+      if (!isValidGoogleMapsUrl(gmapsLink)) {
+        alert("Security Notice: Please paste only an official Google Maps link (https://maps.app.goo.gl/...) or leave it empty.");
+        return;
+      }
+
+      const btn = document.getElementById("publishLiveBtn");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Publishing Live Trip...`;
+
+      try {
+        const freshCheck = await verifySingleDriverFromFirestore(currentDriverUser);
+        if (!freshCheck.allowed) {
+          alert("Your account validity has expired or been paused. Reloading...");
+          window.location.reload();
+          return;
+        }
+
+        const d = freshCheck.data;
+        const maxCapacity = Number(d.max_capacity) || 12;
+        const depTime = document.getElementById("liveDepTime").value;
+        const arrTime = document.getElementById("liveArrTime").value;
+        const seatsAvailable = Math.min(maxCapacity, Math.max(0, Number(document.getElementById("liveSeatsLeft").value)));
+        const noteText = document.getElementById("liveNote").value.trim().replace(/[<>/{}[\]\\]/g, "");
+
+        const tripId = `TRIP_${currentDriverUser.uid}`;
+        const existingLive = getMyActiveRunningTrip();
+
+        const photoUrl = d.photo && d.photo.trim() !== ""
+          ? d.photo.trim()
+          : (currentDriverUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name)}&background=0f172a&color=fff`);
+
+        const now = new Date();
+        const now24 = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+        const todayYMD = formatYMDLocal(getISTDateObj(0));
+
+        const keepCurrentStop = existingLive && existingLive.start_stop === startStop && existingLive.end_stop === endStop && existingLive.current_stop;
+        const driverIdKey = d.driver_id || currentDriverUser.uid;
+        const permRating = getCaptainPermanentRating(driverIdKey, d.rating, d.review_count);
+
+        const tripPayload = {
+          driver_id: driverIdKey,
+          driver_uid: currentDriverUser.uid,
+          driver_email: currentDriverUser.email.toLowerCase(),
+          driver_name: d.name,
+          driver_gender: d.gender || "Male",
+          driver_phone: String(d.phone).trim(),
+          driver_photo: photoUrl,
+          vehicle_no: String(d.vehicle_no).trim().toUpperCase(),
+          vehicle_type: d.vehicle_type || "Winger",
+          max_capacity: maxCapacity,
+          seats_available: seatsAvailable,
+          expiry_date: normalizeDateToYMD(d.expiry_date) || d.expiry_date || "",
+          trip_date: todayYMD,
+          trip_date_label: "Today",
+          start_stop: startStop,
+          end_stop: endStop,
+          current_stop: keepCurrentStop ? existingLive.current_stop : startStop,
+          current_stop_time: keepCurrentStop ? existingLive.current_stop_time : format12Hr(depTime),
+          current_stop_time_24: keepCurrentStop ? existingLive.current_stop_time_24 : depTime,
+          gmaps_link: gmapsLink,
+          tracking_mode: gmapsLink ? "gmaps" : "manual",
+          tracking_updated_at: new Date().toISOString(),
+          note: noteText,
+          departure_time: depTime,
+          claimed_arrival_time: arrTime,
+          status: "Running",
+          rating: permRating.rating,
+          review_count: permRating.review_count,
+          updated_at: new Date().toISOString()
+        };
+
+        await setDoc(doc(db, "live_trips", tripId), tripPayload);
+
+        // Turnaround check for same-day scheduled return trip
+        const promisedReturn = getMyPromisedReturnTrip();
+        if (promisedReturn && (!promisedReturn.trip_date || promisedReturn.trip_date === todayYMD)) {
+          const effLiveArr = getEffectiveArrivalMins(depTime, arrTime);
+          const deadhead = getSafeRouteMins(endStop, promisedReturn.start_stop);
+          const minRetDep = effLiveArr + deadhead + 20;
+          const curRetDep = timeStrToMins(promisedReturn.base_departure_time || promisedReturn.departure_time);
+          if (minRetDep < 1440 && curRetDep < minRetDep) {
+            const newRetDepStr = minsToTimeStr(minRetDep);
+            const retSpan = getSafeRouteMins(promisedReturn.start_stop, promisedReturn.end_stop);
+            const newRetArrStr = minsToTimeStr(minRetDep + retSpan);
+            await updateDoc(doc(db, "live_trips", promisedReturn.id), {
+              departure_time: newRetDepStr,
+              base_departure_time: newRetDepStr,
+              claimed_arrival_time: newRetArrStr,
+              base_arrival_time: newRetArrStr,
+              updated_at: new Date().toISOString()
+            });
           }
         }
 
-        document.getElementById("reviewerComment").value = "";
-        document.getElementById("charCount").textContent = "0 / 250 chars";
-        document.querySelectorAll("#tagContainer .tag-btn").forEach(b => {
-          b.classList.remove("bg-emerald-600", "text-white");
-          b.classList.add("bg-white");
-        });
-        renderCaptainReviewsList(driverId);
-        filterTrips();
-        alert("Thank you! Your verified review has been permanently saved.");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        alert("Live Running Trip published! You can now check in at major hubs as you drive.");
       } catch (err) {
-        alert("Review saved: " + err.message);
+        alert("Failed to publish live trip: " + err.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = "Submit Permanent Review";
+        btn.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> Publish / Update Live Running Trip`;
       }
+    };
+
+    // =========================================================================
+    // PUBLISH 2B: SCHEDULED RETURN TRIP
+    // =========================================================================
+    window.publishPromisedReturnTrip = async function (e) {
+      e.preventDefault();
+      if (!currentDriverUser || !verifiedDriverRecord) return;
+
+      const startStop = document.getElementById("retStartStop").value;
+      const endStop = document.getElementById("retEndStop").value;
+      if (startStop === endStop) {
+        alert("Return Starting Stop and Destination Stop cannot be the same!");
+        return;
+      }
+
+      if (!validateReturnArrivalFloor()) return;
+
+      const dateMode = document.getElementById("retDateMode").value;
+      const depTime = document.getElementById("retDepTime").value;
+      const arrTime = document.getElementById("retArrTime").value;
+      const promisedDepMins = timeStrToMins(depTime);
+
+      if (dateMode === "TODAY") {
+        const todayRule = getEarliestAllowedReturnMinsForToday();
+
+        if (todayRule.hasActive) {
+          if (todayRule.minAllowedMins >= 1440) {
+            const dhNote = todayRule.deadheadMins > 0
+              ? ` plus ${todayRule.deadheadMins} mins travel from ${todayRule.refEnd} to ${startStop}`
+              : "";
+            alert(
+              `Turnaround & Repositioning Lock:\nYour current live trip arrives at ${todayRule.refEnd} at ${todayRule.refArrStr}.\nWith a 20-minute buffer${dhNote}, a trip from ${startStop} is only possible Tomorrow.\n\nSwitching Return Day to Tomorrow.`
+            );
+            selectReturnDateMode("TOMORROW");
+            return;
+          }
+
+          if (promisedDepMins < todayRule.minAllowedMins) {
+            const minAllowedStr = minsToTimeStr(todayRule.minAllowedMins);
+            const dhBreakdown = todayRule.deadheadMins > 0
+              ? `\n• Travel from ${todayRule.refEnd} to ${startStop}: ${todayRule.deadheadMins} mins`
+              : "";
+            alert(
+              `Impossible Return Time:\n• Live vehicle reaches ${todayRule.refEnd} at: ${todayRule.refArrStr}${dhBreakdown}\n• Turnaround buffer: 20 mins\n\nYou cannot schedule Today's trip from ${startStop} at ${format12Hr(depTime)}!\nEarliest allowed departure Today is ${format12Hr(minAllowedStr)} (or select 'Tomorrow').`
+            );
+            document.getElementById("retDepTime").value = minAllowedStr;
+            updateReturnMinETA(true);
+            return;
+          }
+        } else {
+          const now = new Date();
+          const nowMins = now.getHours() * 60 + now.getMinutes();
+          if (promisedDepMins < nowMins - 5) {
+            alert(
+              `Past Time Selected:\nYou selected 'Today', but ${format12Hr(depTime)} has already passed.\nPlease enter an upcoming time for Today, or select 'Tomorrow'.`
+            );
+            return;
+          }
+        }
+      }
+
+      const btn = document.getElementById("publishRetBtn");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving Return Schedule...`;
+
+      try {
+        const freshCheck = await verifySingleDriverFromFirestore(currentDriverUser);
+        if (!freshCheck.allowed) {
+          alert("Your account validity has expired or been paused. Reloading...");
+          window.location.reload();
+          return;
+        }
+
+        const d = freshCheck.data;
+        const maxCapacity = Number(d.max_capacity) || 12;
+        const seatsAvailable = Math.min(maxCapacity, Math.max(0, Number(document.getElementById("retSeatsLeft").value)));
+        const noteText = document.getElementById("retNote").value.trim().replace(/[<>/{}[\]\\]/g, "");
+
+        const targetDateObj = dateMode === "TOMORROW" ? getISTDateObj(1) : getISTDateObj(0);
+        const tripDateYMD = formatYMDLocal(targetDateObj);
+        const tripDateLabel = dateMode === "TOMORROW" ? "Tomorrow" : "Today";
+
+        const tripId = `TRIP_PROMISED_${currentDriverUser.uid}`;
+        const photoUrl = d.photo && d.photo.trim() !== ""
+          ? d.photo.trim()
+          : (currentDriverUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name)}&background=0f172a&color=fff`);
+
+        const driverIdKey = d.driver_id || currentDriverUser.uid;
+        const permRating = getCaptainPermanentRating(driverIdKey, d.rating, d.review_count);
+
+        const tripPayload = {
+          driver_id: driverIdKey,
+          driver_uid: currentDriverUser.uid,
+          driver_email: currentDriverUser.email.toLowerCase(),
+          driver_name: d.name,
+          driver_gender: d.gender || "Male",
+          driver_phone: String(d.phone).trim(),
+          driver_photo: photoUrl,
+          vehicle_no: String(d.vehicle_no).trim().toUpperCase(),
+          vehicle_type: d.vehicle_type || "Winger",
+          max_capacity: maxCapacity,
+          seats_available: seatsAvailable,
+          expiry_date: normalizeDateToYMD(d.expiry_date) || d.expiry_date || "",
+          trip_date: tripDateYMD,
+          trip_date_label: tripDateLabel,
+          start_stop: startStop,
+          end_stop: endStop,
+          current_stop: "",
+          current_stop_time: "",
+          current_stop_time_24: "",
+          gmaps_link: "",
+          tracking_mode: "manual",
+          note: noteText,
+          departure_time: depTime,
+          base_departure_time: depTime,
+          claimed_arrival_time: arrTime,
+          base_arrival_time: arrTime,
+          status: "Promised",
+          rating: permRating.rating,
+          review_count: permRating.review_count,
+          updated_at: new Date().toISOString()
+        };
+
+        await setDoc(doc(db, "live_trips", tripId), tripPayload);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        alert(`Return Trip (${tripDateLabel}, ${format12Hr(depTime)}) saved!`);
+      } catch (err) {
+        alert("Failed to save return trip: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-calendar-plus"></i> Save / Update Return Trip Schedule`;
+      }
+    };
+
+    window.loadTripIntoEditor = function (tripDocId) {
+      const trip = allLiveTrips.find(t => t.id === tripDocId);
+      if (!trip) return;
+
+      if (trip.status === "Running") {
+        document.getElementById("liveStartStop").value = trip.start_stop;
+        document.getElementById("liveEndStop").value = trip.end_stop;
+        document.getElementById("liveDepTime").value = trip.departure_time;
+        updateLiveMinETA(false);
+        document.getElementById("liveArrTime").value = trip.claimed_arrival_time;
+        document.getElementById("liveSeatsLeft").value = trip.seats_available;
+        document.getElementById("liveNote").value = trip.note || "";
+        document.getElementById("liveGmapsLink").value = trip.gmaps_link || "";
+        document.getElementById("liveFormSection").scrollIntoView({ behavior: "smooth" });
+      } else {
+        const tomorrowYMD = formatYMDLocal(getISTDateObj(1));
+        document.getElementById("retStartStop").value = trip.start_stop;
+        document.getElementById("retEndStop").value = trip.end_stop;
+        selectReturnDateMode(trip.trip_date === tomorrowYMD ? "TOMORROW" : "TODAY");
+        document.getElementById("retDepTime").value = trip.base_departure_time || trip.departure_time;
+        updateReturnMinETA(false);
+        document.getElementById("retArrTime").value = trip.base_arrival_time || trip.claimed_arrival_time;
+        document.getElementById("retSeatsLeft").value = trip.seats_available;
+        document.getElementById("retNote").value = trip.note || "";
+        document.getElementById("returnFormSection").scrollIntoView({ behavior: "smooth" });
+      }
+    };
+
+    onSnapshot(collection(db, "live_trips"), (snapshot) => {
+      allLiveTrips = [];
+      snapshot.forEach((docSnap) => {
+        allLiveTrips.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      localStorage.setItem("RC_LIVE_TRIPS", JSON.stringify(allLiveTrips));
+      renderDriverTrips();
+      updateReturnMinETA(false);
+    });
+
+    onSnapshot(collection(db, "reviews"), (snapshot) => {
+      allPermanentReviews = [];
+      snapshot.forEach((docSnap) => {
+        allPermanentReviews.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      localStorage.setItem("RC_PERMANENT_REVIEWS", JSON.stringify(allPermanentReviews));
+    });
+
+    function renderDriverTrips() {
+      const container = document.getElementById("myActiveTripsContainer");
+      if (!currentDriverUser) return;
+
+      const myTrips = allLiveTrips
+        .filter(
+          (t) =>
+            t.driver_uid === currentDriverUser.uid ||
+            t.id === `TRIP_${currentDriverUser.uid}` ||
+            t.id === `TRIP_PROMISED_${currentDriverUser.uid}`
+        )
+        .sort((a, b) => (a.status === "Running" ? -1 : 1));
+
+      if (myTrips.length === 0) {
+        container.innerHTML = `
+          <div class="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-6 text-center text-xs text-slate-500">
+            No active or scheduled trips right now. Use <b>Section 2A (Live Trip)</b> or <b>Section 2B (Return Trip)</b> below to publish.
+          </div>
+        `;
+        return;
+      }
+
+      const tomorrowYMD = formatYMDLocal(getISTDateObj(1));
+
+      container.innerHTML = myTrips.map((trip) => {
+        const seats = Number(trip.seats_available);
+        const max = Number(trip.max_capacity) || 12;
+        const sObj = ROUTE_STOPS.find(s => s.name === trip.start_stop);
+        const eObj = ROUTE_STOPS.find(s => s.name === trip.end_stop);
+
+        let routeStopsInOrder = ROUTE_STOPS;
+        if (sObj && eObj) {
+          const minIdx = Math.min(sObj.index, eObj.index);
+          const maxIdx = Math.max(sObj.index, eObj.index);
+          routeStopsInOrder = ROUTE_STOPS.filter(s => s.index >= minIdx && s.index <= maxIdx);
+          if (sObj.index > eObj.index) {
+            routeStopsInOrder = [...routeStopsInOrder].reverse();
+          }
+        }
+
+        const quickStops = routeStopsInOrder.filter(
+          s => MAJOR_CHECKIN_STOPS.includes(s.name) || s.name === trip.start_stop || s.name === trip.end_stop
+        );
+
+        const dayLabel = trip.trip_date === tomorrowYMD ? "Tomorrow" : "Today";
+        const lagInfo = getAutoLaggedScheduleTimes(trip);
+        const displayDep24 = trip.status === "Promised" ? lagInfo.dep24 : trip.departure_time;
+        const displayArr24 = trip.status === "Promised" ? lagInfo.arr24 : trip.claimed_arrival_time;
+
+        const autoLagNoticeHTML = (trip.status === "Promised" && lagInfo.lagAddedMins > 0)
+          ? `<span class="text-[11px] bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded font-bold">Auto-Delayed +${lagInfo.lagAddedMins}m (Press Start to reset)</span>`
+          : "";
+
+        const bottomControlsHTML = trip.status === "Running" ? `
+          <div class="mt-4 pt-3 border-t border-emerald-200/80">
+            <div class="flex items-center justify-between mb-2 flex-wrap gap-1">
+              <span class="text-xs font-bold text-slate-800">
+                <i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>
+                1-Tap Hub Check-In (Intermediate sub-stops auto-catchup):
+              </span>
+              <span class="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-md border border-emerald-300">
+                Current: ${trip.current_stop || trip.start_stop} (${trip.current_stop_time || "Just started"})
+              </span>
+            </div>
+
+            <!-- Major Hub Quick Tap Buttons -->
+            <div class="flex flex-wrap gap-1.5 mb-2.5">
+              ${quickStops.map(st => {
+                const isCurrent = (trip.current_stop || trip.start_stop) === st.name;
+                return `
+                  <button
+                    type="button"
+                    onclick="checkInStop('${trip.id}', '${st.name}')"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
+                      isCurrent
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm scale-105'
+                        : 'bg-white hover:bg-emerald-50 text-slate-700 border-slate-300'
+                    }"
+                  >
+                    ${isCurrent ? '📍 ' : ''}${st.name}
+                  </button>
+                `;
+              }).join("")}
+            </div>
+
+            <!-- Optional Sub-Stops Dropdown -->
+            <div class="flex items-center gap-2">
+              <select id="stopSel_${trip.id}" class="flex-1 px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-medium outline-none">
+                ${routeStopsInOrder.map(st => `
+                  <option value="${st.name}" ${(trip.current_stop || trip.start_stop) === st.name ? 'selected' : ''}>
+                    Stop: ${st.name}
+                  </option>
+                `).join("")}
+              </select>
+              <button
+                type="button"
+                onclick="checkInStop('${trip.id}', document.getElementById('stopSel_${trip.id}').value)"
+                class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl transition"
+              >
+                Update Stop
+              </button>
+            </div>
+          </div>
+        ` : `
+          <div class="mt-3 pt-3 border-t border-indigo-200 flex items-center justify-between flex-wrap gap-2 text-xs text-indigo-900">
+            <span><i class="fa-solid fa-clock text-indigo-600 mr-1"></i> Ready to leave? Press <b>Start Trip Now</b> to sync exact departure:</span>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                onclick="loadTripIntoEditor('${trip.id}')"
+                class="px-3 py-1.5 bg-white hover:bg-indigo-100 text-indigo-700 border border-indigo-300 text-xs font-bold rounded-xl transition"
+              >
+                <i class="fa-solid fa-pen-to-square mr-1"></i> Reschedule
+              </button>
+              <button
+                type="button"
+                onclick="promoteReturnToLiveRunning('${trip.id}')"
+                class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition"
+              >
+                Start Trip Now (Go Live)
+              </button>
+            </div>
+          </div>
+        `;
+
+        const quickSeatToggleHTML = seats > 0
+          ? `<button onclick="adjustSeats('${trip.id}', 0, ${max})" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg text-xs font-bold transition flex items-center gap-1" title="Mark vehicle housefull"><i class="fa-solid fa-ban"></i> Housefull</button>`
+          : `<button onclick="adjustSeats('${trip.id}', ${max}, ${max})" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold transition flex items-center gap-1" title="Reset seats back to full capacity"><i class="fa-solid fa-rotate-left"></i> Reset (${max})</button>`;
+
+        return `
+          <div class="${trip.status === 'Running' ? 'bg-emerald-50/60 border-emerald-300' : 'bg-indigo-50/60 border-indigo-300'} rounded-2xl p-4 border-2 shadow-sm">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${trip.status === 'Running' ? 'bg-emerald-600 text-white' : 'bg-indigo-600 text-white'}">
+                    ${trip.status === 'Running' ? 'Live Running Trip' : 'Scheduled Return Trip'}
+                  </span>
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-md bg-white border border-slate-300 text-slate-800">
+                    ${dayLabel}, ${format12Hr(displayDep24)}
+                  </span>
+                  <span class="text-xs font-mono font-bold text-slate-700">${trip.vehicle_no}</span>
+                  ${autoLagNoticeHTML}
+                </div>
+                <h4 class="font-bold text-slate-900 text-sm sm:text-base mt-1.5">
+                  ${trip.start_stop} → ${trip.end_stop}
+                </h4>
+                <p class="text-xs text-slate-600 mt-0.5">
+                  Departs: <b>${dayLabel}, ${format12Hr(displayDep24)}</b> • Arrival ETA: <b>${format12Hr(displayArr24)}</b>
+                </p>
+                ${trip.note ? `<p class="text-xs text-amber-800 font-medium mt-1"><i class="fa-solid fa-bullhorn mr-1"></i>${trip.note}</p>` : ''}
+              </div>
+
+              <!-- Seat & Edit/Delete Controls -->
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200">
+                <div class="flex items-center gap-1.5 bg-white px-2 py-1.5 rounded-xl border border-slate-300">
+                  <button onclick="adjustSeats('${trip.id}', ${seats - 1}, ${max})" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 font-bold text-sm">-</button>
+                  <span class="text-xs font-bold px-1.5 text-slate-800">${seats}/${max}</span>
+                  <button onclick="adjustSeats('${trip.id}', ${seats + 1}, ${max})" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 font-bold text-sm">+</button>
+                  ${quickSeatToggleHTML}
+                </div>
+
+                <button onclick="loadTripIntoEditor('${trip.id}')" title="Edit Trip Details" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold rounded-xl transition">
+                  <i class="fa-solid fa-pen"></i> Edit
+                </button>
+
+                <button onclick="removeTrip('${trip.id}')" title="End / Cancel Trip" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl transition">
+                  <i class="fa-solid fa-trash-can"></i> End
+                </button>
+              </div>
+            </div>
+
+            ${bottomControlsHTML}
+          </div>
+        `;
+      }).join("");
     }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      purgeExpiredInteractionLogs();
-      renderAuthHeader();
-      initDropdowns();
-      filterTrips();
-      // Re-evaluates auto-lag (+2m -> +5m -> +10m) every 30 seconds automatically
-      setInterval(filterTrips, 30000);
-    });
+    // =========================================================================
+    // FLEXIBLE AUTO-CATCHUP STOP CHECK-IN
+    // =========================================================================
+    // Provides 40% generous speed allowance; skips intermediate stops without locking Captain.
+    window.checkInStop = async function (tripDocId, stopName) {
+      const now = new Date();
+      const now24 = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const now12 = format12Hr(now24);
+      const curMins = timeStrToMins(now24);
+
+      const trip = allLiveTrips.find(t => t.id === tripDocId);
+      if (!trip) return;
+
+      const depMins = timeStrToMins(trip.departure_time);
+      let elapsedSinceStart = curMins - depMins;
+      if (elapsedSinceStart < -720) elapsedSinceStart += 1440;
+
+      // Generous anti-teleportation threshold (allows up to 40% faster driving over standard speed)
+      const rawDistMins = getSafeRouteMins(trip.start_stop, stopName);
+      const minimumSensibleMins = Math.floor(rawDistMins * 0.5);
+
+      if (stopName !== trip.start_stop && elapsedSinceStart < minimumSensibleMins) {
+        alert(
+          `Safety Guard:\nMinimum realistic driving time from ${trip.start_stop} to ${stopName} is around ${minimumSensibleMins} minutes.\nPlease check in only when you actually arrive at the stop.`
+        );
+        return;
+      }
+
+      // Check if vehicle reached final destination
+      if (stopName === trip.end_stop) {
+        const shouldEnd = confirm(
+          `Destination Reached:\nYou have arrived at ${trip.end_stop} at ${now12}!\n\nDo you want to mark this trip as Completed and remove it from Passenger View now?`
+        );
+        if (shouldEnd) {
+          try {
+            await deleteDoc(doc(db, "live_trips", tripDocId));
+            alert(`Trip to ${trip.end_stop} completed successfully.`);
+            return;
+          } catch (e) {}
+        }
+      }
+
+      // Auto-catchup: Recalculate remaining trip ETA from this checked-in stop
+      const remainingMins = getSafeRouteMins(stopName, trip.end_stop);
+      const updatedArr24 = minsToTimeStr(curMins + remainingMins);
+
+      try {
+        const updatePayload = {
+          current_stop: stopName,
+          current_stop_time: now12,
+          current_stop_time_24: now24,
+          claimed_arrival_time: updatedArr24,
+          updated_at: now.toISOString()
+        };
+        await updateDoc(doc(db, "live_trips", tripDocId), updatePayload);
+
+        // Turnaround shift for same-day return trip if live trip experienced delay
+        const promisedReturn = getMyPromisedReturnTrip();
+        const todayYMD = formatYMDLocal(getISTDateObj(0));
+        if (promisedReturn && (!promisedReturn.trip_date || promisedReturn.trip_date === todayYMD)) {
+          const effNewArrMins = getEffectiveArrivalMins(trip.departure_time, updatedArr24);
+          const deadheadMins = getSafeRouteMins(trip.end_stop, promisedReturn.start_stop);
+          const minReturnDepMins = effNewArrMins + deadheadMins + 20;
+          const curReturnDepMins = timeStrToMins(promisedReturn.base_departure_time || promisedReturn.departure_time);
+
+          if (minReturnDepMins < 1440 && curReturnDepMins < minReturnDepMins) {
+            const shiftedDepStr = minsToTimeStr(minReturnDepMins);
+            const retRouteMins = getSafeRouteMins(promisedReturn.start_stop, promisedReturn.end_stop);
+            const shiftedArrStr = minsToTimeStr(minReturnDepMins + retRouteMins);
+            await updateDoc(doc(db, "live_trips", promisedReturn.id), {
+              departure_time: shiftedDepStr,
+              base_departure_time: shiftedDepStr,
+              claimed_arrival_time: shiftedArrStr,
+              base_arrival_time: shiftedArrStr,
+              updated_at: now.toISOString()
+            });
+          }
+        }
+      } catch (err) {
+        alert("Failed to update current stop: " + err.message);
+      }
+    };
+
+    // =========================================================================
+    // START TRIP NOW (EXACT REAL TIME RESET)
+    // =========================================================================
+    window.promoteReturnToLiveRunning = async function (promisedDocId) {
+      const promisedTrip = allLiveTrips.find(t => t.id === promisedDocId);
+      if (!promisedTrip || !currentDriverUser) return;
+
+      const activeRunning = getMyActiveRunningTrip();
+      if (activeRunning && activeRunning.current_stop !== activeRunning.end_stop) {
+        if (!confirm(`Your previous trip (${activeRunning.start_stop} → ${activeRunning.end_stop}) is still active. End it and start ${promisedTrip.start_stop} → ${promisedTrip.end_stop} right now?`)) {
+          return;
+        }
+      } else {
+        if (!confirm(`Start live journey for ${promisedTrip.start_stop} → ${promisedTrip.end_stop} at current time?`)) return;
+      }
+
+      const now = new Date();
+      const now24 = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const now12 = format12Hr(now24);
+      const todayYMD = formatYMDLocal(getISTDateObj(0));
+      const minMins = getSafeRouteMins(promisedTrip.start_stop, promisedTrip.end_stop);
+      const newArr24 = minsToTimeStr(timeStrToMins(now24) + minMins);
+
+      const liveDocId = `TRIP_${currentDriverUser.uid}`;
+      const promotedPayload = {
+        ...promisedTrip,
+        status: "Running",
+        trip_date: todayYMD,
+        trip_date_label: "Today",
+        departure_time: now24,
+        base_departure_time: now24,
+        claimed_arrival_time: newArr24,
+        base_arrival_time: newArr24,
+        current_stop: promisedTrip.start_stop,
+        current_stop_time: now12,
+        current_stop_time_24: now24,
+        updated_at: now.toISOString()
+      };
+      delete promotedPayload.id;
+
+      try {
+        await setDoc(doc(db, "live_trips", liveDocId), promotedPayload);
+        if (promisedDocId !== liveDocId) {
+          await deleteDoc(doc(db, "live_trips", promisedDocId));
+        }
+        alert(`Trip is now Live On Route at ${now12}! Destination ETA set to ${format12Hr(newArr24)}.`);
+      } catch (err) {
+        alert("Could not start trip: " + err.message);
+      }
+    };
+
+    // Auto-lag syncer with 60-minute cancellation ceiling
+    setInterval(async () => {
+      if (!currentDriverUser) return;
+      const promised = getMyPromisedReturnTrip();
+      if (!promised) return;
+
+      const lagInfo = getAutoLaggedScheduleTimes(promised);
+
+      if (lagInfo.isExpiredByDelay) {
+        try {
+          await deleteDoc(doc(db, "live_trips", promised.id));
+        } catch (e) {}
+        return;
+      }
+
+      if (lagInfo.lagAddedMins > 0 && (promised.departure_time !== lagInfo.dep24 || promised.claimed_arrival_time !== lagInfo.arr24)) {
+        try {
+          await updateDoc(doc(db, "live_trips", promised.id), {
+            departure_time: lagInfo.dep24,
+            claimed_arrival_time: lagInfo.arr24,
+            updated_at: new Date().toISOString()
+          });
+        } catch (e) {}
+      }
+      renderDriverTrips();
+    }, 30000);
+
+    window.adjustSeats = async function (tripDocId, newSeats, maxCapacity) {
+      const clamped = Math.min(maxCapacity, Math.max(0, newSeats));
+      try {
+        await updateDoc(doc(db, "live_trips", tripDocId), {
+          seats_available: clamped,
+          updated_at: new Date().toISOString()
+        });
+      } catch (err) {
+        alert("Failed to update seats: " + err.message);
+      }
+    };
+
+    window.removeTrip = async function (tripDocId) {
+      if (!confirm("Are you sure you want to end / remove this trip?")) return;
+      try {
+        await deleteDoc(doc(db, "live_trips", tripDocId));
+      } catch (err) {
+        alert("Failed to remove trip: " + err.message);
+      }
+    };
+
+    initForms();
   </script>
 </body>
 </html>
