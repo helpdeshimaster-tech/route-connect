@@ -1,1571 +1,3433 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RouteConnect | Manjhepur - Amauli - Jahanabad - Kanpur Live Corridor</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { font-family: 'Inter', sans-serif; }
-    .pulse-dot {
-      animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-    }
-    @keyframes pulse-ring {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-    }
-  </style>
+
+<meta charset="UTF-8" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+<title>RouteConnect | Manjhepur - Amauli - Jahanabad - Kanpur Live Corridor</title>
+
+<!-- Tailwind CSS CDN -->
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Font Awesome Icons -->
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+
+
+.pulse-dot { animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+
+@keyframes pulse-ring {
+
+0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+
+70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+
+100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+
+}
+
+
+
+/* ===================================================================
+
+NEW: PURE-CSS SIMPLE / MOBILE-FIRST LAYER (no JS changes)
+
+"Show full details" is a hidden checkbox (#showDetails). Because it
+
+lives OUTSIDE #tripsContainer, its state survives the 30-second
+
+re-render done by the existing JavaScript.
+
+=================================================================== */
+
+
+
+/* ---------- Search block ---------- */
+
+.rc-search-grid { display: grid; grid-template-columns: 1fr 44px; gap: 8px; align-items: center; }
+
+.rc-search-grid > .rc-from { grid-column: 1; grid-row: 1; }
+
+.rc-search-grid > .rc-to { grid-column: 1; grid-row: 2; }
+
+.rc-search-grid > .rc-swap { grid-column: 2; grid-row: 1 / span 2; }
+
+.rc-swap {
+
+width: 44px; height: 44px; border-radius: 9999px; background: #ecfdf5; color: #047857;
+
+border: 1px solid #a7f3d0; display: flex; align-items: center; justify-content: center;
+
+}
+
+.rc-swap:active { background: #d1fae5; }
+
+.rc-select {
+
+width: 100%; padding: 12px 12px 12px 40px; background: #f8fafc; border: 1px solid #cbd5e1;
+
+border-radius: 12px; font-size: 15px; font-weight: 600; outline: none; color: #0f172a;
+
+}
+
+.rc-select:focus { border-color: #059669; box-shadow: 0 0 0 3px rgba(16,185,129,.25); }
+
+
+
+/* ---------- Settings dropdown (CSS-only, native <details>) ---------- */
+
+.rc-settings > summary { list-style: none; cursor: pointer; }
+
+.rc-settings > summary::-webkit-details-marker { display: none; }
+
+.rc-settings[open] > summary { background: #475569; }
+
+.rc-settings-panel {
+
+position: fixed; top: 62px; left: 12px; right: 12px; margin-left: auto; max-width: 380px;
+
+background: #fff; color: #0f172a; border-radius: 16px; padding: 16px;
+
+box-shadow: 0 20px 45px rgba(2,6,23,.4); border: 1px solid #e2e8f0;
+
+}
+
+.rc-seg { display: grid; grid-template-columns: 1fr; gap: 6px; margin-top: 6px; }
+
+.rc-seg button {
+
+width: 100%; text-align: left; padding: 11px 12px !important; border-radius: 10px !important;
+
+border: 1px solid #e2e8f0; font-size: 13px;
+
+}
+
+.rc-toggle {
+
+display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer;
+
+padding: 12px; margin-top: 12px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0;
+
+}
+
+.rc-switch { width: 46px; height: 26px; background: #cbd5e1; border-radius: 9999px; position: relative; flex-shrink: 0; transition: .2s; }
+
+.rc-switch::after {
+
+content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+
+background: #fff; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+
+}
+
+#showDetails:checked ~ header .rc-switch { background: #059669; }
+
+#showDetails:checked ~ header .rc-switch::after { transform: translateX(20px); }
+
+#showDetails:focus-visible ~ header .rc-switch,
+
+#showDetails:focus-visible ~ main .rc-pill { outline: 2px solid #059669; outline-offset: 2px; }
+
+
+
+/* ---------- "Details" pill above the list ---------- */
+
+.rc-pill {
+
+display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 9999px;
+
+font-size: 12px; font-weight: 700; background: #fff; color: #334155; border: 1px solid #cbd5e1; cursor: pointer;
+
+}
+
+#showDetails:checked ~ main .rc-pill { background: #0f172a; color: #fff; border-color: #0f172a; }
+
+
+
+/* ===================================================================
+
+TRIP CARD (cards are generated by existing JS -> styled by structure)
+
+Default = only what matters at a glance:
+
+Name • Vehicle no • Seats • From → To • Time • ETA • Call • WhatsApp
+
+=================================================================== */
+
+#tripsContainer > [class*="hover:shadow-md"] {
+
+padding: 14px !important; border-radius: 16px !important;
+
+box-shadow: 0 1px 2px rgba(15,23,42,.06) !important;
+
+}
+
+
+
+/* Header: photo + name + vehicle | seats */
+
+#tripsContainer > [class*="hover:shadow-md"] > div:first-child { gap: 8px !important; flex-wrap: nowrap !important; }
+
+#tripsContainer > [class*="hover:shadow-md"] > div:first-child > div:first-child { min-width: 0; flex: 1 1 auto; gap: 10px !important; }
+
+#tripsContainer > [class*="hover:shadow-md"] > div:first-child > div:first-child img {
+
+width: 40px !important; height: 40px !important; border-radius: 10px !important; flex-shrink: 0;
+
+}
+
+#tripsContainer > [class*="hover:shadow-md"] > div:first-child > div:first-child > div { min-width: 0; }
+
+#tripsContainer > [class*="hover:shadow-md"] h4 {
+
+font-size: 16px !important; line-height: 1.2; min-width: 0;
+
+white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+
+}
+
+#tripsContainer > [class*="hover:shadow-md"] > div:first-child > div:last-child { flex-shrink: 0; }
+
+#tripsContainer > [class*="hover:shadow-md"] > div:first-child > div:last-child > div > span {
+
+padding: 4px 9px; border-radius: 9999px; background: #f1f5f9; font-size: 12px !important; white-space: nowrap;
+
+}
+
+
+
+/* Hidden by default -> shown with "Show full details": gender badge, rating row */
+
+#tripsContainer > [class*="hover:shadow-md"] > div:first-child > div:first-child > div > div:first-child > span,
+
+#tripsContainer > [class*="hover:shadow-md"] > div:first-child > div:first-child > div > div:last-child { display: none !important; }
+
+#showDetails:checked ~ main #tripsContainer > [class*="hover:shadow-md"] > div:first-child > div:first-child > div > div:first-child > span { display: inline-block !important; }
+
+#showDetails:checked ~ main #tripsContainer > [class*="hover:shadow-md"] > div:first-child > div:first-child > div > div:last-child { display: flex !important; }
+
+
+
+/* Route timeline: big From / To */
+
+#tripsContainer > [class*="hover:shadow-md"] > div:nth-child(2) { margin-top: 12px !important; padding-top: 12px !important; gap: 6px !important; }
+
+#tripsContainer > [class*="hover:shadow-md"] > div:nth-child(2) > div:first-child,
+
+#tripsContainer > [class*="hover:shadow-md"] > div:nth-child(2) > div:last-child { flex: 1 1 0; min-width: 0; }
+
+#tripsContainer > [class*="hover:shadow-md"] > div:nth-child(2) > div:nth-child(2) { flex: 0 0 56px; padding: 0 !important; }
+
+#tripsContainer > [class*="hover:shadow-md"] > div:nth-child(2) .font-bold.text-slate-900 { display: block; font-size: 15px !important; line-height: 1.25; }
+
+#tripsContainer > [class*="hover:shadow-md"] > div:nth-child(2) .text-emerald-600 { font-size: 14px !important; }
+
+#tripsContainer > [class*="hover:shadow-md"] > div:nth-child(2) .text-slate-700 { font-size: 13px !important; }
+
+/* middle helper texts hidden unless details are on */
+
+#tripsContainer > [class*="hover:shadow-md"] > div:nth-child(2) > div:nth-child(2) > span { display: none !important; }
+
+#showDetails:checked ~ main #tripsContainer > [class*="hover:shadow-md"] > div:nth-child(2) > div:nth-child(2) { flex: 1.3 1 0; }
+
+#showDetails:checked ~ main #tripsContainer > [class*="hover:shadow-md"] > div:nth-child(2) > div:nth-child(2) > span { display: block !important; text-align: center; }
+
+
+
+/* Live banner (current stop) – keep, but hide "next stop" unless details */
+
+#tripsContainer > [class*="hover:shadow-md"] [class~="bg-emerald-50"] { margin-top: 10px !important; padding: 10px !important; font-size: 13px; }
+
+#tripsContainer > [class*="hover:shadow-md"] [class~="bg-emerald-50"] > div:last-child { display: none !important; }
+
+#showDetails:checked ~ main #tripsContainer > [class*="hover:shadow-md"] [class~="bg-emerald-50"] > div:last-child { display: block !important; }
+
+
+
+/* Pickup / Drop estimate box – stacked rows, easy to read */
+
+#tripsContainer > [class*="hover:shadow-md"] [class~="bg-slate-50"] { padding: 10px !important; flex-direction: column; align-items: stretch !important; gap: 4px !important; font-size: 13px !important; }
+
+#tripsContainer > [class*="hover:shadow-md"] [class~="bg-slate-50"] > div { display: flex; justify-content: space-between; gap: 8px; width: 100%; }
+
+
+
+/* Action area: 2 big buttons */
+
+#tripsContainer > [class*="hover:shadow-md"] > div:last-child { display: block !important; margin-top: 12px !important; padding-top: 12px !important; }
+
+#tripsContainer > [class*="hover:shadow-md"] > div:last-child > div:first-child { width: 100%; }
+
+#tripsContainer > [class*="hover:shadow-md"] > div:last-child > div:first-child > span {
+
+display: block; margin-bottom: 10px; font-size: 12px !important; line-height: 1.35;
+
+}
+
+#tripsContainer > [class*="hover:shadow-md"] > div:last-child > div:last-child {
+
+display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px; width: 100% !important; margin-left: 0 !important;
+
+}
+
+#tripsContainer > [class*="hover:shadow-md"] > div:last-child button {
+
+min-height: 48px; font-size: 14px !important; border-radius: 12px !important; flex: none !important; padding: 8px 10px !important;
+
+}
+
+/* Live Google Map button: inside "details" */
+
+#tripsContainer > [class*="hover:shadow-md"] button[onclick*="GMAPS_LIVE"] { display: none !important; }
+
+#showDetails:checked ~ main #tripsContainer > [class*="hover:shadow-md"] button[onclick*="GMAPS_LIVE"] {
+
+display: flex !important; grid-column: 1 / -1; order: 3;
+
+}
+
+
+
+/* ---------- Modals: bottom-sheet on phones, 16px inputs (no iOS zoom) ---------- */
+
+@media (max-width: 640px) {
+
+#authModal, #historyModal, #ratingModal { align-items: flex-end !important; padding: 0 !important; }
+
+#authModal > div, #historyModal > div, #ratingModal > div {
+
+max-width: none !important; width: 100% !important; border-radius: 20px 20px 0 0 !important;
+
+padding-bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+
+}
+
+input, select, textarea { font-size: 16px !important; }
+
+}
+
+</style>
+
 </head>
+
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-  <!-- Top Security Banner -->
-  <div class="bg-amber-500 text-slate-900 text-xs sm:text-sm font-medium py-2 px-4 text-center">
-    <i class="fa-solid fa-shield-halved mr-1"></i>
-    Verified Captains • Direct WhatsApp & Call Booking • Real-Time Corridor Tracking • Verified Security Log
-  </div>
-
-  <!-- Offline Network Banner -->
-  <div id="offlineNotice" class="hidden bg-rose-600 text-white text-xs font-semibold py-1.5 px-4 text-center">
-    <i class="fa-solid fa-wifi-slash mr-1.5"></i> Network disconnected. Showing offline cached vehicle timings...
-  </div>
-
-  <!-- Navbar -->
-  <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-30">
-    <div class="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between gap-2">
-      <div class="flex items-center space-x-2.5">
-        <div class="bg-emerald-500 text-slate-900 p-2 rounded-lg font-bold text-lg leading-none">
-          <i class="fa-solid fa-van-shuttle"></i>
-        </div>
-        <div>
-          <h1 class="font-bold text-base sm:text-lg tracking-tight leading-none">RouteConnect</h1>
-          <p class="text-[11px] text-slate-400 mt-0.5">Manjhepur • Amauli • Jahanabad • Kanpur</p>
-        </div>
-      </div>
-
-      <!-- Right Actions: Passenger Google Auth + History + Captain Portal Link -->
-      <div class="flex items-center gap-2">
-        <div id="authSection" class="flex items-center gap-2">
-          <button onclick="openAuthModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
-            <i class="fa-brands fa-google text-rose-500"></i>
-            <span>Sign In</span>
-          </button>
-        </div>
-
-        <a href="driver.html" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5">
-          <i class="fa-solid fa-id-card text-emerald-400"></i>
-          <span class="hidden sm:inline">Captain Portal</span>
-        </a>
-      </div>
-    </div>
-  </header>
-
-  <!-- Search Hero Section -->
-  <section class="bg-gradient-to-b from-slate-900 to-slate-800 text-white pt-4 pb-8 px-4 shadow-md">
-    <div class="max-w-4xl mx-auto">
-      <div class="bg-white text-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl border border-slate-200">
-        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-          <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-route text-emerald-600"></i> Search Live & Scheduled Vehicles
-          </h2>
-          <span id="currentDateBadge" class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-full border border-emerald-200"></span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-11 gap-3 items-center">
-          <!-- From Stop -->
-          <div class="sm:col-span-5">
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Pickup Stop (From)</label>
-            <div class="relative">
-              <i class="fa-solid fa-location-dot absolute left-3.5 top-3.5 text-emerald-600"></i>
-              <select id="fromStop" onchange="filterTrips()" class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
-                <option value="">-- All Pickup Stops --</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Swap Button -->
-          <div class="sm:col-span-1 flex justify-center sm:pt-5">
-            <button onclick="swapStops()" title="Reverse Route" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-700 border border-slate-300 flex items-center justify-center transition">
-              <i class="fa-solid fa-right-left"></i>
-            </button>
-          </div>
-
-          <!-- To Stop -->
-          <div class="sm:col-span-5">
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Drop Stop (To)</label>
-            <div class="relative">
-              <i class="fa-solid fa-flag-checkered absolute left-3.5 top-3.5 text-rose-600"></i>
-              <select id="toStop" onchange="filterTrips()" class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
-                <option value="">-- All Drop Stops --</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Safe Transit Time Estimate & Action Buttons -->
-        <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-          <div id="routeTravelEstimate" class="text-xs text-slate-600 font-medium">
-            Select Pickup & Drop stops to calculate exact safe transit time and passing vehicles.
-          </div>
-          <div class="flex gap-2 w-full sm:w-auto">
-            <button onclick="resetFilters()" class="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
-              Reset
-            </button>
-            <button onclick="filterTrips()" class="flex-1 sm:flex-initial px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition flex items-center justify-center gap-2">
-              <i class="fa-solid fa-magnifying-glass"></i> Find Vehicles
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Main Vehicle Listings -->
-  <main class="max-w-4xl mx-auto w-full px-4 py-6 flex-1">
-    <!-- Direction & Status Filters -->
-    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-      <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot"></span>
-        <h3 class="font-bold text-slate-800 text-sm sm:text-base">
-          Available Vehicles (<span id="tripCount">0</span>)
-        </h3>
-      </div>
-
-      <div class="flex bg-white p-1 rounded-xl border border-slate-200 text-xs font-semibold">
-        <button onclick="setDirectionFilter('ALL')" id="dirBtn_ALL" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white transition">All</button>
-        <button onclick="setDirectionFilter('TO_KANPUR')" id="dirBtn_TO_KANPUR" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Towards Kanpur</button>
-        <button onclick="setDirectionFilter('TO_MANJHEPUR')" id="dirBtn_TO_MANJHEPUR" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Towards Manjhepur</button>
-      </div>
-    </div>
-
-    <!-- Cards Container -->
-    <div id="tripsContainer" class="space-y-4"></div>
-  </main>
-
-  <!-- PASSENGER ACTIVITY & CONTACT HISTORY MODAL -->
-  <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
-            <i class="fa-solid fa-clock-rotate-left"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-900 text-base leading-tight">My Contact & Booking History</h4>
-            <p class="text-[11px] text-slate-500">Only genuine Call & WhatsApp contacts from last 25 days</p>
-          </div>
-        </div>
-        <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="overflow-y-auto pr-1 space-y-3 mt-4 flex-1" id="historyListContainer">
-        <!-- Rendered by JavaScript -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Google Sign-In Modal -->
-  <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-2">
-          <i class="fa-brands fa-google text-rose-500 text-lg"></i>
-          <h4 class="font-bold text-slate-900 text-base">Passenger Verification</h4>
-        </div>
-        <button onclick="closeAuthModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <p class="text-xs text-slate-600 mt-3 leading-relaxed">
-        For passenger and Captain safety, please enter your mobile number and continue with your Google account before calling a Captain, booking on WhatsApp, or submitting reviews.
-      </p>
-
-      <form id="googleAuthForm" onsubmit="handleGoogleSignIn(event)" class="mt-4 space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
-          <input type="text" id="authName" required maxlength="60" placeholder="Enter your full name" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Gmail Address</label>
-          <input type="email" id="authEmail" required placeholder="yourname@gmail.com" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number (For Safety Record)</label>
-          <input type="tel" id="authPhone" required pattern="[6-9][0-9]{9}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="10-digit mobile number" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
-        </div>
-
-        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm shadow flex items-center justify-center gap-2 transition">
-          <i class="fa-brands fa-google text-emerald-400"></i> Continue with Google Account
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Safe External Google Maps Redirect Gate Modal -->
-  <div id="mapGateModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center">
-      <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3 text-xl">
-        <i class="fa-solid fa-map-location-dot"></i>
-      </div>
-      <h4 class="font-bold text-slate-900 text-base">Open Official Google Maps</h4>
-      <p id="mapGateDesc" class="text-xs text-slate-600 mt-2 leading-relaxed">
-        You are opening the live Google Maps location shared by the Captain.
-      </p>
-      <div class="mt-5 flex gap-2">
-        <button onclick="closeMapGateModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
-          Cancel
-        </button>
-        <a id="mapGateConfirmBtn" href="#" target="_blank" rel="noopener noreferrer" onclick="closeMapGateModal()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5 shadow">
-          <i class="fa-solid fa-up-right-from-square"></i> Open Map
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Rating & Review Modal (Spam Guard: 1 Review per Captain per 24 Hours) -->
-  <div id="ratingModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <div>
-          <h4 class="font-bold text-slate-900 text-base">Captain Reviews & Rating</h4>
-          <p id="modalDriverName" class="text-xs text-slate-500 mt-0.5"></p>
-        </div>
-        <button onclick="closeRatingModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="overflow-y-auto pr-1 space-y-4 mt-3 flex-1">
-        <!-- Submit New Review Form -->
-        <form id="ratingForm" onsubmit="submitReview(event)" class="space-y-3.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-          <input type="hidden" id="modalDriverId" />
-          <input type="hidden" id="modalDriverTitleHidden" />
-
-          <div class="text-center">
-            <p class="text-[11px] font-semibold uppercase text-slate-500 mb-1.5">Write a Permanent Review</p>
-            <div id="starSelector" class="flex justify-center gap-2 text-2xl text-amber-400 cursor-pointer">
-              <i onclick="setStarRating(1)" class="fa-solid fa-star" data-star="1"></i>
-              <i onclick="setStarRating(2)" class="fa-solid fa-star" data-star="2"></i>
-              <i onclick="setStarRating(3)" class="fa-solid fa-star" data-star="3"></i>
-              <i onclick="setStarRating(4)" class="fa-solid fa-star" data-star="4"></i>
-              <i onclick="setStarRating(5)" class="fa-solid fa-star" data-star="5"></i>
-            </div>
-            <span id="starRatingText" class="text-xs font-bold text-emerald-600 mt-1 block">5 Stars - Excellent Service</span>
-          </div>
-
-          <div>
-            <p class="text-xs font-semibold text-slate-600 mb-1.5">Quick Tags (Optional):</p>
-            <div id="tagContainer" class="flex flex-wrap gap-1.5">
-              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">On Time</button>
-              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Safe Driving</button>
-              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Clean Vehicle</button>
-              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Polite Captain</button>
-              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-rose-200 bg-white text-rose-600 hover:border-rose-500">Overloading</button>
-              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1 rounded-full border border-rose-200 bg-white text-rose-600 hover:border-rose-500">Late Departure</button>
-            </div>
-          </div>
-
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-xs font-semibold text-slate-600">Your Feedback</label>
-              <span id="charCount" class="text-[11px] font-medium text-slate-400">0 / 250 chars</span>
-            </div>
-            <textarea 
-              id="reviewerComment" 
-              rows="2" 
-              maxlength="250"
-              oninput="sanitizeAndCount(this)"
-              placeholder="Share your travel experience with this Captain..." 
-              class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500"
-            ></textarea>
-          </div>
-
-          <button type="submit" id="submitReviewBtn" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-xs sm:text-sm shadow transition">
-            Submit Permanent Review
-          </button>
-        </form>
-
-        <!-- Permanent Reviews List -->
-        <div>
-          <h5 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
-            <span>All Passenger Reviews</span>
-            <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">Permanent Record</span>
-          </h5>
-          <div id="driverReviewsList" class="space-y-2.5"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <footer class="bg-slate-900 text-slate-400 text-xs py-6 px-4 mt-10">
-    <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-      <p>© 2026 RouteConnect Corridor (Manjhepur – Amauli – Jahanabad – Kanpur).</p>
-      <p class="text-slate-500">Verified Captain Aggregator • Hybrid Stop & Map Tracking</p>
-    </div>
-  </footer>
-  <!-- ========================================================================= -->
-  <!-- FIREBASE CLOUD ENGINE & APPLICATION LOGIC (PART 2)                        -->
-  <!-- ========================================================================= -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, doc, setDoc, addDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAJnefI6TOx8WN2CfFpABebiZEjC4Cn0p4",
-      authDomain: "routeconnect-kanpur-34176.firebaseapp.com",
-      projectId: "routeconnect-kanpur-34176",
-      storageBucket: "routeconnect-kanpur-34176.firebasestorage.app",
-      messagingSenderId: "853374704678",
-      appId: "1:853374704678:web:3285be5fb293c3dbc09ae7",
-      measurementId: "G-PJK9TJ5MX4"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    try { getAnalytics(app); } catch (e) {}
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const googleProvider = new GoogleAuthProvider();
-
-    window.RC_FIREBASE = {
-      auth,
-      db,
-      googleProvider,
-      signInWithPopup,
-      signOut,
-      collection,
-      doc,
-      setDoc,
-      addDoc,
-      updateDoc
-    };
-
-    // Online / Offline Status Detection
-    function updateOnlineStatus() {
-      const banner = document.getElementById("offlineNotice");
-      if (!banner) return;
-      if (navigator.onLine) {
-        banner.classList.add("hidden");
-      } else {
-        banner.classList.remove("hidden");
-      }
-    }
-    window.addEventListener("online", updateOnlineStatus);
-    window.addEventListener("offline", updateOnlineStatus);
-    updateOnlineStatus();
-
-    // 100% Firestore-only Captain Verification (Eliminates drivers.json conflict)
-    onSnapshot(collection(db, "verified_drivers"), (snapshot) => {
-      const liveDirectory = [];
-      snapshot.forEach((docSnap) => {
-        liveDirectory.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      localStorage.setItem("RC_FIRESTORE_DRIVERS", JSON.stringify(liveDirectory));
-      if (typeof window.filterTrips === "function") {
-        window.filterTrips();
-      }
-    }, (err) => {
-      console.warn("Firestore verified_drivers listener notice:", err.message);
-    });
-
-    // Real-time synchronization of active and scheduled trips
-    onSnapshot(collection(db, "live_trips"), (snapshot) => {
-      const liveTrips = [];
-      snapshot.forEach((docSnap) => {
-        liveTrips.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      localStorage.setItem("RC_LIVE_TRIPS", JSON.stringify(liveTrips));
-      if (typeof window.filterTrips === "function") {
-        window.filterTrips();
-      }
-    }, (err) => {
-      console.warn("Firestore live_trips listener notice:", err.message);
-    });
-
-    // Real-time synchronization of permanent captain reviews
-    onSnapshot(collection(db, "reviews"), (snapshot) => {
-      const allReviews = [];
-      snapshot.forEach((docSnap) => {
-        allReviews.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      localStorage.setItem("RC_PERMANENT_REVIEWS", JSON.stringify(allReviews));
-      if (typeof window.filterTrips === "function") {
-        window.filterTrips();
-      }
-      const openDriverId = document.getElementById("modalDriverId")?.value;
-      if (openDriverId && typeof window.renderCaptainReviewsList === "function") {
-        window.renderCaptainReviewsList(openDriverId);
-      }
-    }, (err) => {
-      console.warn("Firestore reviews listener notice:", err.message);
-    });
-  </script>
-
-  <!-- RouteConnect Application Engine -->
-  <script>
-    // Exact match with driver.html ground-calibrated offsets (145 mins total corridor duration)
-    const ROUTE_STOPS = [
-      { index: 0,  name: "Manjhepur", offset: 0 },
-      { index: 1,  name: "Barwa", offset: 4 },
-      { index: 2,  name: "Maudev", offset: 8 },
-      { index: 3,  name: "Bhikhanipur", offset: 12 },
-      { index: 4,  name: "Harijanpur", offset: 14 },
-      { index: 5,  name: "Budhanda", offset: 16 },
-      { index: 6,  name: "Salhepur", offset: 18 },
-      { index: 7,  name: "Sathigavan", offset: 21 },
-      { index: 8,  name: "Kauh Mod", offset: 23 },
-      { index: 9,  name: "Bilari Mod", offset: 24 },
-      { index: 10, name: "Makandapur Mod", offset: 25 },
-      { index: 11, name: "Kulkheda Mod (Nayara Petrol Pump)", offset: 27 },
-      { index: 12, name: "Madri", offset: 29 },
-      { index: 13, name: "Amauli", offset: 33 },
-      { index: 14, name: "Behta Khurd", offset: 38 },
-      { index: 15, name: "Jamuiya (Harkundi Baba)", offset: 43 },
-      { index: 16, name: "Birnai", offset: 46 },
-      { index: 17, name: "Ranupur", offset: 49 },
-      { index: 18, name: "Lahuri Sarai", offset: 52 },
-      { index: 19, name: "Kalana", offset: 55 },
-      { index: 20, name: "Jahanabad", offset: 60 },
-      { index: 21, name: "Mathurapur", offset: 65 },
-      { index: 22, name: "Birhar Mod", offset: 70 },
-      { index: 23, name: "Sadh", offset: 85 },
-      { index: 24, name: "Majhawan", offset: 98 },
-      { index: 25, name: "Ramaipur", offset: 115 },
-      { index: 26, name: "Magrasa", offset: 120 },
-      { index: 27, name: "Sen Paschim Para Mod", offset: 124 },
-      { index: 28, name: "Bingawan", offset: 128 },
-      { index: 29, name: "Pipauri Mod", offset: 132 },
-      { index: 30, name: "Galla Mandi", offset: 136 },
-      { index: 31, name: "Naubasta", offset: 139 },
-      { index: 32, name: "Baudh Nagar", offset: 142 },
-      { index: 33, name: "Basant Vihar Chauraha", offset: 145 }
-    ];
-
-    const DEFAULT_TRIPS = [];
-    let currentDirectionFilter = "ALL";
-    let selectedStarRating = 5;
-
-    function getISTDateObj(offsetDays = 0) {
-      const now = new Date();
-      now.setDate(now.getDate() + offsetDays);
-      return now;
-    }
-
-    function formatYMDLocal(d) {
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const dd = String(d.getDate()).padStart(2, "0");
-      return `${yyyy}-${mm}-${dd}`;
-    }
-
-    function normalizeDateToYMD(dateInput) {
-      if (!dateInput) return "";
-      const raw = String(dateInput).trim();
-      const dmyMatch = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-      if (dmyMatch) {
-        return `${dmyMatch[3]}-${dmyMatch[2].padStart(2, "0")}-${dmyMatch[1].padStart(2, "0")}`;
-      }
-      const ymdMatch = raw.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-      if (ymdMatch) {
-        return `${ymdMatch[1]}-${ymdMatch[2].padStart(2, "0")}-${ymdMatch[3].padStart(2, "0")}`;
-      }
-      const parsed = new Date(raw);
-      if (!isNaN(parsed.getTime())) {
-        return formatYMDLocal(parsed);
-      }
-      return raw;
-    }
-
-    function timeStrToMins(tStr) {
-      if (!tStr || !tStr.includes(":")) return 0;
-      const [h, m] = tStr.split(":").map(Number);
-      return h * 60 + m;
-    }
-
-    function minsToTimeStr(totalMins) {
-      const norm = ((totalMins % 1440) + 1440) % 1440;
-      const hh = String(Math.floor(norm / 60)).padStart(2, "0");
-      const mm = String(norm % 60).padStart(2, "0");
-      return `${hh}:${mm}`;
-    }
-
-    function format12Hour(hh, mm) {
-      const period = hh >= 12 ? "PM" : "AM";
-      const hour12 = hh % 12 || 12;
-      return `${String(hour12).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${period}`;
-    }
-
-    function convert24To12(timeStr) {
-      if (!timeStr || !timeStr.includes(":")) return timeStr || "--:--";
-      const [hh, mm] = timeStr.split(":").map(Number);
-      if (isNaN(hh) || isNaN(mm)) return timeStr;
-      return format12Hour(hh, mm);
-    }
-
-    function addMinutesToTimeStr(timeStr, minutesToAdd) {
-      if (!timeStr || !timeStr.includes(":")) return "--:--";
-      const [hh, mm] = timeStr.split(":").map(Number);
-      const totalMins = hh * 60 + mm + minutesToAdd;
-      const finalH = Math.floor((totalMins / 60) % 24);
-      const finalM = totalMins % 60;
-      return format12Hour(finalH, finalM);
-    }
-
-    function getStopObj(stopName) {
-      return ROUTE_STOPS.find(s => s.name === stopName);
-    }
-
-    function formatDuration(mins) {
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
-      if (h > 0 && m > 0) return `${h} hr ${m} min`;
-      if (h > 0) return `${h} hr`;
-      return `${m} min`;
-    }
-
-    function getCleanDayLabel(trip) {
-      const tomorrowYMD = formatYMDLocal(getISTDateObj(1));
-      if (trip.trip_date === tomorrowYMD) return "Tomorrow";
-      if (trip.trip_date_label && /कल|tomorrow/i.test(trip.trip_date_label)) return "Tomorrow";
-      return "Today";
-    }
-
-    function getEffectiveArrivalMins(depTimeStr, arrTimeStr) {
-      const depM = timeStrToMins(depTimeStr);
-      let arrM = timeStrToMins(arrTimeStr);
-      if (arrM < depM) {
-        arrM += 1440;
-      }
-      return arrM;
-    }
-
-    function isValidAndFreshGoogleMapsUrl(urlStr, trackingUpdatedAt) {
-      if (!urlStr || typeof urlStr !== "string") return false;
-      const clean = urlStr.trim();
-      const strictPattern = /^https:\/\/(maps\.app\.goo\.gl\/[A-Za-z0-9_\-]+|goo\.gl\/maps\/[A-Za-z0-9_\-]+|(www\.)?google\.(com|co\.in)\/maps\S+)$/i;
-      if (!strictPattern.test(clean)) return false;
-
-      if (trackingUpdatedAt) {
-        const ts = new Date(trackingUpdatedAt).getTime();
-        if (!isNaN(ts)) {
-          const ageHours = (Date.now() - ts) / (1000 * 60 * 60);
-          if (ageHours > 12) return false;
-        }
-      }
-      return true;
-    }
-
-    function getMasterDriverDirectory() {
-      try {
-        const raw = JSON.parse(localStorage.getItem("RC_FIRESTORE_DRIVERS") || "[]");
-        if (Array.isArray(raw) && raw.length > 0) return raw;
-      } catch (e) {}
-      return [];
-    }
-
-    function getVerifiedDriverRecord(trip) {
-      const todayYMD = formatYMDLocal(getISTDateObj(0));
-      if (trip.expiry_date) {
-        const normTripExp = normalizeDateToYMD(trip.expiry_date);
-        if (normTripExp && normTripExp < todayYMD) {
-          return { allowed: false, record: null };
-        }
-      }
-
-      const directory = getMasterDriverDirectory();
-      if (directory.length === 0) {
-        return { allowed: true, record: null };
-      }
-
-      const match = directory.find(d =>
-        (d.email && trip.driver_email && d.email.toLowerCase() === trip.driver_email.toLowerCase()) ||
-        (d.phone && trip.driver_phone && String(d.phone).trim() === String(trip.driver_phone).trim()) ||
-        (d.driver_id && trip.driver_id && d.driver_id === trip.driver_id)
-      );
-
-      if (!match) return { allowed: false, record: null };
-
-      const isStatusActive = String(match.status || "Active").trim().toLowerCase() === "active";
-      let isNotExpired = true;
-      if (match.expiry_date) {
-        const normExp = normalizeDateToYMD(match.expiry_date);
-        isNotExpired = normExp >= todayYMD;
-      }
-      return { allowed: isStatusActive && isNotExpired, record: match };
-    }
-
-    // Midnight-safe Active Trip Validator with 90-minute completion margin
-    function isTripStillActive(trip) {
-      const todayYMD = formatYMDLocal(getISTDateObj(0));
-      const tomorrowYMD = formatYMDLocal(getISTDateObj(1));
-      const tripDate = trip.trip_date || todayYMD;
-
-      if (tripDate < todayYMD) return false;
-      if (tripDate === tomorrowYMD) return true;
-
-      const tripStart = getStopObj(trip.start_stop);
-      const tripEnd = getStopObj(trip.end_stop);
-      if (!tripStart || !tripEnd || !trip.departure_time) return false;
-
-      const safeRouteMins = Math.abs(tripEnd.offset - tripStart.offset);
-      const [depH, depM] = trip.departure_time.split(":").map(Number);
-      if (isNaN(depH) || isNaN(depM)) return false;
-
-      const now = new Date();
-      const depDate = new Date();
-      depDate.setHours(depH, depM, 0, 0);
-
-      // Handle midnight crossing trip departures: if depDate is ahead of now by over 12 hours, treat as yesterday's late run
-      if (depDate.getTime() - now.getTime() > 12 * 60 * 60 * 1000) {
-        depDate.setDate(depDate.getDate() - 1);
-      }
-
-      const expiryTime = new Date(depDate.getTime() + (safeRouteMins + 90) * 60 * 1000);
-      if (now > expiryTime) return false;
-
-      return true;
-    }
-
-    // Smart Auto-Lag (+2m -> +5m -> +10m) with 60-Minute Cancellation Ceiling
-    function getEffectiveScheduledTimes(trip, allTrips) {
-      const todayYMD = formatYMDLocal(getISTDateObj(0));
-      const tripStart = getStopObj(trip.start_stop);
-      const tripEnd = getStopObj(trip.end_stop);
-      const routeMins = (tripStart && tripEnd) ? Math.abs(tripEnd.offset - tripStart.offset) : 0;
-
-      let baseDep = trip.base_departure_time || trip.departure_time;
-      let baseArr = trip.base_arrival_time || trip.claimed_arrival_time;
-
-      if (trip.status === "Running" || (trip.trip_date && trip.trip_date !== todayYMD)) {
-        return {
-          dep24: trip.departure_time,
-          arr24: trip.claimed_arrival_time,
-          lagAddedMins: 0,
-          isExpiredByDelay: false
-        };
-      }
-
-      let baseDepMins = timeStrToMins(baseDep);
-      const origSpan = Math.max(routeMins, getEffectiveArrivalMins(baseDep, baseArr) - baseDepMins);
-
-      // Turnaround distance buffer check against any live running trip by the same Captain Today
-      const sameCaptainLive = allTrips.find(
-        t => t.status === "Running" &&
-             ((t.driver_uid && trip.driver_uid && t.driver_uid === trip.driver_uid) ||
-              (t.driver_id && trip.driver_id && t.driver_id === trip.driver_id))
-      );
-
-      if (sameCaptainLive) {
-        const liveEndObj = getStopObj(sameCaptainLive.end_stop);
-        const liveCurObj = sameCaptainLive.current_stop ? getStopObj(sameCaptainLive.current_stop) : null;
-        let liveArr24 = sameCaptainLive.claimed_arrival_time;
-        if (liveCurObj && liveEndObj && sameCaptainLive.current_stop_time_24) {
-          const remLive = Math.abs(liveEndObj.offset - liveCurObj.offset);
-          liveArr24 = minsToTimeStr(timeStrToMins(sameCaptainLive.current_stop_time_24) + remLive);
-        }
-        const effLiveArrMins = getEffectiveArrivalMins(sameCaptainLive.departure_time, liveArr24);
-        const deadheadMins = (liveEndObj && tripStart) ? Math.abs(tripStart.offset - liveEndObj.offset) : 0;
-        const earliestPossibleDep = effLiveArrMins + deadheadMins + 20;
-
-        if (earliestPossibleDep < 1440 && baseDepMins < earliestPossibleDep) {
-          baseDepMins = earliestPossibleDep;
-        }
-      }
-
-      const now = new Date();
-      const nowMins = now.getHours() * 60 + now.getMinutes();
-
-      if (nowMins < baseDepMins) {
-        return {
-          dep24: minsToTimeStr(baseDepMins),
-          arr24: minsToTimeStr(baseDepMins + origSpan),
-          lagAddedMins: 0,
-          isExpiredByDelay: false
-        };
-      }
-
-      const diff = nowMins - baseDepMins;
-
-      // 60-Minute Cancellation Ceiling: If Captain has not pressed start within 60 minutes, expire trip
-      if (diff > 60) {
-        return {
-          dep24: minsToTimeStr(baseDepMins),
-          arr24: minsToTimeStr(baseDepMins + origSpan),
-          lagAddedMins: diff,
-          isExpiredByDelay: true
-        };
-      }
-
-      let lagAddedMins = 0;
-      if (diff < 2) {
-        lagAddedMins = 2;
-      } else if (diff < 7) {
-        lagAddedMins = 7;
-      } else {
-        const extra10Blocks = Math.floor((diff - 7) / 10) + 1;
-        lagAddedMins = Math.min(60, 7 + extra10Blocks * 10);
-      }
-
-      const finalDepMins = baseDepMins + lagAddedMins;
-      return {
-        dep24: minsToTimeStr(finalDepMins),
-        arr24: minsToTimeStr(finalDepMins + origSpan),
-        lagAddedMins,
-        isExpiredByDelay: false
-      };
-    }
-
-    function getAllPermanentReviews() {
-      try {
-        const raw = JSON.parse(localStorage.getItem("RC_PERMANENT_REVIEWS") || "[]");
-        return Array.isArray(raw) ? raw : [];
-      } catch (e) {
-        return [];
-      }
-    }
-
-    function getCaptainRatingSummary(driverId, fallbackRating, fallbackCount) {
-      const allReviews = getAllPermanentReviews().filter(r => r.driver_id === driverId);
-      if (allReviews.length === 0) {
-        return {
-          avg: fallbackRating || "5.0",
-          count: Number(fallbackCount) || 0
-        };
-      }
-      const sum = allReviews.reduce((acc, r) => acc + (Number(r.stars) || 5), 0);
-      const avg = (sum / allReviews.length).toFixed(1);
-      return {
-        avg,
-        count: allReviews.length
-      };
-    }
-
-    function getLoggedInPassenger() {
-      try {
-        return JSON.parse(localStorage.getItem("RC_PASSENGER_USER"));
-      } catch (e) {
-        return null;
-      }
-    }
-
-    function renderAuthHeader() {
-      const user = getLoggedInPassenger();
-      const authContainer = document.getElementById("authSection");
-      if (user && user.email) {
-        authContainer.innerHTML = `
-          <button onclick="openHistoryModal()" title="View Booking & Contact History" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
-            <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
-            <span class="hidden sm:inline">My Activity</span>
-          </button>
-          <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="font-semibold text-slate-200 truncate max-w-[100px]">${user.name}</span>
-            <button onclick="signOutPassenger()" title="Sign Out" class="text-slate-400 hover:text-rose-400 ml-1">
-              <i class="fa-solid fa-right-from-bracket"></i>
-            </button>
-          </div>
-        `;
-      } else {
-        authContainer.innerHTML = `
-          <button onclick="openAuthModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
-            <i class="fa-brands fa-google text-rose-500"></i>
-            <span>Sign In</span>
-          </button>
-        `;
-      }
-    }
-
-    function openAuthModal() {
-      document.getElementById("authModal").classList.remove("hidden");
-      document.getElementById("authModal").classList.add("flex");
-    }
-
-    function closeAuthModal() {
-      document.getElementById("authModal").classList.add("hidden");
-      document.getElementById("authModal").classList.remove("flex");
-    }
-
-    function openMapGateModal(captainName, vehicleNo, mapUrl) {
-      document.getElementById("mapGateDesc").textContent =
-        `You are opening the live Google Maps location shared by Captain ${captainName} (${vehicleNo}).`;
-      document.getElementById("mapGateConfirmBtn").href = mapUrl;
-      document.getElementById("mapGateModal").classList.remove("hidden");
-      document.getElementById("mapGateModal").classList.add("flex");
-    }
-
-    function closeMapGateModal() {
-      document.getElementById("mapGateModal").classList.add("hidden");
-      document.getElementById("mapGateModal").classList.remove("flex");
-    }
-
-    // =========================================================================
-    // PASSENGER BOOKING & CONTACT HISTORY LOGIC
-    // =========================================================================
-    function openHistoryModal() {
-      const user = getLoggedInPassenger();
-      if (!user) {
-        openAuthModal();
-        return;
-      }
-      renderCustomerHistory(user);
-      document.getElementById("historyModal").classList.remove("hidden");
-      document.getElementById("historyModal").classList.add("flex");
-    }
-
-    function closeHistoryModal() {
-      document.getElementById("historyModal").classList.add("hidden");
-      document.getElementById("historyModal").classList.remove("flex");
-    }
-
-    function renderCustomerHistory(user) {
-      const listEl = document.getElementById("historyListContainer");
-      if (!listEl) return;
-
-      purgeExpiredInteractionLogs();
-
-      let logs = [];
-      try {
-        logs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
-      } catch (e) {}
-
-      // Filter: Only Call & WhatsApp events belonging strictly to this passenger (Maps excluded from logs)
-      const myLogs = logs
-        .filter(l => (l.passenger_uid === user.uid || (l.passenger_email && l.passenger_email === user.email)))
-        .filter(l => l.action_type === "CALL" || l.action_type === "WHATSAPP")
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-      if (myLogs.length === 0) {
-        listEl.innerHTML = `
-          <div class="py-8 text-center text-xs text-slate-500 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-4">
-            <i class="fa-solid fa-address-book text-slate-300 text-3xl mb-2 block"></i>
-            No contact history yet. When you call a Captain or book seats via WhatsApp, your activity will appear here.
-          </div>
-        `;
-        return;
-      }
-
-      listEl.innerHTML = myLogs.map(item => {
-        const dateObj = new Date(item.timestamp);
-        const timeFormatted = dateObj.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
-        const dateFormatted = dateObj.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-
-        const isCall = item.action_type === "CALL";
-        const badgeHTML = isCall
-          ? `<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1"><i class="fa-solid fa-phone"></i> Call Placed</span>`
-          : `<span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> WhatsApp Booking</span>`;
-
-        return `
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3 shadow-sm hover:bg-white transition">
-            <div class="flex items-start gap-2.5">
-              <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-                <i class="fa-solid ${isCall ? 'fa-phone-volume text-blue-400' : 'fa-comment-dots text-emerald-400'}"></i>
-              </div>
-              <div>
-                <h5 class="font-bold text-slate-900 text-xs sm:text-sm leading-tight">${item.driver_name || "Verified Captain"}</h5>
-                <p class="text-[11px] font-mono text-slate-600 mt-0.5">${item.vehicle_no || "Route Vehicle"}</p>
-                <p class="text-[10px] text-slate-400 mt-0.5">${dateFormatted} • ${timeFormatted}</p>
-              </div>
-            </div>
-
-            <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
-              ${badgeHTML}
-              <button 
-                onclick="closeHistoryModal(); openRatingModal('${item.driver_id}', '${item.driver_name} (${item.vehicle_no})')" 
-                class="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline flex items-center gap-1"
-              >
-                <i class="fa-solid fa-star text-amber-500"></i> Rate Captain
-              </button>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    async function handleGoogleSignIn(e) {
-      e.preventDefault();
-      let name = document.getElementById("authName").value.trim().replace(/[<>/{}[\]\\]/g, "");
-      let email = document.getElementById("authEmail").value.trim().toLowerCase();
-      const phone = document.getElementById("authPhone").value.trim();
-
-      if (!email.endsWith("@gmail.com")) {
-        alert("Please sign in using a valid @gmail.com address.");
-        return;
-      }
-
-      let uid = "USR_" + btoa(email).slice(0, 10);
-
-      if (window.RC_FIREBASE) {
-        try {
-          const result = await window.RC_FIREBASE.signInWithPopup(
-            window.RC_FIREBASE.auth,
-            window.RC_FIREBASE.googleProvider
-          );
-          if (result && result.user) {
-            uid = result.user.uid;
-            email = (result.user.email || email).toLowerCase();
-            name = result.user.displayName || name || "Verified Passenger";
-          }
-        } catch (err) {}
-      }
-
-      const passengerObj = { uid, name, email, phone, joined_at: new Date().toISOString() };
-      localStorage.setItem("RC_PASSENGER_USER", JSON.stringify(passengerObj));
-
-      if (window.RC_FIREBASE && window.RC_FIREBASE.auth.currentUser) {
-        try {
-          const { db, doc, setDoc } = window.RC_FIREBASE;
-          await setDoc(doc(db, "passengers", uid), passengerObj, { merge: true });
-        } catch (err) {}
-      }
-
-      closeAuthModal();
-      renderAuthHeader();
-    }
-
-    async function signOutPassenger() {
-      if (window.RC_FIREBASE) {
-        try { await window.RC_FIREBASE.signOut(window.RC_FIREBASE.auth); } catch (e) {}
-      }
-      localStorage.removeItem("RC_PASSENGER_USER");
-      renderAuthHeader();
-    }
-
-    function purgeExpiredInteractionLogs() {
-      try {
-        const rawLogs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
-        const cutoffTime = Date.now() - (25 * 24 * 60 * 60 * 1000);
-        const validLogs = rawLogs.filter(log => new Date(log.timestamp).getTime() >= cutoffTime);
-        localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(validLogs));
-      } catch (e) {}
-    }
-
-    // Records ONLY Call & WhatsApp interactions (Google Maps live viewing is completely excluded to prevent spam logs)
-    function handleProtectedAction(actionType, driverId, captainName, vehicleNo, targetUrl) {
-      const user = getLoggedInPassenger();
-      if (!user) {
-        openAuthModal();
-        return;
-      }
-
-      // Map viewing opens without polluting database records
-      if (actionType === "GMAPS_LIVE") {
-        openMapGateModal(captainName, vehicleNo, targetUrl);
-        return;
-      }
-
-      purgeExpiredInteractionLogs();
-
-      let logs = [];
-      try { logs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]"); } catch (e) {}
-
-      const logEntry = {
-        log_id: "LOG_" + Date.now(),
-        passenger_uid: user.uid,
-        passenger_name: user.name,
-        passenger_email: user.email,
-        passenger_phone: user.phone,
-        driver_id: driverId,
-        driver_name: captainName,
-        vehicle_no: vehicleNo,
-        action_type: actionType, // CALL or WHATSAPP
-        timestamp: new Date().toISOString()
-      };
-
-      logs.push(logEntry);
-      localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(logs));
-
-      if (window.RC_FIREBASE && window.RC_FIREBASE.auth.currentUser) {
-        const { db, collection, addDoc } = window.RC_FIREBASE;
-        addDoc(collection(db, "interaction_logs"), logEntry).catch(() => {});
-      }
-
-      if (actionType === "CALL") {
-        window.location.href = targetUrl;
-      } else {
-        window.open(targetUrl, "_blank", "noopener,noreferrer");
-      }
-    }
-
-    function initDropdowns() {
-      const fromSelect = document.getElementById("fromStop");
-      const toSelect = document.getElementById("toStop");
-
-      ROUTE_STOPS.forEach(stop => {
-        fromSelect.add(new Option(stop.name, stop.name));
-        toSelect.add(new Option(stop.name, stop.name));
-      });
-
-      const today = new Date().toLocaleDateString("en-US", {
-        weekday: "short", day: "numeric", month: "short", year: "numeric"
-      });
-      document.getElementById("currentDateBadge").textContent = today;
-    }
-
-    function swapStops() {
-      const fromSelect = document.getElementById("fromStop");
-      const toSelect = document.getElementById("toStop");
-      const temp = fromSelect.value;
-      fromSelect.value = toSelect.value;
-      toSelect.value = temp;
-      filterTrips();
-    }
-
-    function resetFilters() {
-      document.getElementById("fromStop").value = "";
-      document.getElementById("toStop").value = "";
-      setDirectionFilter("ALL");
-      document.getElementById("routeTravelEstimate").innerHTML =
-        "Select Pickup & Drop stops to calculate exact safe transit time and passing vehicles.";
-      filterTrips();
-    }
-
-    function setDirectionFilter(dir) {
-      currentDirectionFilter = dir;
-      ["ALL", "TO_KANPUR", "TO_MANJHEPUR"].forEach(key => {
-        const btn = document.getElementById(`dirBtn_${key}`);
-        if (key === dir) {
-          btn.className = "px-3 py-1.5 rounded-lg bg-slate-900 text-white transition";
-        } else {
-          btn.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition";
-        }
-      });
-      filterTrips();
-    }
-
-    function getActiveTripsData() {
-      const saved = localStorage.getItem("RC_LIVE_TRIPS");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) return parsed;
-        } catch (e) {}
-      }
-      return DEFAULT_TRIPS;
-    }
-
-    function filterTrips() {
-      const fromName = document.getElementById("fromStop").value;
-      const toName = document.getElementById("toStop").value;
-      const allTrips = getActiveTripsData();
-
-      const fromStop = getStopObj(fromName);
-      const toStop = getStopObj(toName);
-
-      const estimateEl = document.getElementById("routeTravelEstimate");
-      if (fromStop && toStop) {
-        if (fromStop.index === toStop.index) {
-          estimateEl.innerHTML = `<span class="text-rose-600 font-semibold">Pickup and Drop stop cannot be the same!</span>`;
-          renderTrips([], null, null, allTrips);
-          return;
-        }
-        const safeDuration = Math.abs(toStop.offset - fromStop.offset);
-        const dirLabel = toStop.index > fromStop.index ? "Towards Kanpur" : "Towards Manjhepur";
-        estimateEl.innerHTML = `
-          <span class="text-emerald-700 font-semibold"><i class="fa-solid fa-clock mr-1"></i>Minimum Safe Travel Time (${fromStop.name} → ${toStop.name}): ${formatDuration(safeDuration)}</span>
-          <span class="ml-2 text-slate-500">• Direction: ${dirLabel}</span>
-        `;
-      }
-
-      const filtered = allTrips.filter(trip => {
-        if (!isTripStillActive(trip)) return false;
-
-        // Auto-expire scheduled trips delayed by more than 60 minutes without starting
-        if (trip.status === "Promised") {
-          const checkTimes = getEffectiveScheduledTimes(trip, allTrips);
-          if (checkTimes.isExpiredByDelay) return false;
-        }
-
-        const dirCheck = getVerifiedDriverRecord(trip);
-        if (!dirCheck.allowed) return false;
-
-        const tripStart = getStopObj(trip.start_stop);
-        const tripEnd = getStopObj(trip.end_stop);
-        if (!tripStart || !tripEnd) return false;
-
-        const isTowardsKanpur = tripEnd.index > tripStart.index;
-
-        if (currentDirectionFilter === "TO_KANPUR" && !isTowardsKanpur) return false;
-        if (currentDirectionFilter === "TO_MANJHEPUR" && isTowardsKanpur) return false;
-
-        if (fromStop && toStop) {
-          const userTowardsKanpur = toStop.index > fromStop.index;
-          if (isTowardsKanpur !== userTowardsKanpur) return false;
-
-          if (isTowardsKanpur) {
-            return tripStart.index <= fromStop.index && tripEnd.index >= toStop.index;
-          } else {
-            return tripStart.index >= fromStop.index && tripEnd.index <= toStop.index;
-          }
-        }
-
-        if (fromStop && !toStop) {
-          if (isTowardsKanpur) {
-            return tripStart.index <= fromStop.index && tripEnd.index > fromStop.index;
-          } else {
-            return tripStart.index >= fromStop.index && tripEnd.index < fromStop.index;
-          }
-        }
-
-        if (!fromStop && toStop) {
-          if (isTowardsKanpur) {
-            return tripStart.index < toStop.index && tripEnd.index >= toStop.index;
-          } else {
-            return tripStart.index > toStop.index && tripEnd.index <= toStop.index;
-          }
-        }
-
-        return true;
-      });
-
-      renderTrips(filtered, fromStop, toStop, allTrips);
-    }
-
-    function renderTrips(trips, userFromStop, userToStop, allTrips = []) {
-      const container = document.getElementById("tripsContainer");
-      document.getElementById("tripCount").textContent = trips.length;
-
-      if (trips.length === 0) {
-        container.innerHTML = `
-          <div class="bg-white rounded-2xl p-8 text-center border border-slate-200 shadow-sm">
-            <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
-              <i class="fa-solid fa-van-shuttle"></i>
-            </div>
-            <h4 class="font-bold text-slate-800 text-base">No Active or Scheduled Vehicles Right Now</h4>
-            <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Verified Captains update their live departures and return schedules directly from the Captain Portal.</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = trips.map(trip => {
-        const tripStart = getStopObj(trip.start_stop);
-        const tripEnd = getStopObj(trip.end_stop);
-        const currentStopObj = trip.current_stop ? getStopObj(trip.current_stop) : null;
-        const isTowardsKanpur = tripEnd.index > tripStart.index;
-
-        const dirCheck = getVerifiedDriverRecord(trip);
-        const dirRecord = dirCheck.record;
-
-        const maxSeats = Number((dirRecord && dirRecord.max_capacity) || trip.max_capacity) || 12;
-        const seatsLeft = Number(trip.seats_available);
-        const isFull = seatsLeft <= 0;
-
-        const photoSrc = (dirRecord && dirRecord.photo)
-          ? dirRecord.photo
-          : (trip.driver_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(trip.driver_name)}&background=0f172a&color=fff`);
-
-        const genderBadge = (dirRecord && dirRecord.gender || trip.driver_gender)
-          ? `<span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">${(dirRecord && dirRecord.gender) || trip.driver_gender}</span>`
-          : "";
-
-        let progressPercent = trip.status === "Running" ? 25 : 0;
-        if (trip.status === "Running" && currentStopObj) {
-          const totalSpan = Math.abs(tripEnd.offset - tripStart.offset) || 1;
-          const coveredSpan = Math.abs(currentStopObj.offset - tripStart.offset);
-          progressPercent = Math.min(100, Math.max(8, Math.round((coveredSpan / totalSpan) * 100)));
-        }
-
-        const rawMapLink = trip.gmaps_link || trip.live_tracking_url || "";
-        const hasValidMapLink = isValidAndFreshGoogleMapsUrl(rawMapLink, trip.tracking_updated_at || trip.updated_at);
-
-        // Auto-lagged departure handling for scheduled trips
-        const schedTimes = getEffectiveScheduledTimes(trip, allTrips);
-        const effectiveDep24 = trip.status === "Promised" ? schedTimes.dep24 : trip.departure_time;
-        const effectiveArr24 = trip.status === "Promised" ? schedTimes.arr24 : trip.claimed_arrival_time;
-
-        const dayWord = getCleanDayLabel(trip);
-        const depTimeFormatted = `${dayWord}, ${convert24To12(effectiveDep24)}`;
-
-        // Dynamic Destination ETA Calculation based on latest checked-in stop
-        let finalDestETA = convert24To12(effectiveArr24);
-        if (trip.status === "Running" && currentStopObj) {
-          const remMinsToDest = Math.abs(tripEnd.offset - currentStopObj.offset);
-          if (trip.current_stop_time_24) {
-            finalDestETA = addMinutesToTimeStr(trip.current_stop_time_24, remMinsToDest);
-          }
-        }
-
-        let liveTrackingBannerHTML = "";
-        if (trip.status === "Running") {
-          const activeStopName = currentStopObj ? currentStopObj.name : trip.start_stop;
-          const stopTimeLabel = trip.current_stop_time || convert24To12(effectiveDep24);
-
-          let nextStopText = `Heading to ${trip.end_stop}`;
-          if (currentStopObj && currentStopObj.name !== trip.end_stop) {
-            const nextIdx = isTowardsKanpur ? currentStopObj.index + 1 : currentStopObj.index - 1;
-            const nextStopObj = ROUTE_STOPS.find(s => s.index === nextIdx);
-            if (nextStopObj) {
-              const minsAway = Math.abs(nextStopObj.offset - currentStopObj.offset);
-              nextStopText = `Next Stop: <b>${nextStopObj.name}</b> (~${minsAway} mins)`;
-            }
-          }
-
-          liveTrackingBannerHTML = `
-            <div class="mt-3 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 pulse-dot flex-shrink-0"></span>
-                <div>
-                  <span class="text-slate-600">Current Stop:</span>
-                  <span class="font-bold text-emerald-900 ml-1">${activeStopName}</span>
-                  <span class="text-[11px] text-emerald-700 font-medium ml-1">(${stopTimeLabel})</span>
-                </div>
-              </div>
-              <div class="text-slate-600 text-[11px] sm:text-xs">
-                <i class="fa-solid fa-location-arrow text-emerald-600 mr-1"></i>${nextStopText}
-              </div>
-            </div>
-          `;
-        }
-
-        let customTimingHTML = "";
-        if (userFromStop && userToStop) {
-          let pickupETA = "";
-          let dropETA = "";
-          let passedNotice = "";
-
-          // Clear "Crossed / Already Passed" logic when Captain auto-catches up or skips intermediate stops
-          const alreadyPassedPickup = currentStopObj && (
-            (isTowardsKanpur && currentStopObj.index >= userFromStop.index) ||
-            (!isTowardsKanpur && currentStopObj.index <= userFromStop.index)
-          );
-
-          if (trip.status === "Running" && alreadyPassedPickup) {
-            passedNotice = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Vehicle has already crossed ${userFromStop.name}</span>`;
-          } else if (trip.status === "Running" && currentStopObj && trip.current_stop_time_24) {
-            const minsFromCurrentToPickup = Math.abs(userFromStop.offset - currentStopObj.offset);
-            const minsFromCurrentToDrop = Math.abs(userToStop.offset - currentStopObj.offset);
-            pickupETA = addMinutesToTimeStr(trip.current_stop_time_24, minsFromCurrentToPickup);
-            dropETA = addMinutesToTimeStr(trip.current_stop_time_24, minsFromCurrentToDrop);
-          } else {
-            const minsToPickup = Math.abs(userFromStop.offset - tripStart.offset);
-            const minsToDrop = Math.abs(userToStop.offset - tripStart.offset);
-            pickupETA = addMinutesToTimeStr(effectiveDep24, minsToPickup);
-            dropETA = addMinutesToTimeStr(effectiveDep24, minsToDrop);
-          }
-
-          customTimingHTML = passedNotice
-            ? `<div class="mt-2 bg-rose-50 border border-rose-200 rounded-xl p-2.5 text-xs">${passedNotice}</div>`
-            : `
-              <div class="mt-2 bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <div>
-                  <span class="text-slate-500">Est. Pickup at <b>${userFromStop.name}</b>:</span>
-                  <span class="font-bold text-emerald-700 ml-1">${pickupETA}</span>
-                </div>
-                <div>
-                  <span class="text-slate-500">Safe Arrival at <b>${userToStop.name}</b>:</span>
-                  <span class="font-bold text-slate-800 ml-1">${dropETA}</span>
-                </div>
-              </div>
-            `;
-        }
-
-        const liveTopBadge = trip.status === "Running"
-          ? `<span class="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full mb-1"><span class="w-2 h-2 rounded-full bg-emerald-600"></span> Live On Route</span>`
-          : "";
-
-        const seatBadge = isFull
-          ? `<span class="inline-block text-xs font-bold text-rose-600"><i class="fa-solid fa-ban"></i> Housefull (0/${maxSeats} Seats)</span>`
-          : `<span class="inline-block text-xs font-bold text-emerald-700"><i class="fa-solid fa-chair"></i> ${seatsLeft} of ${maxSeats} Seats Available</span>`;
-
-        const ratingInfo = getCaptainRatingSummary(trip.driver_id, trip.rating, trip.review_count);
-
-        const pickupText = userFromStop ? ` from ${userFromStop.name}` : "";
-        const dropText = userToStop ? ` to ${userToStop.name}` : "";
-        const whatsappMsg = encodeURIComponent(
-          `Hello Captain ${trip.driver_name} (${trip.vehicle_no}), I saw your trip from ${trip.start_stop} to ${trip.end_stop} (${depTimeFormatted}) on RouteConnect. I want to book a seat${pickupText}${dropText}.`
-        );
-        const waUrl = `https://wa.me/91${trip.driver_phone}?text=${whatsappMsg}`;
-        const telUrl = `tel:${trip.driver_phone}`;
-
-        const googleMapsBtnHTML = hasValidMapLink
-          ? `
-            <button 
-              onclick="handleProtectedAction('GMAPS_LIVE', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${rawMapLink.trim()}')" 
-              class="flex-1 sm:flex-initial px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition shadow-sm"
-            >
-              <i class="fa-solid fa-location-crosshairs"></i> Live Google Map
-            </button>
-          `
-          : "";
-
-        return `
-          <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:shadow-md transition">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex items-center gap-3">
-                <img src="${photoSrc}" alt="${trip.driver_name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(trip.driver_name)}&background=0f172a&color=fff'" class="w-12 h-12 rounded-xl object-cover border border-slate-200" />
-                <div>
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <h4 class="font-bold text-slate-900 text-base">${trip.driver_name}</h4>
-                    ${genderBadge}
-                  </div>
-                  <p class="text-xs font-semibold text-slate-600 mt-0.5">
-                    ${trip.vehicle_type} • <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 font-mono">${trip.vehicle_no}</span>
-                  </p>
-                  <div class="flex items-center gap-2 mt-1">
-                    <button onclick="openRatingModal('${trip.driver_id}', '${trip.driver_name} (${trip.vehicle_no})')" class="text-xs font-bold text-amber-600 hover:underline flex items-center gap-1">
-                      <i class="fa-solid fa-star"></i> ${ratingInfo.avg}
-                      <span class="text-[11px] text-slate-500 font-medium">(${ratingInfo.count} reviews)</span>
-                    </button>
-                    <button onclick="openRatingModal('${trip.driver_id}', '${trip.driver_name} (${trip.vehicle_no})')" class="text-[11px] text-emerald-600 hover:underline font-semibold ml-1">
-                      + Rate Captain
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div class="text-right flex flex-col items-end">
-                ${liveTopBadge}
-                <div>${seatBadge}</div>
-              </div>
-            </div>
-
-            <!-- Route Timeline Bar -->
-            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs sm:text-sm">
-              <div>
-                <span class="text-[10px] uppercase font-bold text-slate-400 block">Starts From</span>
-                <span class="font-bold text-slate-900">${trip.start_stop}</span>
-                <span class="block text-xs font-bold text-emerald-600 mt-0.5">${depTimeFormatted}</span>
-              </div>
-
-              <div class="flex-1 px-3 flex flex-col items-center">
-                <span class="text-[10px] font-semibold text-slate-500 mb-1">
-                  ${isTowardsKanpur ? "Towards Kanpur →" : "← Towards Manjhepur"}
-                </span>
-                <div class="w-full h-1.5 bg-slate-200 rounded-full relative overflow-hidden">
-                  <div class="absolute inset-y-0 left-0 ${trip.status === 'Running' ? 'bg-emerald-500' : 'bg-indigo-400'} rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
-                </div>
-                <span class="text-[10px] text-slate-500 mt-1">
-                  ${hasValidMapLink ? "🟢 Live Map + Hub Tracking" : (trip.status === 'Running' ? "📍 1-Tap Hub Check-In" : "Scheduled Trip")}
-                </span>
-              </div>
-
-              <div class="text-right">
-                <span class="text-[10px] uppercase font-bold text-slate-400 block">Goes Up To</span>
-                <span class="font-bold text-slate-900">${trip.end_stop}</span>
-                <span class="block text-xs font-semibold text-slate-700 mt-0.5">ETA: ${finalDestETA}</span>
-              </div>
-            </div>
-
-            ${liveTrackingBannerHTML}
-            ${customTimingHTML}
-
-            <!-- Action Buttons -->
-            <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                ${trip.note ? `<span class="inline-block text-xs bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg font-medium"><i class="fa-solid fa-bullhorn mr-1"></i>${trip.note}</span>` : ""}
-              </div>
-
-              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end ml-auto">
-                ${googleMapsBtnHTML}
-                <button 
-                  onclick="handleProtectedAction('CALL', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${telUrl}')" 
-                  class="flex-1 sm:flex-initial px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition"
-                >
-                  <i class="fa-solid fa-phone"></i> Call Captain
-                </button>
-                <button 
-                  onclick="handleProtectedAction('WHATSAPP', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${waUrl}')" 
-                  class="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition"
-                >
-                  <i class="fa-brands fa-whatsapp text-sm"></i> ${trip.status === 'Promised' ? 'Book on WhatsApp' : 'WhatsApp'}
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function openRatingModal(driverId, captainTitle) {
-      const user = getLoggedInPassenger();
-      if (!user) { openAuthModal(); return; }
-      document.getElementById("modalDriverId").value = driverId;
-      document.getElementById("modalDriverTitleHidden").value = captainTitle;
-      document.getElementById("modalDriverName").textContent = captainTitle;
-      document.getElementById("charCount").textContent = "0 / 250 chars";
-      setStarRating(5);
-      renderCaptainReviewsList(driverId);
-      document.getElementById("ratingModal").classList.remove("hidden");
-      document.getElementById("ratingModal").classList.add("flex");
-    }
-
-    function closeRatingModal() {
-      document.getElementById("ratingModal").classList.add("hidden");
-      document.getElementById("ratingModal").classList.remove("flex");
-      document.getElementById("ratingForm").reset();
-      document.querySelectorAll("#tagContainer .tag-btn").forEach(btn => {
-        btn.classList.remove("bg-emerald-600", "text-white");
-        btn.classList.add("bg-white");
-      });
-    }
-
-    function setStarRating(star) {
-      selectedStarRating = star;
-      const labels = {
-        1: "1 Star - Poor Service",
-        2: "2 Stars - Below Average",
-        3: "3 Stars - Average",
-        4: "4 Stars - Good Service",
-        5: "5 Stars - Excellent Service"
-      };
-      document.getElementById("starRatingText").textContent = labels[star] || "5 Stars";
-      document.querySelectorAll("#starSelector i").forEach(icon => {
-        const iconStar = Number(icon.getAttribute("data-star"));
-        icon.className = iconStar <= star ? "fa-solid fa-star text-amber-400" : "fa-regular fa-star text-slate-300";
-      });
-    }
-
-    function toggleTag(btn) {
-      btn.classList.toggle("bg-emerald-600");
-      btn.classList.toggle("text-white");
-      btn.classList.toggle("bg-white");
-    }
-
-    function sanitizeAndCount(el) {
-      el.value = el.value.replace(/[<>/{}[\]\\`~|$^*]/g, "").replace(/(https?:\/\/[^\s]+)/gi, "");
-      document.getElementById("charCount").textContent = `${el.value.length} / 250 chars`;
-    }
-
-    window.renderCaptainReviewsList = function (driverId) {
-      const listEl = document.getElementById("driverReviewsList");
-      if (!listEl) return;
-
-      const matching = getAllPermanentReviews()
-        .filter(r => r.driver_id === driverId)
-        .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-
-      if (matching.length === 0) {
-        listEl.innerHTML = `
-          <div class="text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400">
-            No passenger reviews yet for this Captain. Be the first to rate!
-          </div>
-        `;
-        return;
-      }
-
-      listEl.innerHTML = matching.map(r => {
-        const starsHTML = Array.from({ length: 5 }, (_, idx) =>
-          `<i class="${idx < (Number(r.stars) || 5) ? 'fa-solid text-amber-400' : 'fa-regular text-slate-300'} fa-star text-[11px]"></i>`
-        ).join("");
-        const dateStr = r.created_at
-          ? new Date(r.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
-          : "";
-        const tagsHTML = Array.isArray(r.tags) && r.tags.length > 0
-          ? `<div class="flex flex-wrap gap-1 mt-1.5">${r.tags.map(t => `<span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${t}</span>`).join("")}</div>`
-          : "";
-
-        return `
-          <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-xs">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-slate-800">${r.passenger_name || "Verified Passenger"}</span>
-              <span class="text-[10px] text-slate-400">${dateStr}</span>
-            </div>
-            <div class="mt-0.5">${starsHTML}</div>
-            ${r.comment ? `<p class="text-slate-600 mt-1.5 leading-relaxed">${r.comment}</p>` : ""}
-            ${tagsHTML}
-          </div>
-        `;
-      }).join("");
-    };
-
-    // Review Submission with 24-Hour Anti-Spam Protection
-    async function submitReview(e) {
-      e.preventDefault();
-      const user = getLoggedInPassenger();
-      if (!user) { openAuthModal(); return; }
-
-      const driverId = document.getElementById("modalDriverId").value;
-      const captainTitle = document.getElementById("modalDriverTitleHidden").value;
-      const comment = document.getElementById("reviewerComment").value.trim();
-
-      const existingReviews = getAllPermanentReviews();
-      const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-      const recentReview = existingReviews.find(r =>
-        r.driver_id === driverId &&
-        (r.passenger_uid === user.uid || (r.passenger_email && r.passenger_email === user.email)) &&
-        new Date(r.created_at || 0).getTime() > oneDayAgo
-      );
-
-      if (recentReview) {
-        alert("Anti-Spam Security:\nYou have already submitted a review for this Captain in the last 24 hours. To ensure fairness, passengers can review the same Captain once every 24 hours.");
-        return;
-      }
-
-      const selectedTags = [];
-      document.querySelectorAll("#tagContainer .tag-btn.bg-emerald-600").forEach(btn => {
-        selectedTags.push(btn.textContent.trim());
-      });
-
-      const btn = document.getElementById("submitReviewBtn");
-      btn.disabled = true;
-      btn.textContent = "Saving Permanent Review...";
-
-      const reviewPayload = {
-        review_id: "REV_" + Date.now(),
-        driver_id: driverId,
-        captain_title: captainTitle,
-        passenger_uid: user.uid,
-        passenger_name: user.name,
-        passenger_email: user.email,
-        stars: selectedStarRating,
-        tags: selectedTags,
-        comment: comment,
-        created_at: new Date().toISOString()
-      };
-
-      try {
-        existingReviews.unshift(reviewPayload);
-        localStorage.setItem("RC_PERMANENT_REVIEWS", JSON.stringify(existingReviews));
-
-        if (window.RC_FIREBASE) {
-          const { db, collection, addDoc, doc, updateDoc } = window.RC_FIREBASE;
-          await addDoc(collection(db, "reviews"), reviewPayload);
-
-          const summary = getCaptainRatingSummary(driverId, "5.0", 1);
-          const activeTrips = getActiveTripsData().filter(t => t.driver_id === driverId);
-          for (const t of activeTrips) {
-            if (t.id) {
-              updateDoc(doc(db, "live_trips", t.id), {
-                rating: summary.avg,
-                review_count: summary.count
-              }).catch(() => {});
-            }
-          }
-        }
-
-        document.getElementById("reviewerComment").value = "";
-        document.getElementById("charCount").textContent = "0 / 250 chars";
-        document.querySelectorAll("#tagContainer .tag-btn").forEach(b => {
-          b.classList.remove("bg-emerald-600", "text-white");
-          b.classList.add("bg-white");
-        });
-        renderCaptainReviewsList(driverId);
-        filterTrips();
-        alert("Thank you! Your verified review has been permanently saved.");
-      } catch (err) {
-        alert("Review saved: " + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Submit Permanent Review";
-      }
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      purgeExpiredInteractionLogs();
-      renderAuthHeader();
-      initDropdowns();
-      filterTrips();
-      // Re-evaluates auto-lag (+2m -> +5m -> +10m) and auto-catchup every 30 seconds
-      setInterval(filterTrips, 30000);
-    });
-  </script>
+
+
+<!-- Hidden checkbox that drives the "Show full details" switch (CSS only) -->
+
+<input type="checkbox" id="showDetails" class="sr-only" aria-label="Show full details" />
+
+
+
+<!-- Top Banner (short) -->
+
+<div class="bg-amber-500 text-slate-900 text-[11px] sm:text-xs font-semibold py-1.5 px-4 text-center">
+
+<i class="fa-solid fa-shield-halved mr-1"></i> Verified Captains • Direct Call &amp; WhatsApp Booking
+
+</div>
+
+
+
+<!-- Offline Network Banner -->
+
+<div id="offlineNotice" class="hidden bg-rose-600 text-white text-xs font-semibold py-1.5 px-4 text-center">
+
+<i class="fa-solid fa-wifi-slash mr-1.5"></i> Network disconnected. Showing offline cached vehicle timings...
+
+</div>
+
+
+
+<!-- Navbar -->
+
+<header class="bg-slate-900 text-white sticky top-0 z-30">
+
+<div class="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between gap-2">
+
+<div class="flex items-center gap-2.5 min-w-0">
+
+<div class="bg-emerald-500 text-slate-900 w-9 h-9 rounded-lg flex items-center justify-center text-base flex-shrink-0">
+
+<i class="fa-solid fa-van-shuttle"></i>
+
+</div>
+
+<div class="min-w-0">
+
+<h1 class="font-bold text-base tracking-tight leading-none">RouteConnect</h1>
+
+<p class="text-[10px] text-slate-400 mt-0.5 hidden sm:block">Manjhepur • Amauli • Jahanabad • Kanpur</p>
+
+</div>
+
+</div>
+
+
+
+<div class="flex items-center gap-2">
+
+<div id="authSection" class="flex items-center gap-2">
+
+<button onclick="openAuthModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+
+<i class="fa-brands fa-google text-rose-500"></i>
+
+<span>Sign In</span>
+
+</button>
+
+</div>
+
+
+
+<!-- SETTINGS (extra options are hidden here) -->
+
+<details class="rc-settings">
+
+<summary aria-label="Settings" class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200">
+
+<i class="fa-solid fa-gear"></i>
+
+</summary>
+
+<div class="rc-settings-panel">
+
+<h3 class="font-bold text-base flex items-center gap-2"><i class="fa-solid fa-sliders text-emerald-600"></i> Settings</h3>
+
+
+
+<p class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mt-4">Show vehicles going</p>
+
+<div class="rc-seg">
+
+<button onclick="setDirectionFilter('ALL')" id="dirBtn_ALL" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white transition">All</button>
+
+<button onclick="setDirectionFilter('TO_KANPUR')" id="dirBtn_TO_KANPUR" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Towards Kanpur</button>
+
+<button onclick="setDirectionFilter('TO_MANJHEPUR')" id="dirBtn_TO_MANJHEPUR" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Towards Manjhepur</button>
+
+</div>
+
+
+
+<label for="showDetails" class="rc-toggle">
+
+<span>
+
+<span class="block text-sm font-bold text-slate-900">Show full details</span>
+
+<span class="block text-[11px] text-slate-500">Ratings, live map, next stop, progress bar</span>
+
+</span>
+
+<span class="rc-switch"></span>
+
+</label>
+
+
+
+<a href="driver.html" class="mt-3 flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold">
+
+<i class="fa-solid fa-id-card text-emerald-400"></i> Captain Portal
+
+</a>
+
+</div>
+
+</details>
+
+</div>
+
+</div>
+
+</header>
+
+
+
+<!-- Search Section -->
+
+<section class="bg-slate-900 text-white px-4 pt-1 pb-5">
+
+<div class="max-w-2xl mx-auto">
+
+<div class="flex items-center justify-between mb-3">
+
+<h2 class="text-lg font-bold flex items-center gap-2">
+
+<i class="fa-solid fa-route text-emerald-400"></i> Find your ride
+
+</h2>
+
+<span id="currentDateBadge" class="text-[11px] bg-emerald-500/15 text-emerald-300 font-semibold px-2.5 py-1 rounded-full border border-emerald-500/30"></span>
+
+</div>
+
+
+
+<div class="bg-white text-slate-800 rounded-2xl p-3 shadow-xl">
+
+<div class="rc-search-grid">
+
+<!-- From Stop -->
+
+<div class="rc-from relative">
+
+<i class="fa-solid fa-location-dot absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-600 pointer-events-none"></i>
+
+<select id="fromStop" onchange="filterTrips()" aria-label="Pickup Stop (From)" class="rc-select">
+
+<option value="">-- All Pickup Stops --</option>
+
+</select>
+
+</div>
+
+
+
+<!-- Swap Button -->
+
+<button onclick="swapStops()" title="Reverse Route" aria-label="Reverse Route" class="rc-swap">
+
+<i class="fa-solid fa-up-down"></i>
+
+</button>
+
+
+
+<!-- To Stop -->
+
+<div class="rc-to relative">
+
+<i class="fa-solid fa-flag-checkered absolute left-3.5 top-1/2 -translate-y-1/2 text-rose-600 pointer-events-none"></i>
+
+<select id="toStop" onchange="filterTrips()" aria-label="Drop Stop (To)" class="rc-select">
+
+<option value="">-- All Drop Stops --</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+
+<button onclick="filterTrips()" class="w-full mt-3 py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+
+<i class="fa-solid fa-magnifying-glass"></i> Find Vehicles
+
+</button>
+
+
+
+<div class="flex items-start justify-between gap-3 mt-2.5">
+
+<div id="routeTravelEstimate" class="text-xs text-slate-600 font-medium leading-snug">
+
+Select Pickup & Drop stops to calculate exact safe transit time and passing vehicles.
+
+</div>
+
+<button onclick="resetFilters()" class="flex-shrink-0 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+
+Reset
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- Main Vehicle Listings -->
+
+<main class="max-w-2xl mx-auto w-full px-4 py-5 flex-1">
+
+<div class="flex items-center justify-between mb-3 gap-2">
+
+<div class="flex items-center gap-2">
+
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot"></span>
+
+<h3 class="font-bold text-slate-800 text-sm sm:text-base">
+
+Available Vehicles (<span id="tripCount">0</span>)
+
+</h3>
+
+</div>
+
+<label for="showDetails" class="rc-pill"><i class="fa-solid fa-circle-info"></i> Details</label>
+
+</div>
+
+
+
+<!-- Cards Container -->
+
+<div id="tripsContainer" class="space-y-3"></div>
+
+</main>
+
+
+
+<!-- PASSENGER ACTIVITY & CONTACT HISTORY MODAL -->
+
+<div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+
+<div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col">
+
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+
+<div class="flex items-center gap-2">
+
+<div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
+
+<i class="fa-solid fa-clock-rotate-left"></i>
+
+</div>
+
+<div>
+
+<h4 class="font-bold text-slate-900 text-base leading-tight">My Contact & Booking History</h4>
+
+<p class="text-[11px] text-slate-500">Only genuine Call & WhatsApp contacts from last 25 days</p>
+
+</div>
+
+</div>
+
+<button onclick="closeHistoryModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+
+<i class="fa-solid fa-xmark"></i>
+
+</button>
+
+</div>
+
+
+
+<div class="overflow-y-auto pr-1 space-y-3 mt-4 flex-1" id="historyListContainer">
+
+<!-- Rendered by JavaScript -->
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- Google Sign-In Modal -->
+
+<div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+
+<div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+
+<div class="flex items-center gap-2">
+
+<i class="fa-brands fa-google text-rose-500 text-lg"></i>
+
+<h4 class="font-bold text-slate-900 text-base">Passenger Verification</h4>
+
+</div>
+
+<button onclick="closeAuthModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+
+<i class="fa-solid fa-xmark"></i>
+
+</button>
+
+</div>
+
+
+
+<p class="text-xs text-slate-600 mt-3 leading-relaxed">
+
+For passenger and Captain safety, please enter your mobile number and continue with your Google account before calling a Captain, booking on WhatsApp, or submitting reviews.
+
+</p>
+
+
+
+<form id="googleAuthForm" onsubmit="handleGoogleSignIn(event)" class="mt-4 space-y-3">
+
+<div>
+
+<label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+
+<input type="text" id="authName" required maxlength="60" placeholder="Enter your full name" class="w-full px-3.5 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+
+</div>
+
+<div>
+
+<label class="block text-xs font-semibold text-slate-700 mb-1">Gmail Address</label>
+
+<input type="email" id="authEmail" required placeholder="yourname@gmail.com" class="w-full px-3.5 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+
+</div>
+
+<div>
+
+<label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number (For Safety Record)</label>
+
+<input type="tel" id="authPhone" required pattern="[6-9][0-9]{9}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="10-digit mobile number" class="w-full px-3.5 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+
+</div>
+
+
+
+<button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm shadow flex items-center justify-center gap-2 transition">
+
+<i class="fa-brands fa-google text-emerald-400"></i> Continue with Google Account
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+
+
+<!-- Safe External Google Maps Redirect Gate Modal -->
+
+<div id="mapGateModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+
+<div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center">
+
+<div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3 text-xl">
+
+<i class="fa-solid fa-map-location-dot"></i>
+
+</div>
+
+<h4 class="font-bold text-slate-900 text-base">Open Official Google Maps</h4>
+
+<p id="mapGateDesc" class="text-xs text-slate-600 mt-2 leading-relaxed">
+
+You are opening the live Google Maps location shared by the Captain.
+
+</p>
+
+<div class="mt-5 flex gap-2">
+
+<button onclick="closeMapGateModal()" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+
+Cancel
+
+</button>
+
+<a id="mapGateConfirmBtn" href="#" target="_blank" rel="noopener noreferrer" onclick="closeMapGateModal()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5 shadow">
+
+<i class="fa-solid fa-up-right-from-square"></i> Open Map
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- Rating & Review Modal (Spam Guard: 1 Review per Captain per 24 Hours) -->
+
+<div id="ratingModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+
+<div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
+
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+
+<div>
+
+<h4 class="font-bold text-slate-900 text-base">Captain Reviews & Rating</h4>
+
+<p id="modalDriverName" class="text-xs text-slate-500 mt-0.5"></p>
+
+</div>
+
+<button onclick="closeRatingModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+
+<i class="fa-solid fa-xmark"></i>
+
+</button>
+
+</div>
+
+
+
+<div class="overflow-y-auto pr-1 space-y-4 mt-3 flex-1">
+
+<!-- Submit New Review Form -->
+
+<form id="ratingForm" onsubmit="submitReview(event)" class="space-y-3.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+
+<input type="hidden" id="modalDriverId" />
+
+<input type="hidden" id="modalDriverTitleHidden" />
+
+
+
+<div class="text-center">
+
+<p class="text-[11px] font-semibold uppercase text-slate-500 mb-1.5">Write a Permanent Review</p>
+
+<div id="starSelector" class="flex justify-center gap-3 text-3xl text-amber-400 cursor-pointer">
+
+<i onclick="setStarRating(1)" class="fa-solid fa-star" data-star="1"></i>
+
+<i onclick="setStarRating(2)" class="fa-solid fa-star" data-star="2"></i>
+
+<i onclick="setStarRating(3)" class="fa-solid fa-star" data-star="3"></i>
+
+<i onclick="setStarRating(4)" class="fa-solid fa-star" data-star="4"></i>
+
+<i onclick="setStarRating(5)" class="fa-solid fa-star" data-star="5"></i>
+
+</div>
+
+<span id="starRatingText" class="text-xs font-bold text-emerald-600 mt-1 block">5 Stars - Excellent Service</span>
+
+</div>
+
+
+
+<div>
+
+<p class="text-xs font-semibold text-slate-600 mb-1.5">Quick Tags (Optional):</p>
+
+<div id="tagContainer" class="flex flex-wrap gap-1.5">
+
+<button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1.5 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">On Time</button>
+
+<button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1.5 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Safe Driving</button>
+
+<button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1.5 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Clean Vehicle</button>
+
+<button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1.5 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Polite Captain</button>
+
+<button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1.5 rounded-full border border-rose-200 bg-white text-rose-600 hover:border-rose-500">Overloading</button>
+
+<button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1.5 rounded-full border border-rose-200 bg-white text-rose-600 hover:border-rose-500">Late Departure</button>
+
+</div>
+
+</div>
+
+
+
+<div>
+
+<div class="flex justify-between items-center mb-1">
+
+<label class="block text-xs font-semibold text-slate-600">Your Feedback</label>
+
+<span id="charCount" class="text-[11px] font-medium text-slate-400">0 / 250 chars</span>
+
+</div>
+
+<textarea
+
+id="reviewerComment"
+
+rows="2"
+
+maxlength="250"
+
+oninput="sanitizeAndCount(this)"
+
+placeholder="Share your travel experience with this Captain..."
+
+class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+
+></textarea>
+
+</div>
+
+
+
+<button type="submit" id="submitReviewBtn" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm shadow transition">
+
+Submit Permanent Review
+
+</button>
+
+</form>
+
+
+
+<!-- Permanent Reviews List -->
+
+<div>
+
+<h5 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
+
+<span>All Passenger Reviews</span>
+
+<span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">Permanent Record</span>
+
+</h5>
+
+<div id="driverReviewsList" class="space-y-2.5"></div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- Footer -->
+
+<footer class="bg-slate-900 text-slate-400 text-[11px] py-5 px-4 mt-8 text-center">
+
+© 2026 RouteConnect • Manjhepur – Amauli – Jahanabad – Kanpur
+
+</footer>
+
+
+
+<!-- ========================================================================= -->
+
+<!-- FIREBASE CLOUD ENGINE & APPLICATION LOGIC (UNCHANGED) -->
+
+<!-- ========================================================================= -->
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+import { getFirestore, collection, doc, setDoc, addDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyAJnefI6TOx8WN2CfFpABebiZEjC4Cn0p4",
+
+authDomain: "routeconnect-kanpur-34176.firebaseapp.com",
+
+projectId: "routeconnect-kanpur-34176",
+
+storageBucket: "routeconnect-kanpur-34176.firebasestorage.app",
+
+messagingSenderId: "853374704678",
+
+appId: "1:853374704678:web:3285be5fb293c3dbc09ae7",
+
+measurementId: "G-PJK9TJ5MX4"
+
+};
+
+
+
+const app = initializeApp(firebaseConfig);
+
+try { getAnalytics(app); } catch (e) {}
+
+const auth = getAuth(app);
+
+const db = getFirestore(app);
+
+const googleProvider = new GoogleAuthProvider();
+
+
+
+window.RC_FIREBASE = {
+
+auth,
+
+db,
+
+googleProvider,
+
+signInWithPopup,
+
+signOut,
+
+collection,
+
+doc,
+
+setDoc,
+
+addDoc,
+
+updateDoc
+
+};
+
+
+
+// Online / Offline Status Detection
+
+function updateOnlineStatus() {
+
+const banner = document.getElementById("offlineNotice");
+
+if (!banner) return;
+
+if (navigator.onLine) {
+
+banner.classList.add("hidden");
+
+} else {
+
+banner.classList.remove("hidden");
+
+}
+
+}
+
+window.addEventListener("online", updateOnlineStatus);
+
+window.addEventListener("offline", updateOnlineStatus);
+
+updateOnlineStatus();
+
+
+
+// 100% Firestore-only Captain Verification (Eliminates drivers.json conflict)
+
+onSnapshot(collection(db, "verified_drivers"), (snapshot) => {
+
+const liveDirectory = [];
+
+snapshot.forEach((docSnap) => {
+
+liveDirectory.push({ id: docSnap.id, ...docSnap.data() });
+
+});
+
+localStorage.setItem("RC_FIRESTORE_DRIVERS", JSON.stringify(liveDirectory));
+
+if (typeof window.filterTrips === "function") {
+
+window.filterTrips();
+
+}
+
+}, (err) => {
+
+console.warn("Firestore verified_drivers listener notice:", err.message);
+
+});
+
+
+
+// Real-time synchronization of active and scheduled trips
+
+onSnapshot(collection(db, "live_trips"), (snapshot) => {
+
+const liveTrips = [];
+
+snapshot.forEach((docSnap) => {
+
+liveTrips.push({ id: docSnap.id, ...docSnap.data() });
+
+});
+
+localStorage.setItem("RC_LIVE_TRIPS", JSON.stringify(liveTrips));
+
+if (typeof window.filterTrips === "function") {
+
+window.filterTrips();
+
+}
+
+}, (err) => {
+
+console.warn("Firestore live_trips listener notice:", err.message);
+
+});
+
+
+
+// Real-time synchronization of permanent captain reviews
+
+onSnapshot(collection(db, "reviews"), (snapshot) => {
+
+const allReviews = [];
+
+snapshot.forEach((docSnap) => {
+
+allReviews.push({ id: docSnap.id, ...docSnap.data() });
+
+});
+
+localStorage.setItem("RC_PERMANENT_REVIEWS", JSON.stringify(allReviews));
+
+if (typeof window.filterTrips === "function") {
+
+window.filterTrips();
+
+}
+
+const openDriverId = document.getElementById("modalDriverId")?.value;
+
+if (openDriverId && typeof window.renderCaptainReviewsList === "function") {
+
+window.renderCaptainReviewsList(openDriverId);
+
+}
+
+}, (err) => {
+
+console.warn("Firestore reviews listener notice:", err.message);
+
+});
+
+</script>
+
+
+
+<!-- RouteConnect Application Engine (UNCHANGED) -->
+
+<script>
+
+// Exact match with driver.html ground-calibrated offsets (145 mins total corridor duration)
+
+const ROUTE_STOPS = [
+
+{ index: 0, name: "Manjhepur", offset: 0 },
+
+{ index: 1, name: "Barwa", offset: 4 },
+
+{ index: 2, name: "Maudev", offset: 8 },
+
+{ index: 3, name: "Bhikhanipur", offset: 12 },
+
+{ index: 4, name: "Harijanpur", offset: 14 },
+
+{ index: 5, name: "Budhanda", offset: 16 },
+
+{ index: 6, name: "Salhepur", offset: 18 },
+
+{ index: 7, name: "Sathigavan", offset: 21 },
+
+{ index: 8, name: "Kauh Mod", offset: 23 },
+
+{ index: 9, name: "Bilari Mod", offset: 24 },
+
+{ index: 10, name: "Makandapur Mod", offset: 25 },
+
+{ index: 11, name: "Kulkheda Mod (Nayara Petrol Pump)", offset: 27 },
+
+{ index: 12, name: "Madri", offset: 29 },
+
+{ index: 13, name: "Amauli", offset: 33 },
+
+{ index: 14, name: "Behta Khurd", offset: 38 },
+
+{ index: 15, name: "Jamuiya (Harkundi Baba)", offset: 43 },
+
+{ index: 16, name: "Birnai", offset: 46 },
+
+{ index: 17, name: "Ranupur", offset: 49 },
+
+{ index: 18, name: "Lahuri Sarai", offset: 52 },
+
+{ index: 19, name: "Kalana", offset: 55 },
+
+{ index: 20, name: "Jahanabad", offset: 60 },
+
+{ index: 21, name: "Mathurapur", offset: 65 },
+
+{ index: 22, name: "Birhar Mod", offset: 70 },
+
+{ index: 23, name: "Sadh", offset: 85 },
+
+{ index: 24, name: "Majhawan", offset: 98 },
+
+{ index: 25, name: "Ramaipur", offset: 115 },
+
+{ index: 26, name: "Magrasa", offset: 120 },
+
+{ index: 27, name: "Sen Paschim Para Mod", offset: 124 },
+
+{ index: 28, name: "Bingawan", offset: 128 },
+
+{ index: 29, name: "Pipauri Mod", offset: 132 },
+
+{ index: 30, name: "Galla Mandi", offset: 136 },
+
+{ index: 31, name: "Naubasta", offset: 139 },
+
+{ index: 32, name: "Baudh Nagar", offset: 142 },
+
+{ index: 33, name: "Basant Vihar Chauraha", offset: 145 }
+
+];
+
+
+
+const DEFAULT_TRIPS = [];
+
+let currentDirectionFilter = "ALL";
+
+let selectedStarRating = 5;
+
+
+
+function getISTDateObj(offsetDays = 0) {
+
+const now = new Date();
+
+now.setDate(now.getDate() + offsetDays);
+
+return now;
+
+}
+
+
+
+function formatYMDLocal(d) {
+
+const yyyy = d.getFullYear();
+
+const mm = String(d.getMonth() + 1).padStart(2, "0");
+
+const dd = String(d.getDate()).padStart(2, "0");
+
+return `${yyyy}-${mm}-${dd}`;
+
+}
+
+
+
+function normalizeDateToYMD(dateInput) {
+
+if (!dateInput) return "";
+
+const raw = String(dateInput).trim();
+
+const dmyMatch = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+
+if (dmyMatch) {
+
+return `${dmyMatch[3]}-${dmyMatch[2].padStart(2, "0")}-${dmyMatch[1].padStart(2, "0")}`;
+
+}
+
+const ymdMatch = raw.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+
+if (ymdMatch) {
+
+return `${ymdMatch[1]}-${ymdMatch[2].padStart(2, "0")}-${ymdMatch[3].padStart(2, "0")}`;
+
+}
+
+const parsed = new Date(raw);
+
+if (!isNaN(parsed.getTime())) {
+
+return formatYMDLocal(parsed);
+
+}
+
+return raw;
+
+}
+
+
+
+function timeStrToMins(tStr) {
+
+if (!tStr || !tStr.includes(":")) return 0;
+
+const [h, m] = tStr.split(":").map(Number);
+
+return h * 60 + m;
+
+}
+
+
+
+function minsToTimeStr(totalMins) {
+
+const norm = ((totalMins % 1440) + 1440) % 1440;
+
+const hh = String(Math.floor(norm / 60)).padStart(2, "0");
+
+const mm = String(norm % 60).padStart(2, "0");
+
+return `${hh}:${mm}`;
+
+}
+
+
+
+function format12Hour(hh, mm) {
+
+const period = hh >= 12 ? "PM" : "AM";
+
+const hour12 = hh % 12 || 12;
+
+return `${String(hour12).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${period}`;
+
+}
+
+
+
+function convert24To12(timeStr) {
+
+if (!timeStr || !timeStr.includes(":")) return timeStr || "--:--";
+
+const [hh, mm] = timeStr.split(":").map(Number);
+
+if (isNaN(hh) || isNaN(mm)) return timeStr;
+
+return format12Hour(hh, mm);
+
+}
+
+
+
+function addMinutesToTimeStr(timeStr, minutesToAdd) {
+
+if (!timeStr || !timeStr.includes(":")) return "--:--";
+
+const [hh, mm] = timeStr.split(":").map(Number);
+
+const totalMins = hh * 60 + mm + minutesToAdd;
+
+const finalH = Math.floor((totalMins / 60) % 24);
+
+const finalM = totalMins % 60;
+
+return format12Hour(finalH, finalM);
+
+}
+
+
+
+function getStopObj(stopName) {
+
+return ROUTE_STOPS.find(s => s.name === stopName);
+
+}
+
+
+
+function formatDuration(mins) {
+
+const h = Math.floor(mins / 60);
+
+const m = mins % 60;
+
+if (h > 0 && m > 0) return `${h} hr ${m} min`;
+
+if (h > 0) return `${h} hr`;
+
+return `${m} min`;
+
+}
+
+
+
+function getCleanDayLabel(trip) {
+
+const tomorrowYMD = formatYMDLocal(getISTDateObj(1));
+
+if (trip.trip_date === tomorrowYMD) return "Tomorrow";
+
+if (trip.trip_date_label && /कल|tomorrow/i.test(trip.trip_date_label)) return "Tomorrow";
+
+return "Today";
+
+}
+
+
+
+function getEffectiveArrivalMins(depTimeStr, arrTimeStr) {
+
+const depM = timeStrToMins(depTimeStr);
+
+let arrM = timeStrToMins(arrTimeStr);
+
+if (arrM < depM) {
+
+arrM += 1440;
+
+}
+
+return arrM;
+
+}
+
+
+
+function isValidAndFreshGoogleMapsUrl(urlStr, trackingUpdatedAt) {
+
+if (!urlStr || typeof urlStr !== "string") return false;
+
+const clean = urlStr.trim();
+
+const strictPattern = /^https:\/\/(maps\.app\.goo\.gl\/[A-Za-z0-9_\-]+|goo\.gl\/maps\/[A-Za-z0-9_\-]+|(www\.)?google\.(com|co\.in)\/maps\S+)$/i;
+
+if (!strictPattern.test(clean)) return false;
+
+
+
+if (trackingUpdatedAt) {
+
+const ts = new Date(trackingUpdatedAt).getTime();
+
+if (!isNaN(ts)) {
+
+const ageHours = (Date.now() - ts) / (1000 * 60 * 60);
+
+if (ageHours > 12) return false;
+
+}
+
+}
+
+return true;
+
+}
+
+
+
+function getMasterDriverDirectory() {
+
+try {
+
+const raw = JSON.parse(localStorage.getItem("RC_FIRESTORE_DRIVERS") || "[]");
+
+if (Array.isArray(raw) && raw.length > 0) return raw;
+
+} catch (e) {}
+
+return [];
+
+}
+
+
+
+function getVerifiedDriverRecord(trip) {
+
+const todayYMD = formatYMDLocal(getISTDateObj(0));
+
+if (trip.expiry_date) {
+
+const normTripExp = normalizeDateToYMD(trip.expiry_date);
+
+if (normTripExp && normTripExp < todayYMD) {
+
+return { allowed: false, record: null };
+
+}
+
+}
+
+
+
+const directory = getMasterDriverDirectory();
+
+if (directory.length === 0) {
+
+return { allowed: true, record: null };
+
+}
+
+
+
+const match = directory.find(d =>
+
+(d.email && trip.driver_email && d.email.toLowerCase() === trip.driver_email.toLowerCase()) ||
+
+(d.phone && trip.driver_phone && String(d.phone).trim() === String(trip.driver_phone).trim()) ||
+
+(d.driver_id && trip.driver_id && d.driver_id === trip.driver_id)
+
+);
+
+
+
+if (!match) return { allowed: false, record: null };
+
+
+
+const isStatusActive = String(match.status || "Active").trim().toLowerCase() === "active";
+
+let isNotExpired = true;
+
+if (match.expiry_date) {
+
+const normExp = normalizeDateToYMD(match.expiry_date);
+
+isNotExpired = normExp >= todayYMD;
+
+}
+
+return { allowed: isStatusActive && isNotExpired, record: match };
+
+}
+
+
+
+// Midnight-safe Active Trip Validator with 90-minute completion margin
+
+function isTripStillActive(trip) {
+
+const todayYMD = formatYMDLocal(getISTDateObj(0));
+
+const tomorrowYMD = formatYMDLocal(getISTDateObj(1));
+
+const tripDate = trip.trip_date || todayYMD;
+
+
+
+if (tripDate < todayYMD) return false;
+
+if (tripDate === tomorrowYMD) return true;
+
+
+
+const tripStart = getStopObj(trip.start_stop);
+
+const tripEnd = getStopObj(trip.end_stop);
+
+if (!tripStart || !tripEnd || !trip.departure_time) return false;
+
+
+
+const safeRouteMins = Math.abs(tripEnd.offset - tripStart.offset);
+
+const [depH, depM] = trip.departure_time.split(":").map(Number);
+
+if (isNaN(depH) || isNaN(depM)) return false;
+
+
+
+const now = new Date();
+
+const depDate = new Date();
+
+depDate.setHours(depH, depM, 0, 0);
+
+
+
+// Handle midnight crossing trip departures: if depDate is ahead of now by over 12 hours, treat as yesterday's late run
+
+if (depDate.getTime() - now.getTime() > 12 * 60 * 60 * 1000) {
+
+depDate.setDate(depDate.getDate() - 1);
+
+}
+
+
+
+const expiryTime = new Date(depDate.getTime() + (safeRouteMins + 90) * 60 * 1000);
+
+if (now > expiryTime) return false;
+
+
+
+return true;
+
+}
+
+
+
+// Smart Auto-Lag (+2m -> +5m -> +10m) with 60-Minute Cancellation Ceiling
+
+function getEffectiveScheduledTimes(trip, allTrips) {
+
+const todayYMD = formatYMDLocal(getISTDateObj(0));
+
+const tripStart = getStopObj(trip.start_stop);
+
+const tripEnd = getStopObj(trip.end_stop);
+
+const routeMins = (tripStart && tripEnd) ? Math.abs(tripEnd.offset - tripStart.offset) : 0;
+
+
+
+let baseDep = trip.base_departure_time || trip.departure_time;
+
+let baseArr = trip.base_arrival_time || trip.claimed_arrival_time;
+
+
+
+if (trip.status === "Running" || (trip.trip_date && trip.trip_date !== todayYMD)) {
+
+return {
+
+dep24: trip.departure_time,
+
+arr24: trip.claimed_arrival_time,
+
+lagAddedMins: 0,
+
+isExpiredByDelay: false
+
+};
+
+}
+
+
+
+let baseDepMins = timeStrToMins(baseDep);
+
+const origSpan = Math.max(routeMins, getEffectiveArrivalMins(baseDep, baseArr) - baseDepMins);
+
+
+
+// Turnaround distance buffer check against any live running trip by the same Captain Today
+
+const sameCaptainLive = allTrips.find(
+
+t => t.status === "Running" &&
+
+((t.driver_uid && trip.driver_uid && t.driver_uid === trip.driver_uid) ||
+
+(t.driver_id && trip.driver_id && t.driver_id === trip.driver_id))
+
+);
+
+
+
+if (sameCaptainLive) {
+
+const liveEndObj = getStopObj(sameCaptainLive.end_stop);
+
+const liveCurObj = sameCaptainLive.current_stop ? getStopObj(sameCaptainLive.current_stop) : null;
+
+let liveArr24 = sameCaptainLive.claimed_arrival_time;
+
+if (liveCurObj && liveEndObj && sameCaptainLive.current_stop_time_24) {
+
+const remLive = Math.abs(liveEndObj.offset - liveCurObj.offset);
+
+liveArr24 = minsToTimeStr(timeStrToMins(sameCaptainLive.current_stop_time_24) + remLive);
+
+}
+
+const effLiveArrMins = getEffectiveArrivalMins(sameCaptainLive.departure_time, liveArr24);
+
+const deadheadMins = (liveEndObj && tripStart) ? Math.abs(tripStart.offset - liveEndObj.offset) : 0;
+
+const earliestPossibleDep = effLiveArrMins + deadheadMins + 20;
+
+
+
+if (earliestPossibleDep < 1440 && baseDepMins < earliestPossibleDep) {
+
+baseDepMins = earliestPossibleDep;
+
+}
+
+}
+
+
+
+const now = new Date();
+
+const nowMins = now.getHours() * 60 + now.getMinutes();
+
+
+
+if (nowMins < baseDepMins) {
+
+return {
+
+dep24: minsToTimeStr(baseDepMins),
+
+arr24: minsToTimeStr(baseDepMins + origSpan),
+
+lagAddedMins: 0,
+
+isExpiredByDelay: false
+
+};
+
+}
+
+
+
+const diff = nowMins - baseDepMins;
+
+
+
+// 60-Minute Cancellation Ceiling: If Captain has not pressed start within 60 minutes, expire trip
+
+if (diff > 60) {
+
+return {
+
+dep24: minsToTimeStr(baseDepMins),
+
+arr24: minsToTimeStr(baseDepMins + origSpan),
+
+lagAddedMins: diff,
+
+isExpiredByDelay: true
+
+};
+
+}
+
+
+
+let lagAddedMins = 0;
+
+if (diff < 2) {
+
+lagAddedMins = 2;
+
+} else if (diff < 7) {
+
+lagAddedMins = 7;
+
+} else {
+
+const extra10Blocks = Math.floor((diff - 7) / 10) + 1;
+
+lagAddedMins = Math.min(60, 7 + extra10Blocks * 10);
+
+}
+
+
+
+const finalDepMins = baseDepMins + lagAddedMins;
+
+return {
+
+dep24: minsToTimeStr(finalDepMins),
+
+arr24: minsToTimeStr(finalDepMins + origSpan),
+
+lagAddedMins,
+
+isExpiredByDelay: false
+
+};
+
+}
+
+
+
+function getAllPermanentReviews() {
+
+try {
+
+const raw = JSON.parse(localStorage.getItem("RC_PERMANENT_REVIEWS") || "[]");
+
+return Array.isArray(raw) ? raw : [];
+
+} catch (e) {
+
+return [];
+
+}
+
+}
+
+
+
+function getCaptainRatingSummary(driverId, fallbackRating, fallbackCount) {
+
+const allReviews = getAllPermanentReviews().filter(r => r.driver_id === driverId);
+
+if (allReviews.length === 0) {
+
+return {
+
+avg: fallbackRating || "5.0",
+
+count: Number(fallbackCount) || 0
+
+};
+
+}
+
+const sum = allReviews.reduce((acc, r) => acc + (Number(r.stars) || 5), 0);
+
+const avg = (sum / allReviews.length).toFixed(1);
+
+return {
+
+avg,
+
+count: allReviews.length
+
+};
+
+}
+
+
+
+function getLoggedInPassenger() {
+
+try {
+
+return JSON.parse(localStorage.getItem("RC_PASSENGER_USER"));
+
+} catch (e) {
+
+return null;
+
+}
+
+}
+
+
+
+function renderAuthHeader() {
+
+const user = getLoggedInPassenger();
+
+const authContainer = document.getElementById("authSection");
+
+if (user && user.email) {
+
+authContainer.innerHTML = `
+
+<button onclick="openHistoryModal()" title="View Booking & Contact History" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+
+<i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
+
+<span class="hidden sm:inline">My Activity</span>
+
+</button>
+
+<div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs">
+
+<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+
+<span class="font-semibold text-slate-200 truncate max-w-[100px]">${user.name}</span>
+
+<button onclick="signOutPassenger()" title="Sign Out" class="text-slate-400 hover:text-rose-400 ml-1">
+
+<i class="fa-solid fa-right-from-bracket"></i>
+
+</button>
+
+</div>
+
+`;
+
+} else {
+
+authContainer.innerHTML = `
+
+<button onclick="openAuthModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+
+<i class="fa-brands fa-google text-rose-500"></i>
+
+<span>Sign In</span>
+
+</button>
+
+`;
+
+}
+
+}
+
+
+
+function openAuthModal() {
+
+document.getElementById("authModal").classList.remove("hidden");
+
+document.getElementById("authModal").classList.add("flex");
+
+}
+
+
+
+function closeAuthModal() {
+
+document.getElementById("authModal").classList.add("hidden");
+
+document.getElementById("authModal").classList.remove("flex");
+
+}
+
+
+
+function openMapGateModal(captainName, vehicleNo, mapUrl) {
+
+document.getElementById("mapGateDesc").textContent =
+
+`You are opening the live Google Maps location shared by Captain ${captainName} (${vehicleNo}).`;
+
+document.getElementById("mapGateConfirmBtn").href = mapUrl;
+
+document.getElementById("mapGateModal").classList.remove("hidden");
+
+document.getElementById("mapGateModal").classList.add("flex");
+
+}
+
+
+
+function closeMapGateModal() {
+
+document.getElementById("mapGateModal").classList.add("hidden");
+
+document.getElementById("mapGateModal").classList.remove("flex");
+
+}
+
+
+
+// =========================================================================
+
+// PASSENGER BOOKING & CONTACT HISTORY LOGIC
+
+// =========================================================================
+
+function openHistoryModal() {
+
+const user = getLoggedInPassenger();
+
+if (!user) {
+
+openAuthModal();
+
+return;
+
+}
+
+renderCustomerHistory(user);
+
+document.getElementById("historyModal").classList.remove("hidden");
+
+document.getElementById("historyModal").classList.add("flex");
+
+}
+
+
+
+function closeHistoryModal() {
+
+document.getElementById("historyModal").classList.add("hidden");
+
+document.getElementById("historyModal").classList.remove("flex");
+
+}
+
+
+
+function renderCustomerHistory(user) {
+
+const listEl = document.getElementById("historyListContainer");
+
+if (!listEl) return;
+
+
+
+purgeExpiredInteractionLogs();
+
+
+
+let logs = [];
+
+try {
+
+logs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
+
+} catch (e) {}
+
+
+
+// Filter: Only Call & WhatsApp events belonging strictly to this passenger (Maps excluded from logs)
+
+const myLogs = logs
+
+.filter(l => (l.passenger_uid === user.uid || (l.passenger_email && l.passenger_email === user.email)))
+
+.filter(l => l.action_type === "CALL" || l.action_type === "WHATSAPP")
+
+.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+
+
+if (myLogs.length === 0) {
+
+listEl.innerHTML = `
+
+<div class="py-8 text-center text-xs text-slate-500 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-4">
+
+<i class="fa-solid fa-address-book text-slate-300 text-3xl mb-2 block"></i>
+
+No contact history yet. When you call a Captain or book seats via WhatsApp, your activity will appear here.
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+
+listEl.innerHTML = myLogs.map(item => {
+
+const dateObj = new Date(item.timestamp);
+
+const timeFormatted = dateObj.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+
+const dateFormatted = dateObj.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+
+
+
+const isCall = item.action_type === "CALL";
+
+const badgeHTML = isCall
+
+? `<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1"><i class="fa-solid fa-phone"></i> Call Placed</span>`
+
+: `<span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> WhatsApp Booking</span>`;
+
+
+
+return `
+
+<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3 shadow-sm hover:bg-white transition">
+
+<div class="flex items-start gap-2.5">
+
+<div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+
+<i class="fa-solid ${isCall ? 'fa-phone-volume text-blue-400' : 'fa-comment-dots text-emerald-400'}"></i>
+
+</div>
+
+<div>
+
+<h5 class="font-bold text-slate-900 text-xs sm:text-sm leading-tight">${item.driver_name || "Verified Captain"}</h5>
+
+<p class="text-[11px] font-mono text-slate-600 mt-0.5">${item.vehicle_no || "Route Vehicle"}</p>
+
+<p class="text-[10px] text-slate-400 mt-0.5">${dateFormatted} • ${timeFormatted}</p>
+
+</div>
+
+</div>
+
+
+
+<div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+
+${badgeHTML}
+
+<button
+
+onclick="closeHistoryModal(); openRatingModal('${item.driver_id}', '${item.driver_name} (${item.vehicle_no})')"
+
+class="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline flex items-center gap-1"
+
+>
+
+<i class="fa-solid fa-star text-amber-500"></i> Rate Captain
+
+</button>
+
+</div>
+
+</div>
+
+`;
+
+}).join("");
+
+}
+
+
+
+async function handleGoogleSignIn(e) {
+
+e.preventDefault();
+
+let name = document.getElementById("authName").value.trim().replace(/[<>/{}[\]\\]/g, "");
+
+let email = document.getElementById("authEmail").value.trim().toLowerCase();
+
+const phone = document.getElementById("authPhone").value.trim();
+
+
+
+if (!email.endsWith("@gmail.com")) {
+
+alert("Please sign in using a valid @gmail.com address.");
+
+return;
+
+}
+
+
+
+let uid = "USR_" + btoa(email).slice(0, 10);
+
+
+
+if (window.RC_FIREBASE) {
+
+try {
+
+const result = await window.RC_FIREBASE.signInWithPopup(
+
+window.RC_FIREBASE.auth,
+
+window.RC_FIREBASE.googleProvider
+
+);
+
+if (result && result.user) {
+
+uid = result.user.uid;
+
+email = (result.user.email || email).toLowerCase();
+
+name = result.user.displayName || name || "Verified Passenger";
+
+}
+
+} catch (err) {}
+
+}
+
+
+
+const passengerObj = { uid, name, email, phone, joined_at: new Date().toISOString() };
+
+localStorage.setItem("RC_PASSENGER_USER", JSON.stringify(passengerObj));
+
+
+
+if (window.RC_FIREBASE && window.RC_FIREBASE.auth.currentUser) {
+
+try {
+
+const { db, doc, setDoc } = window.RC_FIREBASE;
+
+await setDoc(doc(db, "passengers", uid), passengerObj, { merge: true });
+
+} catch (err) {}
+
+}
+
+
+
+closeAuthModal();
+
+renderAuthHeader();
+
+}
+
+
+
+async function signOutPassenger() {
+
+if (window.RC_FIREBASE) {
+
+try { await window.RC_FIREBASE.signOut(window.RC_FIREBASE.auth); } catch (e) {}
+
+}
+
+localStorage.removeItem("RC_PASSENGER_USER");
+
+renderAuthHeader();
+
+}
+
+
+
+function purgeExpiredInteractionLogs() {
+
+try {
+
+const rawLogs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
+
+const cutoffTime = Date.now() - (25 * 24 * 60 * 60 * 1000);
+
+const validLogs = rawLogs.filter(log => new Date(log.timestamp).getTime() >= cutoffTime);
+
+localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(validLogs));
+
+} catch (e) {}
+
+}
+
+
+
+// Records ONLY Call & WhatsApp interactions (Google Maps live viewing is completely excluded to prevent spam logs)
+
+function handleProtectedAction(actionType, driverId, captainName, vehicleNo, targetUrl) {
+
+const user = getLoggedInPassenger();
+
+if (!user) {
+
+openAuthModal();
+
+return;
+
+}
+
+
+
+// Map viewing opens without polluting database records
+
+if (actionType === "GMAPS_LIVE") {
+
+openMapGateModal(captainName, vehicleNo, targetUrl);
+
+return;
+
+}
+
+
+
+purgeExpiredInteractionLogs();
+
+
+
+let logs = [];
+
+try { logs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]"); } catch (e) {}
+
+
+
+const logEntry = {
+
+log_id: "LOG_" + Date.now(),
+
+passenger_uid: user.uid,
+
+passenger_name: user.name,
+
+passenger_email: user.email,
+
+passenger_phone: user.phone,
+
+driver_id: driverId,
+
+driver_name: captainName,
+
+vehicle_no: vehicleNo,
+
+action_type: actionType, // CALL or WHATSAPP
+
+timestamp: new Date().toISOString()
+
+};
+
+
+
+logs.push(logEntry);
+
+localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(logs));
+
+
+
+if (window.RC_FIREBASE && window.RC_FIREBASE.auth.currentUser) {
+
+const { db, collection, addDoc } = window.RC_FIREBASE;
+
+addDoc(collection(db, "interaction_logs"), logEntry).catch(() => {});
+
+}
+
+
+
+if (actionType === "CALL") {
+
+window.location.href = targetUrl;
+
+} else {
+
+window.open(targetUrl, "_blank", "noopener,noreferrer");
+
+}
+
+}
+
+
+
+function initDropdowns() {
+
+const fromSelect = document.getElementById("fromStop");
+
+const toSelect = document.getElementById("toStop");
+
+
+
+ROUTE_STOPS.forEach(stop => {
+
+fromSelect.add(new Option(stop.name, stop.name));
+
+toSelect.add(new Option(stop.name, stop.name));
+
+});
+
+
+
+const today = new Date().toLocaleDateString("en-US", {
+
+weekday: "short", day: "numeric", month: "short", year: "numeric"
+
+});
+
+document.getElementById("currentDateBadge").textContent = today;
+
+}
+
+
+
+function swapStops() {
+
+const fromSelect = document.getElementById("fromStop");
+
+const toSelect = document.getElementById("toStop");
+
+const temp = fromSelect.value;
+
+fromSelect.value = toSelect.value;
+
+toSelect.value = temp;
+
+filterTrips();
+
+}
+
+
+
+function resetFilters() {
+
+document.getElementById("fromStop").value = "";
+
+document.getElementById("toStop").value = "";
+
+setDirectionFilter("ALL");
+
+document.getElementById("routeTravelEstimate").innerHTML =
+
+"Select Pickup & Drop stops to calculate exact safe transit time and passing vehicles.";
+
+filterTrips();
+
+}
+
+
+
+function setDirectionFilter(dir) {
+
+currentDirectionFilter = dir;
+
+["ALL", "TO_KANPUR", "TO_MANJHEPUR"].forEach(key => {
+
+const btn = document.getElementById(`dirBtn_${key}`);
+
+if (key === dir) {
+
+btn.className = "px-3 py-1.5 rounded-lg bg-slate-900 text-white transition";
+
+} else {
+
+btn.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition";
+
+}
+
+});
+
+filterTrips();
+
+}
+
+
+
+function getActiveTripsData() {
+
+const saved = localStorage.getItem("RC_LIVE_TRIPS");
+
+if (saved) {
+
+try {
+
+const parsed = JSON.parse(saved);
+
+if (Array.isArray(parsed)) return parsed;
+
+} catch (e) {}
+
+}
+
+return DEFAULT_TRIPS;
+
+}
+
+
+
+function filterTrips() {
+
+const fromName = document.getElementById("fromStop").value;
+
+const toName = document.getElementById("toStop").value;
+
+const allTrips = getActiveTripsData();
+
+
+
+const fromStop = getStopObj(fromName);
+
+const toStop = getStopObj(toName);
+
+
+
+const estimateEl = document.getElementById("routeTravelEstimate");
+
+if (fromStop && toStop) {
+
+if (fromStop.index === toStop.index) {
+
+estimateEl.innerHTML = `<span class="text-rose-600 font-semibold">Pickup and Drop stop cannot be the same!</span>`;
+
+renderTrips([], null, null, allTrips);
+
+return;
+
+}
+
+const safeDuration = Math.abs(toStop.offset - fromStop.offset);
+
+const dirLabel = toStop.index > fromStop.index ? "Towards Kanpur" : "Towards Manjhepur";
+
+estimateEl.innerHTML = `
+
+<span class="text-emerald-700 font-semibold"><i class="fa-solid fa-clock mr-1"></i>Minimum Safe Travel Time (${fromStop.name} → ${toStop.name}): ${formatDuration(safeDuration)}</span>
+
+<span class="ml-2 text-slate-500">• Direction: ${dirLabel}</span>
+
+`;
+
+}
+
+
+
+const filtered = allTrips.filter(trip => {
+
+if (!isTripStillActive(trip)) return false;
+
+
+
+// Auto-expire scheduled trips delayed by more than 60 minutes without starting
+
+if (trip.status === "Promised") {
+
+const checkTimes = getEffectiveScheduledTimes(trip, allTrips);
+
+if (checkTimes.isExpiredByDelay) return false;
+
+}
+
+
+
+const dirCheck = getVerifiedDriverRecord(trip);
+
+if (!dirCheck.allowed) return false;
+
+
+
+const tripStart = getStopObj(trip.start_stop);
+
+const tripEnd = getStopObj(trip.end_stop);
+
+if (!tripStart || !tripEnd) return false;
+
+
+
+const isTowardsKanpur = tripEnd.index > tripStart.index;
+
+
+
+if (currentDirectionFilter === "TO_KANPUR" && !isTowardsKanpur) return false;
+
+if (currentDirectionFilter === "TO_MANJHEPUR" && isTowardsKanpur) return false;
+
+
+
+if (fromStop && toStop) {
+
+const userTowardsKanpur = toStop.index > fromStop.index;
+
+if (isTowardsKanpur !== userTowardsKanpur) return false;
+
+
+
+if (isTowardsKanpur) {
+
+return tripStart.index <= fromStop.index && tripEnd.index >= toStop.index;
+
+} else {
+
+return tripStart.index >= fromStop.index && tripEnd.index <= toStop.index;
+
+}
+
+}
+
+
+
+if (fromStop && !toStop) {
+
+if (isTowardsKanpur) {
+
+return tripStart.index <= fromStop.index && tripEnd.index > fromStop.index;
+
+} else {
+
+return tripStart.index >= fromStop.index && tripEnd.index < fromStop.index;
+
+}
+
+}
+
+
+
+if (!fromStop && toStop) {
+
+if (isTowardsKanpur) {
+
+return tripStart.index < toStop.index && tripEnd.index >= toStop.index;
+
+} else {
+
+return tripStart.index > toStop.index && tripEnd.index <= toStop.index;
+
+}
+
+}
+
+
+
+return true;
+
+});
+
+
+
+renderTrips(filtered, fromStop, toStop, allTrips);
+
+}
+
+
+
+function renderTrips(trips, userFromStop, userToStop, allTrips = []) {
+
+const container = document.getElementById("tripsContainer");
+
+document.getElementById("tripCount").textContent = trips.length;
+
+
+
+if (trips.length === 0) {
+
+container.innerHTML = `
+
+<div class="bg-white rounded-2xl p-8 text-center border border-slate-200 shadow-sm">
+
+<div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
+
+<i class="fa-solid fa-van-shuttle"></i>
+
+</div>
+
+<h4 class="font-bold text-slate-800 text-base">No Active or Scheduled Vehicles Right Now</h4>
+
+<p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Verified Captains update their live departures and return schedules directly from the Captain Portal.</p>
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+
+container.innerHTML = trips.map(trip => {
+
+const tripStart = getStopObj(trip.start_stop);
+
+const tripEnd = getStopObj(trip.end_stop);
+
+const currentStopObj = trip.current_stop ? getStopObj(trip.current_stop) : null;
+
+const isTowardsKanpur = tripEnd.index > tripStart.index;
+
+
+
+const dirCheck = getVerifiedDriverRecord(trip);
+
+const dirRecord = dirCheck.record;
+
+
+
+const maxSeats = Number((dirRecord && dirRecord.max_capacity) || trip.max_capacity) || 12;
+
+const seatsLeft = Number(trip.seats_available);
+
+const isFull = seatsLeft <= 0;
+
+
+
+const photoSrc = (dirRecord && dirRecord.photo)
+
+? dirRecord.photo
+
+: (trip.driver_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(trip.driver_name)}&background=0f172a&color=fff`);
+
+
+
+const genderBadge = (dirRecord && dirRecord.gender || trip.driver_gender)
+
+? `<span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">${(dirRecord && dirRecord.gender) || trip.driver_gender}</span>`
+
+: "";
+
+
+
+let progressPercent = trip.status === "Running" ? 25 : 0;
+
+if (trip.status === "Running" && currentStopObj) {
+
+const totalSpan = Math.abs(tripEnd.offset - tripStart.offset) || 1;
+
+const coveredSpan = Math.abs(currentStopObj.offset - tripStart.offset);
+
+progressPercent = Math.min(100, Math.max(8, Math.round((coveredSpan / totalSpan) * 100)));
+
+}
+
+
+
+const rawMapLink = trip.gmaps_link || trip.live_tracking_url || "";
+
+const hasValidMapLink = isValidAndFreshGoogleMapsUrl(rawMapLink, trip.tracking_updated_at || trip.updated_at);
+
+
+
+// Auto-lagged departure handling for scheduled trips
+
+const schedTimes = getEffectiveScheduledTimes(trip, allTrips);
+
+const effectiveDep24 = trip.status === "Promised" ? schedTimes.dep24 : trip.departure_time;
+
+const effectiveArr24 = trip.status === "Promised" ? schedTimes.arr24 : trip.claimed_arrival_time;
+
+
+
+const dayWord = getCleanDayLabel(trip);
+
+const depTimeFormatted = `${dayWord}, ${convert24To12(effectiveDep24)}`;
+
+
+
+// Dynamic Destination ETA Calculation based on latest checked-in stop
+
+let finalDestETA = convert24To12(effectiveArr24);
+
+if (trip.status === "Running" && currentStopObj) {
+
+const remMinsToDest = Math.abs(tripEnd.offset - currentStopObj.offset);
+
+if (trip.current_stop_time_24) {
+
+finalDestETA = addMinutesToTimeStr(trip.current_stop_time_24, remMinsToDest);
+
+}
+
+}
+
+
+
+let liveTrackingBannerHTML = "";
+
+if (trip.status === "Running") {
+
+const activeStopName = currentStopObj ? currentStopObj.name : trip.start_stop;
+
+const stopTimeLabel = trip.current_stop_time || convert24To12(effectiveDep24);
+
+
+
+let nextStopText = `Heading to ${trip.end_stop}`;
+
+if (currentStopObj && currentStopObj.name !== trip.end_stop) {
+
+const nextIdx = isTowardsKanpur ? currentStopObj.index + 1 : currentStopObj.index - 1;
+
+const nextStopObj = ROUTE_STOPS.find(s => s.index === nextIdx);
+
+if (nextStopObj) {
+
+const minsAway = Math.abs(nextStopObj.offset - currentStopObj.offset);
+
+nextStopText = `Next Stop: <b>${nextStopObj.name}</b> (~${minsAway} mins)`;
+
+}
+
+}
+
+
+
+liveTrackingBannerHTML = `
+
+<div class="mt-3 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+
+<div class="flex items-center gap-2">
+
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-600 pulse-dot flex-shrink-0"></span>
+
+<div>
+
+<span class="text-slate-600">Current Stop:</span>
+
+<span class="font-bold text-emerald-900 ml-1">${activeStopName}</span>
+
+<span class="text-[11px] text-emerald-700 font-medium ml-1">(${stopTimeLabel})</span>
+
+</div>
+
+</div>
+
+<div class="text-slate-600 text-[11px] sm:text-xs">
+
+<i class="fa-solid fa-location-arrow text-emerald-600 mr-1"></i>${nextStopText}
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+
+let customTimingHTML = "";
+
+if (userFromStop && userToStop) {
+
+let pickupETA = "";
+
+let dropETA = "";
+
+let passedNotice = "";
+
+
+
+// Clear "Crossed / Already Passed" logic when Captain auto-catches up or skips intermediate stops
+
+const alreadyPassedPickup = currentStopObj && (
+
+(isTowardsKanpur && currentStopObj.index >= userFromStop.index) ||
+
+(!isTowardsKanpur && currentStopObj.index <= userFromStop.index)
+
+);
+
+
+
+if (trip.status === "Running" && alreadyPassedPickup) {
+
+passedNotice = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Vehicle has already crossed ${userFromStop.name}</span>`;
+
+} else if (trip.status === "Running" && currentStopObj && trip.current_stop_time_24) {
+
+const minsFromCurrentToPickup = Math.abs(userFromStop.offset - currentStopObj.offset);
+
+const minsFromCurrentToDrop = Math.abs(userToStop.offset - currentStopObj.offset);
+
+pickupETA = addMinutesToTimeStr(trip.current_stop_time_24, minsFromCurrentToPickup);
+
+dropETA = addMinutesToTimeStr(trip.current_stop_time_24, minsFromCurrentToDrop);
+
+} else {
+
+const minsToPickup = Math.abs(userFromStop.offset - tripStart.offset);
+
+const minsToDrop = Math.abs(userToStop.offset - tripStart.offset);
+
+pickupETA = addMinutesToTimeStr(effectiveDep24, minsToPickup);
+
+dropETA = addMinutesToTimeStr(effectiveDep24, minsToDrop);
+
+}
+
+
+
+customTimingHTML = passedNotice
+
+? `<div class="mt-2 bg-rose-50 border border-rose-200 rounded-xl p-2.5 text-xs">${passedNotice}</div>`
+
+: `
+
+<div class="mt-2 bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+
+<div>
+
+<span class="text-slate-500">Est. Pickup at <b>${userFromStop.name}</b>:</span>
+
+<span class="font-bold text-emerald-700 ml-1">${pickupETA}</span>
+
+</div>
+
+<div>
+
+<span class="text-slate-500">Safe Arrival at <b>${userToStop.name}</b>:</span>
+
+<span class="font-bold text-slate-800 ml-1">${dropETA}</span>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+
+const liveTopBadge = trip.status === "Running"
+
+? `<span class="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full mb-1"><span class="w-2 h-2 rounded-full bg-emerald-600"></span> Live On Route</span>`
+
+: "";
+
+
+
+const seatBadge = isFull
+
+? `<span class="inline-block text-xs font-bold text-rose-600"><i class="fa-solid fa-ban"></i> Housefull (0/${maxSeats} Seats)</span>`
+
+: `<span class="inline-block text-xs font-bold text-emerald-700"><i class="fa-solid fa-chair"></i> ${seatsLeft} of ${maxSeats} Seats Available</span>`;
+
+
+
+const ratingInfo = getCaptainRatingSummary(trip.driver_id, trip.rating, trip.review_count);
+
+
+
+const pickupText = userFromStop ? ` from ${userFromStop.name}` : "";
+
+const dropText = userToStop ? ` to ${userToStop.name}` : "";
+
+const whatsappMsg = encodeURIComponent(
+
+`Hello Captain ${trip.driver_name} (${trip.vehicle_no}), I saw your trip from ${trip.start_stop} to ${trip.end_stop} (${depTimeFormatted}) on RouteConnect. I want to book a seat${pickupText}${dropText}.`
+
+);
+
+const waUrl = `https://wa.me/91${trip.driver_phone}?text=${whatsappMsg}`;
+
+const telUrl = `tel:${trip.driver_phone}`;
+
+
+
+const googleMapsBtnHTML = hasValidMapLink
+
+? `
+
+<button
+
+onclick="handleProtectedAction('GMAPS_LIVE', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${rawMapLink.trim()}')"
+
+class="flex-1 sm:flex-initial px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition shadow-sm"
+
+>
+
+<i class="fa-solid fa-location-crosshairs"></i> Live Google Map
+
+</button>
+
+`
+
+: "";
+
+
+
+return `
+
+<div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:shadow-md transition">
+
+<div class="flex items-start justify-between gap-3">
+
+<div class="flex items-center gap-3">
+
+<img src="${photoSrc}" alt="${trip.driver_name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(trip.driver_name)}&background=0f172a&color=fff'" class="w-12 h-12 rounded-xl object-cover border border-slate-200" />
+
+<div>
+
+<div class="flex items-center gap-1.5 flex-wrap">
+
+<h4 class="font-bold text-slate-900 text-base">${trip.driver_name}</h4>
+
+${genderBadge}
+
+</div>
+
+<p class="text-xs font-semibold text-slate-600 mt-0.5">
+
+${trip.vehicle_type} • <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 font-mono">${trip.vehicle_no}</span>
+
+</p>
+
+<div class="flex items-center gap-2 mt-1">
+
+<button onclick="openRatingModal('${trip.driver_id}', '${trip.driver_name} (${trip.vehicle_no})')" class="text-xs font-bold text-amber-600 hover:underline flex items-center gap-1">
+
+<i class="fa-solid fa-star"></i> ${ratingInfo.avg}
+
+<span class="text-[11px] text-slate-500 font-medium">(${ratingInfo.count} reviews)</span>
+
+</button>
+
+<button onclick="openRatingModal('${trip.driver_id}', '${trip.driver_name} (${trip.vehicle_no})')" class="text-[11px] text-emerald-600 hover:underline font-semibold ml-1">
+
++ Rate Captain
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="text-right flex flex-col items-end">
+
+${liveTopBadge}
+
+<div>${seatBadge}</div>
+
+</div>
+
+</div>
+
+
+
+<!-- Route Timeline Bar -->
+
+<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs sm:text-sm">
+
+<div>
+
+<span class="text-[10px] uppercase font-bold text-slate-400 block">Starts From</span>
+
+<span class="font-bold text-slate-900">${trip.start_stop}</span>
+
+<span class="block text-xs font-bold text-emerald-600 mt-0.5">${depTimeFormatted}</span>
+
+</div>
+
+
+
+<div class="flex-1 px-3 flex flex-col items-center">
+
+<span class="text-[10px] font-semibold text-slate-500 mb-1">
+
+${isTowardsKanpur ? "Towards Kanpur →" : "← Towards Manjhepur"}
+
+</span>
+
+<div class="w-full h-1.5 bg-slate-200 rounded-full relative overflow-hidden">
+
+<div class="absolute inset-y-0 left-0 ${trip.status === 'Running' ? 'bg-emerald-500' : 'bg-indigo-400'} rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+
+</div>
+
+<span class="text-[10px] text-slate-500 mt-1">
+
+${hasValidMapLink ? "🟢 Live Map + Hub Tracking" : (trip.status === 'Running' ? "📍 1-Tap Hub Check-In" : "Scheduled Trip")}
+
+</span>
+
+</div>
+
+
+
+<div class="text-right">
+
+<span class="text-[10px] uppercase font-bold text-slate-400 block">Goes Up To</span>
+
+<span class="font-bold text-slate-900">${trip.end_stop}</span>
+
+<span class="block text-xs font-semibold text-slate-700 mt-0.5">ETA: ${finalDestETA}</span>
+
+</div>
+
+</div>
+
+
+
+${liveTrackingBannerHTML}
+
+${customTimingHTML}
+
+
+
+<!-- Action Buttons -->
+
+<div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+
+<div>
+
+${trip.note ? `<span class="inline-block text-xs bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg font-medium"><i class="fa-solid fa-bullhorn mr-1"></i>${trip.note}</span>` : ""}
+
+</div>
+
+
+
+<div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end ml-auto">
+
+${googleMapsBtnHTML}
+
+<button
+
+onclick="handleProtectedAction('CALL', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${telUrl}')"
+
+class="flex-1 sm:flex-initial px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition"
+
+>
+
+<i class="fa-solid fa-phone"></i> Call Captain
+
+</button>
+
+<button
+
+onclick="handleProtectedAction('WHATSAPP', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${waUrl}')"
+
+class="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition"
+
+>
+
+<i class="fa-brands fa-whatsapp text-sm"></i> ${trip.status === 'Promised' ? 'Book on WhatsApp' : 'WhatsApp'}
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+`;
+
+}).join("");
+
+}
+
+
+
+function openRatingModal(driverId, captainTitle) {
+
+const user = getLoggedInPassenger();
+
+if (!user) { openAuthModal(); return; }
+
+document.getElementById("modalDriverId").value = driverId;
+
+document.getElementById("modalDriverTitleHidden").value = captainTitle;
+
+document.getElementById("modalDriverName").textContent = captainTitle;
+
+document.getElementById("charCount").textContent = "0 / 250 chars";
+
+setStarRating(5);
+
+renderCaptainReviewsList(driverId);
+
+document.getElementById("ratingModal").classList.remove("hidden");
+
+document.getElementById("ratingModal").classList.add("flex");
+
+}
+
+
+
+function closeRatingModal() {
+
+document.getElementById("ratingModal").classList.add("hidden");
+
+document.getElementById("ratingModal").classList.remove("flex");
+
+document.getElementById("ratingForm").reset();
+
+document.querySelectorAll("#tagContainer .tag-btn").forEach(btn => {
+
+btn.classList.remove("bg-emerald-600", "text-white");
+
+btn.classList.add("bg-white");
+
+});
+
+}
+
+
+
+function setStarRating(star) {
+
+selectedStarRating = star;
+
+const labels = {
+
+1: "1 Star - Poor Service",
+
+2: "2 Stars - Below Average",
+
+3: "3 Stars - Average",
+
+4: "4 Stars - Good Service",
+
+5: "5 Stars - Excellent Service"
+
+};
+
+document.getElementById("starRatingText").textContent = labels[star] || "5 Stars";
+
+document.querySelectorAll("#starSelector i").forEach(icon => {
+
+const iconStar = Number(icon.getAttribute("data-star"));
+
+icon.className = iconStar <= star ? "fa-solid fa-star text-amber-400" : "fa-regular fa-star text-slate-300";
+
+});
+
+}
+
+
+
+function toggleTag(btn) {
+
+btn.classList.toggle("bg-emerald-600");
+
+btn.classList.toggle("text-white");
+
+btn.classList.toggle("bg-white");
+
+}
+
+
+
+function sanitizeAndCount(el) {
+
+el.value = el.value.replace(/[<>/{}[\]\\`~|$^*]/g, "").replace(/(https?:\/\/[^\s]+)/gi, "");
+
+document.getElementById("charCount").textContent = `${el.value.length} / 250 chars`;
+
+}
+
+
+
+window.renderCaptainReviewsList = function (driverId) {
+
+const listEl = document.getElementById("driverReviewsList");
+
+if (!listEl) return;
+
+
+
+const matching = getAllPermanentReviews()
+
+.filter(r => r.driver_id === driverId)
+
+.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+
+
+if (matching.length === 0) {
+
+listEl.innerHTML = `
+
+<div class="text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400">
+
+No passenger reviews yet for this Captain. Be the first to rate!
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+
+listEl.innerHTML = matching.map(r => {
+
+const starsHTML = Array.from({ length: 5 }, (_, idx) =>
+
+`<i class="${idx < (Number(r.stars) || 5) ? 'fa-solid text-amber-400' : 'fa-regular text-slate-300'} fa-star text-[11px]"></i>`
+
+).join("");
+
+const dateStr = r.created_at
+
+? new Date(r.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+
+: "";
+
+const tagsHTML = Array.isArray(r.tags) && r.tags.length > 0
+
+? `<div class="flex flex-wrap gap-1 mt-1.5">${r.tags.map(t => `<span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${t}</span>`).join("")}</div>`
+
+: "";
+
+
+
+return `
+
+<div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-xs">
+
+<div class="flex items-center justify-between">
+
+<span class="font-bold text-slate-800">${r.passenger_name || "Verified Passenger"}</span>
+
+<span class="text-[10px] text-slate-400">${dateStr}</span>
+
+</div>
+
+<div class="mt-0.5">${starsHTML}</div>
+
+${r.comment ? `<p class="text-slate-600 mt-1.5 leading-relaxed">${r.comment}</p>` : ""}
+
+${tagsHTML}
+
+</div>
+
+`;
+
+}).join("");
+
+};
+
+
+
+// Review Submission with 24-Hour Anti-Spam Protection
+
+async function submitReview(e) {
+
+e.preventDefault();
+
+const user = getLoggedInPassenger();
+
+if (!user) { openAuthModal(); return; }
+
+
+
+const driverId = document.getElementById("modalDriverId").value;
+
+const captainTitle = document.getElementById("modalDriverTitleHidden").value;
+
+const comment = document.getElementById("reviewerComment").value.trim();
+
+
+
+const existingReviews = getAllPermanentReviews();
+
+const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+
+const recentReview = existingReviews.find(r =>
+
+r.driver_id === driverId &&
+
+(r.passenger_uid === user.uid || (r.passenger_email && r.passenger_email === user.email)) &&
+
+new Date(r.created_at || 0).getTime() > oneDayAgo
+
+);
+
+
+
+if (recentReview) {
+
+alert("Anti-Spam Security:\nYou have already submitted a review for this Captain in the last 24 hours. To ensure fairness, passengers can review the same Captain once every 24 hours.");
+
+return;
+
+}
+
+
+
+const selectedTags = [];
+
+document.querySelectorAll("#tagContainer .tag-btn.bg-emerald-600").forEach(btn => {
+
+selectedTags.push(btn.textContent.trim());
+
+});
+
+
+
+const btn = document.getElementById("submitReviewBtn");
+
+btn.disabled = true;
+
+btn.textContent = "Saving Permanent Review...";
+
+
+
+const reviewPayload = {
+
+review_id: "REV_" + Date.now(),
+
+driver_id: driverId,
+
+captain_title: captainTitle,
+
+passenger_uid: user.uid,
+
+passenger_name: user.name,
+
+passenger_email: user.email,
+
+stars: selectedStarRating,
+
+tags: selectedTags,
+
+comment: comment,
+
+created_at: new Date().toISOString()
+
+};
+
+
+
+try {
+
+existingReviews.unshift(reviewPayload);
+
+localStorage.setItem("RC_PERMANENT_REVIEWS", JSON.stringify(existingReviews));
+
+
+
+if (window.RC_FIREBASE) {
+
+const { db, collection, addDoc, doc, updateDoc } = window.RC_FIREBASE;
+
+await addDoc(collection(db, "reviews"), reviewPayload);
+
+
+
+const summary = getCaptainRatingSummary(driverId, "5.0", 1);
+
+const activeTrips = getActiveTripsData().filter(t => t.driver_id === driverId);
+
+for (const t of activeTrips) {
+
+if (t.id) {
+
+updateDoc(doc(db, "live_trips", t.id), {
+
+rating: summary.avg,
+
+review_count: summary.count
+
+}).catch(() => {});
+
+}
+
+}
+
+}
+
+
+
+document.getElementById("reviewerComment").value = "";
+
+document.getElementById("charCount").textContent = "0 / 250 chars";
+
+document.querySelectorAll("#tagContainer .tag-btn").forEach(b => {
+
+b.classList.remove("bg-emerald-600", "text-white");
+
+b.classList.add("bg-white");
+
+});
+
+renderCaptainReviewsList(driverId);
+
+filterTrips();
+
+alert("Thank you! Your verified review has been permanently saved.");
+
+} catch (err) {
+
+alert("Review saved: " + err.message);
+
+} finally {
+
+btn.disabled = false;
+
+btn.textContent = "Submit Permanent Review";
+
+}
+
+}
+
+
+
+window.addEventListener("DOMContentLoaded", () => {
+
+purgeExpiredInteractionLogs();
+
+renderAuthHeader();
+
+initDropdowns();
+
+filterTrips();
+
+// Re-evaluates auto-lag (+2m -> +5m -> +10m) and auto-catchup every 30 seconds
+
+setInterval(filterTrips, 30000);
+
+});
+
+</script>
+
 </body>
-</html>
+
+</html> 
