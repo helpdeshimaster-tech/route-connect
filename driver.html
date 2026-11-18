@@ -476,7 +476,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAJnefI6TOx8WN2CfFpABebiZEjC4Cn0p4",
@@ -549,23 +549,44 @@
 
     let currentDriverUser = null;
     let verifiedDriverRecord = null;
-    let allLiveTrips = [];
-    let allPermanentReviews = [];
+    let allLiveTrips = [];   // only THIS captain's trips (filtered on the server)
+    let myRating = null;     // this captain's rating totals document
 
-    // NEW: remembers which trip cards have their "More options" panel open (survives re-renders)
+    // Live listeners (started after the captain is verified, stopped on sign-out)
+    let unsubTrips = null;
+    let unsubRating = null;
+
+    // Remembers which trip cards have their "More options" panel open (survives re-renders)
     const rcOpenCards = new Set();
 
-    function getISTDateObj(offsetDays = 0) {
-      const now = new Date();
-      now.setDate(now.getDate() + offsetDays);
-      return now;
+    // =========================================================================
+    // INDIA TIME (always IST, whatever the phone clock / time zone says)
+    // =========================================================================
+    const pad2 = (n) => String(n).padStart(2, "0");
+    const _istFmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+    });
+    function istParts(ms = Date.now()) {
+      const p = {};
+      _istFmt.formatToParts(new Date(ms)).forEach((x) => { p[x.type] = x.value; });
+      return { y: +p.year, mo: +p.month, d: +p.day, h: +p.hour % 24, mi: +p.minute };
     }
-
-    function formatYMDLocal(d) {
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const dd = String(d.getDate()).padStart(2, "0");
-      return `${yyyy}-${mm}-${dd}`;
+    function istYMD(offsetDays = 0) {
+      const p = istParts();
+      const dt = new Date(Date.UTC(p.y, p.mo - 1, p.d + offsetDays));
+      return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth() + 1)}-${pad2(dt.getUTCDate())}`;
+    }
+    function istYMDFromMs(ms) {
+      const p = istParts(ms);
+      return `${p.y}-${pad2(p.mo)}-${pad2(p.d)}`;
+    }
+    function istNowMins() {
+      const p = istParts();
+      return p.h * 60 + p.mi;
+    }
+    function istNow24() {
+      return minsToTimeStr(istNowMins());
     }
 
     function normalizeDateToYMD(dateInput) {
@@ -581,7 +602,7 @@
       }
       const parsed = new Date(raw);
       if (!isNaN(parsed.getTime())) {
-        return formatYMDLocal(parsed);
+        return istYMDFromMs(parsed.getTime());
       }
       return raw;
     }
@@ -639,9 +660,16 @@
       return arrM;
     }
 
-    // Auto-lag with 60-minute cancellation ceiling
+    // Keeps the stored phone equal to the Sheet's phone (Firestore rules compare them), so old trips heal themselves
+    function ownPhone() {
+      return verifiedDriverRecord && verifiedDriverRecord.phone
+        ? { driver_phone: String(verifiedDriverRecord.phone).trim() }
+        : {};
+    }
+
+    // Auto-lag with 60-minute cancellation ceiling (India time)
     function getAutoLaggedScheduleTimes(trip) {
-      const todayYMD = formatYMDLocal(getISTDateObj(0));
+      const todayYMD = istYMD(0);
       const baseDep = trip.base_departure_time || trip.departure_time;
       const baseArr = trip.base_arrival_time || trip.claimed_arrival_time;
 
@@ -654,8 +682,7 @@
         };
       }
 
-      const now = new Date();
-      const nowMins = now.getHours() * 60 + now.getMinutes();
+      const nowMins = istNowMins();
       const baseDepMins = timeStrToMins(baseDep);
 
       if (nowMins < baseDepMins) {
@@ -700,18 +727,17 @@
       };
     }
 
+    // Rating comes from the ready-made totals document (one tiny read, no download of all reviews)
     function getCaptainPermanentRating(driverId, fallbackRating, fallbackCount) {
-      const matching = allPermanentReviews.filter(r => r.driver_id === driverId);
-      if (matching.length === 0) {
+      if (myRating && Number(myRating.count) > 0) {
         return {
-          rating: fallbackRating || "5.0",
-          review_count: Number(fallbackCount) || 0
+          rating: (Number(myRating.sum) / Number(myRating.count)).toFixed(1),
+          review_count: Number(myRating.count)
         };
       }
-      const sum = matching.reduce((acc, r) => acc + (Number(r.stars) || 5), 0);
       return {
-        rating: (sum / matching.length).toFixed(1),
-        review_count: matching.length
+        rating: fallbackRating || "5.0",
+        review_count: Number(fallbackCount) || 0
       };
     }
 
@@ -742,8 +768,7 @@
       document.getElementById("labelTodayDate").textContent = "Today";
       document.getElementById("labelTomorrowDate").textContent = "Tomorrow";
 
-      const now = new Date();
-      const nowStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const nowStr = istNow24();
       document.getElementById("liveDepTime").value = nowStr;
       updateLiveMinETA(true);
 
@@ -1032,7 +1057,7 @@
       const isStatusActive = String(data.status || "").trim().toLowerCase() === "active";
       const isPaid = String(data.payment_status || "Paid").trim().toLowerCase() !== "pending";
 
-      const todayIST = formatYMDLocal(getISTDateObj(0));
+      const todayIST = istYMD(0);
       const normalizedExpiry = normalizeDateToYMD(data.expiry_date);
       const isExpired = normalizedExpiry !== "" && normalizedExpiry < todayIST;
 
@@ -1046,9 +1071,44 @@
       return { allowed: true, data };
     }
 
+    // =========================================================================
+    // LIVE LISTENERS (only this captain's trips + this captain's rating totals)
+    // =========================================================================
+    function stopListeners() {
+      if (unsubTrips) { unsubTrips(); unsubTrips = null; }
+      if (unsubRating) { unsubRating(); unsubRating = null; }
+      allLiveTrips = [];
+      myRating = null;
+    }
+
+    function startListeners(user, record) {
+      stopListeners();
+
+      unsubTrips = onSnapshot(
+        query(collection(db, "live_trips"), where("driver_uid", "==", user.uid)),
+        (snapshot) => {
+          allLiveTrips = [];
+          snapshot.forEach((docSnap) => {
+            allLiveTrips.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          renderDriverTrips();
+          updateReturnMinETA(false);
+        },
+        (err) => { console.warn("live_trips listener notice:", err.message); }
+      );
+
+      const ratingKey = record.driver_id || user.uid;
+      unsubRating = onSnapshot(
+        doc(db, "driver_ratings", ratingKey),
+        (snap) => { myRating = snap.exists() ? snap.data() : null; },
+        (err) => { console.warn("driver_ratings listener notice:", err.message); }
+      );
+    }
+
     onAuthStateChanged(auth, async (user) => {
       currentDriverUser = user;
       verifiedDriverRecord = null;
+      stopListeners();
 
       const loginGate = document.getElementById("loginGate");
       const loadingGate = document.getElementById("loadingGate");
@@ -1109,6 +1169,7 @@
         verifiedDriverRecord = check.data;
         populateLockedProfile(user, verifiedDriverRecord);
         dashboard.classList.remove("hidden");
+        startListeners(user, verifiedDriverRecord);
         renderDriverTrips();
 
       } catch (err) {
@@ -1196,9 +1257,7 @@
           ? d.photo.trim()
           : (currentDriverUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name)}&background=0f172a&color=fff`);
 
-        const now = new Date();
-        const now24 = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-        const todayYMD = formatYMDLocal(getISTDateObj(0));
+        const todayYMD = istYMD(0);
 
         const keepCurrentStop = existingLive && existingLive.start_stop === startStop && existingLive.end_stop === endStop && existingLive.current_stop;
         const driverIdKey = d.driver_id || currentDriverUser.uid;
@@ -1254,6 +1313,7 @@
               base_departure_time: newRetDepStr,
               claimed_arrival_time: newRetArrStr,
               base_arrival_time: newRetArrStr,
+              ...ownPhone(),
               updated_at: new Date().toISOString()
             });
           }
@@ -1318,8 +1378,7 @@
             return;
           }
         } else {
-          const now = new Date();
-          const nowMins = now.getHours() * 60 + now.getMinutes();
+          const nowMins = istNowMins();
           if (promisedDepMins < nowMins - 5) {
             alert(
               `Past Time Selected:\nYou selected 'Today', but ${format12Hr(depTime)} has already passed.\nPlease enter an upcoming time for Today, or select 'Tomorrow'.`
@@ -1346,8 +1405,7 @@
         const seatsAvailable = Math.min(maxCapacity, Math.max(0, Number(document.getElementById("retSeatsLeft").value)));
         const noteText = document.getElementById("retNote").value.trim().replace(/[<>/{}[\]\\]/g, "");
 
-        const targetDateObj = dateMode === "TOMORROW" ? getISTDateObj(1) : getISTDateObj(0);
-        const tripDateYMD = formatYMDLocal(targetDateObj);
+        const tripDateYMD = istYMD(dateMode === "TOMORROW" ? 1 : 0);
         const tripDateLabel = dateMode === "TOMORROW" ? "Tomorrow" : "Today";
 
         const tripId = `TRIP_PROMISED_${currentDriverUser.uid}`;
@@ -1417,7 +1475,7 @@
         document.getElementById("liveGmapsLink").value = trip.gmaps_link || "";
         document.getElementById("liveFormSection").scrollIntoView({ behavior: "smooth" });
       } else {
-        const tomorrowYMD = formatYMDLocal(getISTDateObj(1));
+        const tomorrowYMD = istYMD(1);
         document.getElementById("retStartStop").value = trip.start_stop;
         document.getElementById("retEndStop").value = trip.end_stop;
         selectReturnDateMode(trip.trip_date === tomorrowYMD ? "TOMORROW" : "TODAY");
@@ -1430,25 +1488,7 @@
       }
     };
 
-    onSnapshot(collection(db, "live_trips"), (snapshot) => {
-      allLiveTrips = [];
-      snapshot.forEach((docSnap) => {
-        allLiveTrips.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      localStorage.setItem("RC_LIVE_TRIPS", JSON.stringify(allLiveTrips));
-      renderDriverTrips();
-      updateReturnMinETA(false);
-    });
-
-    onSnapshot(collection(db, "reviews"), (snapshot) => {
-      allPermanentReviews = [];
-      snapshot.forEach((docSnap) => {
-        allPermanentReviews.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      localStorage.setItem("RC_PERMANENT_REVIEWS", JSON.stringify(allPermanentReviews));
-    });
-
-    // NEW: per-card "More options" open/close (state kept in rcOpenCards so re-renders don't close it)
+    // Per-card "More options" open/close (state kept in rcOpenCards so re-renders don't close it)
     window.toggleTripMore = function (btn) {
       const card = btn.closest(".rc-trip");
       if (!card) return;
@@ -1481,7 +1521,7 @@
         return;
       }
 
-      const tomorrowYMD = formatYMDLocal(getISTDateObj(1));
+      const tomorrowYMD = istYMD(1);
 
       container.innerHTML = myTrips.map((trip) => {
         const isLive = trip.status === "Running";
@@ -1625,7 +1665,7 @@
     // =========================================================================
     window.checkInStop = async function (tripDocId, stopName) {
       const now = new Date();
-      const now24 = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const now24 = istNow24();
       const now12 = format12Hr(now24);
       const curMins = timeStrToMins(now24);
 
@@ -1668,12 +1708,13 @@
           current_stop_time: now12,
           current_stop_time_24: now24,
           claimed_arrival_time: updatedArr24,
+          ...ownPhone(),
           updated_at: now.toISOString()
         };
         await updateDoc(doc(db, "live_trips", tripDocId), updatePayload);
 
         const promisedReturn = getMyPromisedReturnTrip();
-        const todayYMD = formatYMDLocal(getISTDateObj(0));
+        const todayYMD = istYMD(0);
         if (promisedReturn && (!promisedReturn.trip_date || promisedReturn.trip_date === todayYMD)) {
           const effNewArrMins = getEffectiveArrivalMins(trip.departure_time, updatedArr24);
           const deadheadMins = getSafeRouteMins(trip.end_stop, promisedReturn.start_stop);
@@ -1689,6 +1730,7 @@
               base_departure_time: shiftedDepStr,
               claimed_arrival_time: shiftedArrStr,
               base_arrival_time: shiftedArrStr,
+              ...ownPhone(),
               updated_at: now.toISOString()
             });
           }
@@ -1703,7 +1745,7 @@
     // =========================================================================
     window.promoteReturnToLiveRunning = async function (promisedDocId) {
       const promisedTrip = allLiveTrips.find(t => t.id === promisedDocId);
-      if (!promisedTrip || !currentDriverUser) return;
+      if (!promisedTrip || !currentDriverUser || !verifiedDriverRecord) return;
 
       const activeRunning = getMyActiveRunningTrip();
       if (activeRunning && activeRunning.current_stop !== activeRunning.end_stop) {
@@ -1715,15 +1757,18 @@
       }
 
       const now = new Date();
-      const now24 = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const now24 = istNow24();
       const now12 = format12Hr(now24);
-      const todayYMD = formatYMDLocal(getISTDateObj(0));
+      const todayYMD = istYMD(0);
       const minMins = getSafeRouteMins(promisedTrip.start_stop, promisedTrip.end_stop);
       const newArr24 = minsToTimeStr(timeStrToMins(now24) + minMins);
 
       const liveDocId = `TRIP_${currentDriverUser.uid}`;
       const promotedPayload = {
         ...promisedTrip,
+        driver_uid: currentDriverUser.uid,
+        driver_email: currentDriverUser.email.toLowerCase(),
+        ...ownPhone(),
         status: "Running",
         trip_date: todayYMD,
         trip_date_label: "Today",
@@ -1769,6 +1814,7 @@
           await updateDoc(doc(db, "live_trips", promised.id), {
             departure_time: lagInfo.dep24,
             claimed_arrival_time: lagInfo.arr24,
+            ...ownPhone(),
             updated_at: new Date().toISOString()
           });
         } catch (e) {}
@@ -1781,6 +1827,7 @@
       try {
         await updateDoc(doc(db, "live_trips", tripDocId), {
           seats_available: clamped,
+          ...ownPhone(),
           updated_at: new Date().toISOString()
         });
       } catch (err) {
