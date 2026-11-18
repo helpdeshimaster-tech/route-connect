@@ -910,7 +910,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 import { getFirestore, collection, doc, setDoc, addDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -971,6 +971,23 @@ addDoc,
 updateDoc
 
 };
+
+// Passenger block status (set by the admin panel) + auth readiness
+window.RC_AUTH_READY = false;
+window.RC_BLOCK_CHECKED = false;
+window.RC_IS_BLOCKED = false;
+let _rcUnsubBlock = null;
+onAuthStateChanged(auth, (u) => {
+  window.RC_AUTH_READY = true;
+  window.RC_BLOCK_CHECKED = false;
+  window.RC_IS_BLOCKED = false;
+  if (_rcUnsubBlock) { _rcUnsubBlock(); _rcUnsubBlock = null; }
+  if (!u) { window.RC_BLOCK_CHECKED = true; return; }
+  _rcUnsubBlock = onSnapshot(doc(db, "passengers", u.uid), (snap) => {
+    window.RC_IS_BLOCKED = !!(snap.exists() && snap.data().blocked === true);
+    window.RC_BLOCK_CHECKED = true;
+  }, () => { window.RC_BLOCK_CHECKED = true; });
+});
 
 
 
@@ -1101,6 +1118,11 @@ console.warn("Firestore reviews listener notice:", err.message);
 <script>
 
 // Exact match with driver.html ground-calibrated offsets (145 mins total corridor duration)
+
+const escapeHTML = (v) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+// For values placed inside a JS string within an inline onclick="..." attribute
+const jsStr = (v) => escapeHTML(String(v ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\r?\n/g, " "));
+const encQ = (v) => encodeURIComponent(String(v ?? "")).replace(/'/g, "%27");
 
 const ROUTE_STOPS = [
 
@@ -1500,7 +1522,10 @@ const tripDate = trip.trip_date || todayYMD;
 
 
 
-if (tripDate < todayYMD) return false;
+// Past-dated trips (e.g. a run that started before midnight) stay visible until their own expiry window ends
+const isPastDate = tripDate < todayYMD;
+// Only a live Running trip may carry over past midnight; an unstarted scheduled trip from an earlier day is stale
+if (isPastDate && trip.status !== "Running") return false;
 
 if (tripDate === tomorrowYMD) return true;
 
@@ -1524,15 +1549,18 @@ if (isNaN(depH) || isNaN(depM)) return false;
 
 const now = new Date();
 
-const depDate = new Date();
-
+let depDate = new Date();
+if (isPastDate) {
+const [ty, tm, td] = String(tripDate).split("-").map(Number);
+if (ty && tm && td) depDate = new Date(ty, tm - 1, td);
+}
 depDate.setHours(depH, depM, 0, 0);
 
 
 
 // Handle midnight crossing trip departures: if depDate is ahead of now by over 12 hours, treat as yesterday's late run
 
-if (depDate.getTime() - now.getTime() > 12 * 60 * 60 * 1000) {
+if (!isPastDate && depDate.getTime() - now.getTime() > 12 * 60 * 60 * 1000) {
 
 depDate.setDate(depDate.getDate() - 1);
 
@@ -2022,9 +2050,9 @@ return `
 
 <div>
 
-<h5 class="font-bold text-slate-900 text-xs sm:text-sm leading-tight">${item.driver_name || "Verified Captain"}</h5>
+<h5 class="font-bold text-slate-900 text-xs sm:text-sm leading-tight">${escapeHTML(item.driver_name || "Verified Captain")}</h5>
 
-<p class="text-[11px] font-mono text-slate-600 mt-0.5">${item.vehicle_no || "Route Vehicle"}</p>
+<p class="text-[11px] font-mono text-slate-600 mt-0.5">${escapeHTML(item.vehicle_no || "Route Vehicle")}</p>
 
 <p class="text-[10px] text-slate-400 mt-0.5">${dateFormatted} • ${timeFormatted}</p>
 
@@ -2040,7 +2068,7 @@ ${badgeHTML}
 
 <button
 
-onclick="closeHistoryModal(); openRatingModal('${item.driver_id}', '${item.driver_name} (${item.vehicle_no})')"
+onclick="closeHistoryModal(); openRatingModal('${jsStr(item.driver_id)}', '${jsStr(item.driver_name + ' (' + item.vehicle_no + ')')}')"
 
 class="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline flex items-center gap-1"
 
@@ -2088,30 +2116,24 @@ let uid = "USR_" + btoa(email).slice(0, 10);
 
 
 
-if (window.RC_FIREBASE) {
-
-try {
-
-const result = await window.RC_FIREBASE.signInWithPopup(
-
-window.RC_FIREBASE.auth,
-
-window.RC_FIREBASE.googleProvider
-
-);
-
-if (result && result.user) {
-
-uid = result.user.uid;
-
-email = (result.user.email || email).toLowerCase();
-
-name = result.user.displayName || name || "Verified Passenger";
-
+if (!window.RC_FIREBASE) {
+alert("Secure sign-in is not available right now. Please check your internet connection and reload the page.");
+return;
 }
-
-} catch (err) {}
-
+try {
+const result = await window.RC_FIREBASE.signInWithPopup(
+window.RC_FIREBASE.auth,
+window.RC_FIREBASE.googleProvider
+);
+if (!result || !result.user) throw new Error("no-user");
+uid = result.user.uid;
+email = (result.user.email || email).toLowerCase();
+name = result.user.displayName || name || "Verified Passenger";
+} catch (err) {
+if (!err || err.code !== "auth/popup-closed-by-user") {
+alert("Google sign-in did not complete. Please try again.");
+}
+return;
 }
 
 
@@ -2191,6 +2213,10 @@ openAuthModal();
 return;
 
 }
+if (window.RC_IS_BLOCKED) {
+alert("Your account has been blocked from contacting captains. If you think this is a mistake, please contact RouteConnect support.");
+return;
+}
 
 
 
@@ -2202,6 +2228,21 @@ openMapGateModal(captainName, vehicleNo, targetUrl);
 
 return;
 
+}
+// Every Call / WhatsApp must be recorded against a verified Google account
+if (window.RC_FIREBASE && !window.RC_FIREBASE.auth.currentUser) {
+if (!window.RC_AUTH_READY) {
+alert("Connecting securely. Please tap again in a moment.");
+return;
+}
+localStorage.removeItem("RC_PASSENGER_USER");
+renderAuthHeader();
+openAuthModal();
+return;
+}
+if (window.RC_FIREBASE && !window.RC_BLOCK_CHECKED) {
+alert("Checking your account. Please tap again in a moment.");
+return;
 }
 
 
@@ -2600,6 +2641,7 @@ const tripStart = getStopObj(trip.start_stop);
 
 const tripEnd = getStopObj(trip.end_stop);
 
+if (!tripStart || !tripEnd) return "";
 const currentStopObj = trip.current_stop ? getStopObj(trip.current_stop) : null;
 
 const isTowardsKanpur = tripEnd.index > tripStart.index;
@@ -2632,7 +2674,7 @@ const genderText = (dirRecord && dirRecord.gender) || trip.driver_gender || "";
 
 const genderBadge = genderText
 
-? `<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">${genderText}</span>`
+? `<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">${escapeHTML(genderText)}</span>`
 
 : "";
 
@@ -2876,9 +2918,9 @@ const whatsappMsg = encodeURIComponent(
 
 );
 
-const waUrl = `https://wa.me/91${trip.driver_phone}?text=${whatsappMsg}`;
+const waUrl = `https://wa.me/91${String(trip.driver_phone).replace(/\D/g, '')}?text=${whatsappMsg}`;
 
-const telUrl = `tel:${trip.driver_phone}`;
+const telUrl = `tel:${String(trip.driver_phone).replace(/[^\d+]/g, '')}`;
 
 
 
@@ -2888,7 +2930,7 @@ const googleMapsBtnHTML = hasValidMapLink
 
 <button
 
-onclick="handleProtectedAction('GMAPS_LIVE', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${rawMapLink.trim()}')"
+onclick="handleProtectedAction('GMAPS_LIVE', '${jsStr(trip.driver_id)}', '${jsStr(trip.driver_name)}', '${jsStr(trip.vehicle_no)}', '${jsStr(rawMapLink.trim())}')"
 
 class="rc-map-btn"
 
@@ -2924,15 +2966,15 @@ return `
 
 <div class="rc-head-left">
 
-<img src="${photoSrc}" alt="${trip.driver_name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(trip.driver_name)}&background=0f172a&color=fff'" />
+<img src="${escapeHTML(photoSrc)}" alt="${escapeHTML(trip.driver_name)}" onerror="this.src='https://ui-avatars.com/api/?name=${encQ(trip.driver_name)}&background=0f172a&color=fff'" />
 
 <div>
 
-<h4 class="font-bold text-slate-900">${trip.driver_name}</h4>
+<h4 class="font-bold text-slate-900">${escapeHTML(trip.driver_name)}</h4>
 
 <p class="text-xs font-semibold text-slate-600 mt-0.5">
 
-${trip.vehicle_type} • <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 font-mono">${trip.vehicle_no}</span>
+${escapeHTML(trip.vehicle_type)} • <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 font-mono">${escapeHTML(trip.vehicle_no)}</span>
 
 </p>
 
@@ -2986,7 +3028,7 @@ ${liveTrackingBannerHTML}
 
 ${customTimingHTML}
 
-${trip.note ? `<div class="rc-note"><i class="fa-solid fa-bullhorn mr-1"></i>${trip.note}</div>` : ""}
+${trip.note ? `<div class="rc-note"><i class="fa-solid fa-bullhorn mr-1"></i>${escapeHTML(trip.note)}</div>` : ""}
 
 
 
@@ -2996,7 +3038,7 @@ ${trip.note ? `<div class="rc-note"><i class="fa-solid fa-bullhorn mr-1"></i>${t
 
 <button
 
-onclick="handleProtectedAction('CALL', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${telUrl}')"
+onclick="handleProtectedAction('CALL', '${jsStr(trip.driver_id)}', '${jsStr(trip.driver_name)}', '${jsStr(trip.vehicle_no)}', '${jsStr(telUrl)}')"
 
 class="rc-call"
 
@@ -3008,7 +3050,7 @@ class="rc-call"
 
 <button
 
-onclick="handleProtectedAction('WHATSAPP', '${trip.driver_id}', '${trip.driver_name}', '${trip.vehicle_no}', '${waUrl}')"
+onclick="handleProtectedAction('WHATSAPP', '${jsStr(trip.driver_id)}', '${jsStr(trip.driver_name)}', '${jsStr(trip.vehicle_no)}', '${jsStr(waUrl)}')"
 
 class="rc-wa"
 
@@ -3042,7 +3084,7 @@ class="rc-wa"
 
 <div class="rc-more-row">
 
-<button onclick="openRatingModal('${trip.driver_id}', '${trip.driver_name} (${trip.vehicle_no})')" class="text-sm font-bold text-amber-600 flex items-center gap-1">
+<button onclick="openRatingModal('${jsStr(trip.driver_id)}', '${jsStr(trip.driver_name + ' (' + trip.vehicle_no + ')')}')" class="text-sm font-bold text-amber-600 flex items-center gap-1">
 
 <i class="fa-solid fa-star"></i> ${ratingInfo.avg}
 
@@ -3050,7 +3092,7 @@ class="rc-wa"
 
 </button>
 
-<button onclick="openRatingModal('${trip.driver_id}', '${trip.driver_name} (${trip.vehicle_no})')" class="text-xs text-emerald-700 font-bold">
+<button onclick="openRatingModal('${jsStr(trip.driver_id)}', '${jsStr(trip.driver_name + ' (' + trip.vehicle_no + ')')}')" class="text-xs text-emerald-700 font-bold">
 
 + Rate Captain
 
@@ -3250,7 +3292,7 @@ const dateStr = r.created_at
 
 const tagsHTML = Array.isArray(r.tags) && r.tags.length > 0
 
-? `<div class="flex flex-wrap gap-1 mt-1.5">${r.tags.map(t => `<span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${t}</span>`).join("")}</div>`
+? `<div class="flex flex-wrap gap-1 mt-1.5">${r.tags.map(t => `<span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${escapeHTML(t)}</span>`).join("")}</div>`
 
 : "";
 
@@ -3262,7 +3304,7 @@ return `
 
 <div class="flex items-center justify-between">
 
-<span class="font-bold text-slate-800">${r.passenger_name || "Verified Passenger"}</span>
+<span class="font-bold text-slate-800">${escapeHTML(r.passenger_name || "Verified Passenger")}</span>
 
 <span class="text-[10px] text-slate-400">${dateStr}</span>
 
@@ -3270,7 +3312,7 @@ return `
 
 <div class="mt-0.5">${starsHTML}</div>
 
-${r.comment ? `<p class="text-slate-600 mt-1.5 leading-relaxed">${r.comment}</p>` : ""}
+${r.comment ? `<p class="text-slate-600 mt-1.5 leading-relaxed">${escapeHTML(r.comment)}</p>` : ""}
 
 ${tagsHTML}
 
@@ -3293,6 +3335,7 @@ e.preventDefault();
 const user = getLoggedInPassenger();
 
 if (!user) { openAuthModal(); return; }
+if (window.RC_IS_BLOCKED) { alert("Your account has been blocked from posting reviews."); return; }
 
 
 
