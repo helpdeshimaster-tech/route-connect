@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>RouteConnect Control Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+:root{
+  --bg:#E9EDF1; --panel:#FFFFFF; --ink:#13212C; --muted:#5B6B78; --line:#D3DBE2;
+  --brand:#0E5A64; --brand-soft:#D9ECEE; --ok:#1B7F4B; --ok-soft:#DDF1E6;
+  --warn:#9A5B00; --warn-soft:#FBEBCB; --danger:#B42318; --danger-soft:#FBE1DE;
+  --nav:#13212C; --nav-ink:#C9D5DE;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45;font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+.hidden{display:none!important}
+a{color:var(--brand)}
+
+/* ---------- gate ---------- */
+#gate{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
+.gate-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:32px 28px;max-width:400px;width:100%}
+.gate-card h1{margin:0 0 6px;font-size:22px;letter-spacing:-.01em}
+.gate-card p{margin:0 0 20px;color:var(--muted)}
+.gate-msg{margin:0 0 16px;padding:10px 12px;border-radius:8px;background:var(--danger-soft);color:var(--danger);font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:#fff;padding:9px 14px;border-radius:9px;font-weight:600;cursor:pointer;min-height:40px}
+.btn:hover{border-color:#aab6c0}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.nav-item:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.danger{background:#fff;border-color:#e9b5b0;color:var(--danger)}
+.btn.danger:hover{background:var(--danger-soft)}
+.btn.ok{background:#fff;border-color:#a9d8bf;color:var(--ok)}
+.btn.sm{padding:5px 10px;min-height:32px;font-size:13px;border-radius:8px}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+
+/* ---------- shell ---------- */
+#app{display:grid;grid-template-columns:232px 1fr;min-height:100%}
+aside{background:var(--nav);color:var(--nav-ink);padding:18px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
+.brand{padding:4px 10px 16px;color:#fff;font-weight:800;font-size:17px;letter-spacing:-.01em}
+.brand small{display:block;font-weight:500;font-size:12px;color:#8FA3B2;margin-top:2px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;background:none;border:0;color:var(--nav-ink);cursor:pointer;text-align:left;width:100%;font-weight:600}
+.nav-item i{width:18px;text-align:center}
+.nav-item:hover{background:#1D3040}
+.nav-item.active{background:#fff;color:var(--ink)}
+.nav-item .badge{margin-left:auto;background:var(--danger);color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;font-weight:700}
+.who{margin-top:auto;padding:12px 10px 4px;border-top:1px solid #243746;font-size:12px;color:#8FA3B2;word-break:break-all}
+.who button{margin-top:8px;width:100%;background:#1D3040;border:0;color:#fff;padding:8px;border-radius:8px;cursor:pointer;font-weight:600}
+main{padding:22px 26px 60px;min-width:0}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.page-head h2{margin:0;font-size:24px;letter-spacing:-.02em}
+.page-head p{margin:2px 0 0;color:var(--muted)}
+#errbar{background:var(--danger-soft);color:var(--danger);border:1px solid #efbdb8;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-weight:600}
+
+/* ---------- blocks ---------- */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.panel-h{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.panel-h h3{margin:0;font-size:15px}
+.panel-b{padding:14px 16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-size:28px;line-height:1.1;letter-spacing:-.02em}
+.stat span{color:var(--muted);font-size:13px}
+.stat.live b{color:var(--ok)}
+.stat.alert b{color:var(--danger)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.filters input,.filters select{background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 11px;min-height:40px}
+.filters input[type=search]{flex:1 1 220px}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--danger-soft);color:var(--danger)}
+.pill.info{background:var(--brand-soft);color:var(--brand)}
+.pill.mute{background:#E4E9ED;color:var(--muted)}
+.muted{color:var(--muted)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+
+/* rows */
+.rows{display:flex;flex-direction:column}
+.row{display:grid;gap:10px 14px;align-items:center;padding:11px 16px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row.head{font-size:12px;color:var(--muted);font-weight:700;background:#F5F7F9;border-radius:12px 12px 0 0}
+.cols-log{grid-template-columns:150px 1.2fr 1.3fr 1.2fr 90px}
+.cols-cust{grid-template-columns:1.3fr 1.4fr 110px 130px auto}
+.cols-rev{grid-template-columns:1fr auto}
+.cols-drv{grid-template-columns:1.2fr 1fr 120px 120px auto}
+.cols-trip{grid-template-columns:1.1fr 1.4fr 1fr 110px auto}
+.cols-aud{grid-template-columns:150px 1fr 1.4fr}
+.cell small{display:block;color:var(--muted);font-size:12.5px;word-break:break-all}
+.cell b{font-weight:700}
+.linkish{background:none;border:0;padding:0;color:var(--brand);font-weight:700;cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:2px}
+.actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.stars{color:#C98A00;letter-spacing:1px}
+.tag{display:inline-block;background:#EEF2F5;border-radius:6px;padding:1px 7px;font-size:12px;margin:4px 4px 0 0}
+.quote{margin:6px 0 0;padding:8px 10px;background:#F5F7F9;border-radius:8px;word-break:break-word}
+
+/* corridor */
+.corridor{overflow-x:auto;padding:6px 4px 4px}
+.track{display:flex;min-width:max-content;align-items:flex-end}
+.stop{width:44px;display:flex;flex-direction:column;align-items:center;flex:none}
+.veh{min-height:50px;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;align-items:center;margin-bottom:6px}
+.chip{background:var(--ok);color:#fff;font-size:10.5px;font-weight:800;padding:2px 5px;border-radius:5px;white-space:nowrap}
+.chip.stale{background:var(--warn)}
+.rail{height:14px;width:100%;position:relative}
+.rail::before{content:"";position:absolute;left:0;right:0;top:6px;height:2px;background:#B9C5CE}
+.rail i{position:absolute;left:50%;top:2px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:#fff;border:2px solid #7C8D9A}
+.stop.major .rail i{width:14px;height:14px;margin-left:-7px;top:0;background:var(--brand);border-color:var(--brand)}
+.stop.has .rail i{background:var(--ok);border-color:var(--ok)}
+.nm{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;color:var(--muted);height:96px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stop.major .nm{color:var(--ink);font-weight:700}
+.dir{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px}
+
+/* modal / report */
+.modal{position:fixed;inset:0;background:rgba(19,33,44,.55);display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow:auto;z-index:50}
+.sheet{background:#fff;border-radius:12px;max-width:1000px;width:100%;padding:22px 24px}
+.sheet h1{font-size:19px;margin:0 0 4px}
+.sheet table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:12px}
+.sheet th,.sheet td{border:1px solid #9AA8B3;padding:5px 7px;text-align:left;vertical-align:top;word-break:break-word}
+.sheet th{background:#EEF2F5}
+.sheet .meta{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13px;margin-top:10px}
+.sheet .note{font-size:12px;color:#44525E;margin-top:12px}
+.modal-bar{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+#toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-weight:600;z-index:70;max-width:90vw}
+#bottomnav{display:none}
+
+@media (max-width:900px){
+  #app{grid-template-columns:1fr}
+  aside{display:none}
+  main{padding:14px 12px 96px}
+  #bottomnav{display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--nav);z-index:40;padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px))}
+  #bottomnav button{flex:1;background:none;border:0;color:var(--nav-ink);padding:8px 2px;font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-width:0}
+  #bottomnav button.active{color:#fff}
+  #bottomnav button.active i{background:var(--brand)}
+  #bottomnav i{font-size:15px;padding:5px 14px;border-radius:99px}
+  .grid2{grid-template-columns:1fr}
+  .row.head{display:none}
+  .cols-log,.cols-cust,.cols-drv,.cols-trip,.cols-aud{grid-template-columns:1fr 1fr}
+  .cols-log .c-when{grid-column:1/-1}
+  .actions{justify-content:flex-start;grid-column:1/-1}
+  .cols-rev{grid-template-columns:1fr}
+  .page-head h2{font-size:21px}
+}
+@media print{
+  body *{visibility:hidden}
+  #reportSheet,#reportSheet *{visibility:visible}
+  #reportModal{position:static;background:none;padding:0;overflow:visible}
+  #reportSheet{position:absolute;left:0;top:0;width:100%;max-width:none;padding:0;border-radius:0}
+  .modal-bar{display:none}
+  .sheet th{background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ============ ACCESS GATE ============ -->
+<div id="gate">
+  <div class="gate-card">
+    <h1>RouteConnect Control Room</h1>
+    <p>Restricted area. Only the registered administrator Gmail can open this panel.</p>
+    <div id="gateMsg" class="gate-msg hidden"></div>
+    <button id="btnSignIn" class="btn primary" style="width:100%"><i class="fa-brands fa-google"></i> Sign in with Google</button>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden">
+  <aside>
+    <div class="brand">RouteConnect<small>Control Room</small></div>
+    <button class="nav-item active" data-act="nav" data-view="overview"><i class="fa-solid fa-gauge-high"></i>Overview</button>
+    <button class="nav-item" data-act="nav" data-view="live"><i class="fa-solid fa-van-shuttle"></i>Live trips</button>
+    <button class="nav-item" data-act="nav" data-view="logs"><i class="fa-solid fa-link"></i>Connections</button>
+    <button class="nav-item" data-act="nav" data-view="customers"><i class="fa-solid fa-users"></i>Customers</button>
+    <button class="nav-item" data-act="nav" data-view="reviews"><i class="fa-solid fa-star-half-stroke"></i>Reviews</button>
+    <button class="nav-item" data-act="nav" data-view="drivers"><i class="fa-solid fa-id-card"></i>Captains</button>
+    <button class="nav-item" data-act="nav" data-view="audit"><i class="fa-solid fa-clipboard-list"></i>Audit trail</button>
+    <div class="who"><span id="whoEmail"></span><button data-act="signout">Sign out</button></div>
+  </aside>
+
+  <main>
+    <div id="errbar" class="hidden"></div>
+
+    <!-- Overview -->
+    <section id="v-overview">
+      <div class="page-head"><div><h2>Overview</h2><p id="ovStamp" class="muted"></p></div></div>
+      <div class="stats" id="ovStats"></div>
+      <div class="panel" style="margin-bottom:14px">
+        <div class="panel-h"><h3>Live corridor</h3><span class="muted" id="corrNote"></span></div>
+        <div class="panel-b">
+          <div class="corridor"><div class="track" id="corrTrack"></div></div>
+          <div class="dir"><span>Manjhepur</span><span>Basant Vihar Chauraha</span></div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="panel"><div class="panel-h"><h3>Needs attention</h3></div><div id="ovAttention"></div></div>
+        <div class="panel"><div class="panel-h"><h3>Latest connections</h3><button class="btn sm" data-act="nav" data-view="logs">Open all</button></div><div id="ovRecent"></div></div>
+      </div>
+    </section>
+
+    <!-- Live trips -->
+    <section id="v-live" class="hidden">
+      <div class="page-head"><div><h2>Live trips</h2><p>Running vehicles and scheduled return trips right now.</p></div></div>
+      <div class="panel"><div class="rows" id="liveRows"></div></div>
+    </section>
+
+    <!-- Connections -->
+    <section id="v-logs" class="hidden">
+      <div class="page-head"><div><h2>Connections</h2><p>Every Call / WhatsApp tap: which customer, which captain, when.</p></div>
+        <div class="actions">
+          <button class="btn" data-act="exportCsv"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+          <button class="btn primary" data-act="policeReport"><i class="fa-solid fa-print"></i> Police report</button>
+        </div>
+      </div>
+      <div class="filters">
+        <input type="search" id="lgQ" placeholder="Search name, phone, Gmail, captain, vehicle" />
+        <select id="lgAct"><option value="">Call + WhatsApp</option><option value="CALL">Call only</option><option value="WHATSAPP">WhatsApp only</option></select>
+        <input type="date" id="lgFrom" aria-label="From date" />
+        <input type="date" id="lgTo" aria-label="To date" />
+        <button class="btn" data-act="clearFilters">Clear</button>
+      </div>
+      <div class="muted" id="lgCount" style="margin-bottom:8px"></div>
+      <div class="panel"><div class="rows">
+        <div class="row head cols-log"><div>When (IST)</div><div>Customer</div><div>Phone / Gmail</div><div>Captain</div><div>Action</div></div>
+        <div id="lgRows"></div>
+      </div></div>
+    </section>
+
+    <!-- Customers -->
+    <section id="v-customers" class="hidden">
+      <div class="page-head"><div><h2>Customers</h2><p>Block a customer to stop Call, WhatsApp and reviews from their account.</p></div></div>
+      <div class="filters">
+        <input type="search" id="cuQ" placeholder="Search name, phone or Gmail" />
+        <select id="cuF"><option value="">All customers</option><option value="blocked">Blocked only</option><option value="active">Not blocked</option></select>
+      </div>
+      <div class="panel"><div class="rows">
+        <div class="row head cols-cust"><div>Customer</div><div>Phone / Gmail</div><div>Connections</div><div>Joined</div><div></div></div>
+        <div id="cuRows"></div>
+      </div></div>
+    </section>
+
+    <!-- Reviews -->
+    <section id="v-reviews" class="hidden">
+      <div class="page-head"><div><h2>Reviews</h2><p>Deleted reviews are archived in <span class="mono">deleted_reviews</span>, never lost.</p></div></div>
+      <div class="filters">
+        <input type="search" id="rvQ" placeholder="Search comment, customer, captain" />
+        <select id="rvS"><option value="">All ratings</option><option value="low">1–2 stars</option><option value="1">1 star</option><option value="5">5 stars</option></select>
+      </div>
+      <div class="panel"><div class="rows" id="rvRows"></div></div>
+    </section>
+
+    <!-- Drivers -->
+    <section id="v-drivers" class="hidden">
+      <div class="page-head"><div><h2>Captains</h2><p>Read from your verified list. Blocking here also removes their live trips.</p></div></div>
+      <div class="filters">
+        <input type="search" id="drQ" placeholder="Search name, phone, vehicle, Gmail" />
+        <select id="drF"><option value="">All captains</option><option value="running">Running now</option><option value="expiring">Expiring in 15 days</option><option value="expired">Expired</option><option value="blocked">Blocked</option></select>
+      </div>
+      <div class="panel"><div class="rows">
+        <div class="row head cols-drv"><div>Captain</div><div>Vehicle / Phone</div><div>Plan expiry</div><div>Status</div><div></div></div>
+        <div id="drRows"></div>
+      </div></div>
+    </section>
+
+    <!-- Audit -->
+    <section id="v-audit" class="hidden">
+      <div class="page-head"><div><h2>Audit trail</h2><p>Every block, unblock and delete done from this panel.</p></div></div>
+      <div class="panel"><div class="rows">
+        <div class="row head cols-aud"><div>When (IST)</div><div>Action</div><div>Details</div></div>
+        <div id="auRows"></div>
+      </div></div>
+    </section>
+  </main>
+</div>
+
+<nav id="bottomnav" class="hidden" aria-label="Sections">
+  <button class="active" data-act="nav" data-view="overview"><i class="fa-solid fa-gauge-high"></i>Overview</button>
+  <button data-act="nav" data-view="live"><i class="fa-solid fa-van-shuttle"></i>Live</button>
+  <button data-act="nav" data-view="logs"><i class="fa-solid fa-link"></i>Connect</button>
+  <button data-act="nav" data-view="customers"><i class="fa-solid fa-users"></i>Users</button>
+  <button data-act="nav" data-view="reviews"><i class="fa-solid fa-star-half-stroke"></i>Reviews</button>
+  <button data-act="nav" data-view="drivers"><i class="fa-solid fa-id-card"></i>Captains</button>
+</nav>
+
+<!-- Police report -->
+<div id="reportModal" class="modal hidden">
+  <div style="width:100%;max-width:1000px">
+    <div class="modal-bar">
+      <button class="btn primary" data-act="printReport"><i class="fa-solid fa-print"></i> Print / Save as PDF</button>
+      <button class="btn" data-act="closeReport">Close</button>
+    </div>
+    <div id="reportSheet" class="sheet"></div>
+  </div>
+</div>
+<div id="toast" class="hidden" role="status"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, addDoc, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAJnefI6TOx8WN2CfFpABebiZEjC4Cn0p4",
+  authDomain: "routeconnect-kanpur-34176.firebaseapp.com",
+  projectId: "routeconnect-kanpur-34176",
+  storageBucket: "routeconnect-kanpur-34176.firebasestorage.app",
+  messagingSenderId: "853374704678",
+  appId: "1:853374704678:web:3285be5fb293c3dbc09ae7",
+  measurementId: "G-PJK9TJ5MX4"
+};
+const ADMIN_EMAIL = "shivanimakandipur@gmail.com";
+const LOG_LIMIT = 5000;
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+provider.setCustomParameters({ prompt: "select_account", login_hint: ADMIN_EMAIL });
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+/* ---------- route data (same as passenger / captain pages) ---------- */
+const ROUTE_STOPS = [
+  { name: "Manjhepur", offset: 0 }, { name: "Barwa", offset: 4 }, { name: "Maudev", offset: 8 },
+  { name: "Bhikhanipur", offset: 12 }, { name: "Harijanpur", offset: 14 }, { name: "Budhanda", offset: 16 },
+  { name: "Salhepur", offset: 18 }, { name: "Sathigavan", offset: 21 }, { name: "Kauh Mod", offset: 23 },
+  { name: "Bilari Mod", offset: 24 }, { name: "Makandapur Mod", offset: 25 },
+  { name: "Kulkheda Mod (Nayara Petrol Pump)", offset: 27 }, { name: "Madri", offset: 29 },
+  { name: "Amauli", offset: 33 }, { name: "Behta Khurd", offset: 38 }, { name: "Jamuiya (Harkundi Baba)", offset: 43 },
+  { name: "Birnai", offset: 46 }, { name: "Ranupur", offset: 49 }, { name: "Lahuri Sarai", offset: 52 },
+  { name: "Kalana", offset: 55 }, { name: "Jahanabad", offset: 60 }, { name: "Mathurapur", offset: 65 },
+  { name: "Birhar Mod", offset: 70 }, { name: "Sadh", offset: 85 }, { name: "Majhawan", offset: 98 },
+  { name: "Ramaipur", offset: 115 }, { name: "Magrasa", offset: 120 }, { name: "Sen Paschim Para Mod", offset: 124 },
+  { name: "Bingawan", offset: 128 }, { name: "Pipauri Mod", offset: 132 }, { name: "Galla Mandi", offset: 136 },
+  { name: "Naubasta", offset: 139 }, { name: "Baudh Nagar", offset: 142 }, { name: "Basant Vihar Chauraha", offset: 145 }
+];
+const MAJOR = new Set(["Manjhepur","Maudev","Sathigavan","Amauli","Jahanabad","Sadh","Ramaipur","Naubasta","Basant Vihar Chauraha"]);
+const stopIdx = (n) => ROUTE_STOPS.findIndex((s) => s.name === n);
+const routeMins = (a, b) => {
+  const x = ROUTE_STOPS.find((s) => s.name === a), y = ROUTE_STOPS.find((s) => s.name === b);
+  return x && y ? Math.abs(x.offset - y.offset) : 0;
+};
+
+/* ---------- helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+const pad = (n) => String(n).padStart(2, "0");
+const IST = "Asia/Kolkata";
+const fmtWhen = (iso) => {
+  const d = new Date(iso);
+  if (isNaN(d)) return "—";
+  return d.toLocaleString("en-IN", { timeZone: IST, day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true });
+};
+const istDay = (iso) => {
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleDateString("en-CA", { timeZone: IST });
+};
+const todayIST = () => istDay(new Date().toISOString());
+const ago = (iso) => {
+  const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (isNaN(m)) return "—";
+  if (m < 1) return "just now";
+  if (m < 60) return m + " min ago";
+  if (m < 1440) return Math.floor(m / 60) + " h ago";
+  return Math.floor(m / 1440) + " d ago";
+};
+const normYMD = (v) => {
+  if (!v) return "";
+  const s = String(v).trim();
+  let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m) return `${m[3]}-${pad(m[2])}-${pad(m[1])}`;
+  m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if (m) return `${m[1]}-${pad(m[2])}-${pad(m[3])}`;
+  const d = new Date(s);
+  return isNaN(d) ? "" : istDay(d.toISOString());
+};
+const daysUntil = (ymd) => {
+  if (!ymd) return null;
+  const a = new Date(todayIST() + "T00:00:00Z").getTime(), b = new Date(ymd + "T00:00:00Z").getTime();
+  return Math.round((b - a) / 86400000);
+};
+const csvCell = (v) => {
+  let s = String(v ?? "");
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // stop spreadsheet formula injection
+  return '"' + s.replace(/"/g, '""') + '"';
+};
+let toastTimer;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg; t.classList.remove("hidden");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.add("hidden"), 3200);
+}
+
+/* ---------- state ---------- */
+const S = { trips: [], drivers: [], pax: [], reviews: [], logs: [], audit: [] };
+let deniedMsg = "", adminUser = null, unsubs = [], view = "overview", paintQueued = false;
+const loaded = new Set();
+
+/* ---------- derived data ---------- */
+function tripDepMs(t) {
+  const day = t.trip_date || todayIST();
+  const [h, m] = String(t.departure_time || "00:00").split(":").map(Number);
+  return new Date(`${day}T${pad(h || 0)}:${pad(m || 0)}:00+05:30`).getTime();
+}
+function tripState(t) {
+  if (t.status !== "Running") return "sched";
+  const exp = tripDepMs(t) + (routeMins(t.start_stop, t.end_stop) + 90) * 60000;
+  return Date.now() <= exp ? "live" : "stale";
+}
+function driverKey(d) { return d.driver_id || d.id; }
+function driverByIdOrEmail(id, email) {
+  return S.drivers.find((d) => (id && (d.driver_id === id || d.id === id)) ||
+    (email && d.email && d.email.toLowerCase() === String(email).toLowerCase()));
+}
+function driverStatus(d) {
+  const st = String(d.status || "Active").trim().toLowerCase();
+  const exp = normYMD(d.expiry_date);
+  const left = daysUntil(exp);
+  if (st !== "active") return { kind: "blocked", label: "Blocked", cls: "bad", left };
+  if (exp && left < 0) return { kind: "expired", label: "Expired", cls: "bad", left };
+  if (exp && left <= 15) return { kind: "expiring", label: "Expires in " + left + " d", cls: "warn", left };
+  return { kind: "active", label: "Active", cls: "ok", left };
+}
+function customers() {
+  const map = new Map();
+  const key = (o) => o.uid || o.passenger_uid || (o.email || o.passenger_email || "").toLowerCase();
+  S.pax.forEach((p) => map.set(key(p), { uid: p.uid || p.id, name: p.name, email: p.email, phone: p.phone, joined_at: p.joined_at, blocked: !!p.blocked, blocked_reason: p.blocked_reason, blocked_at: p.blocked_at, conns: 0, last: "", reviews: 0 }));
+  const ensure = (uid, name, email, phone) => {
+    const k = uid || (email || "").toLowerCase();
+    if (!k) return null;
+    if (!map.has(k)) map.set(k, { uid, name, email, phone, joined_at: "", blocked: false, conns: 0, last: "", reviews: 0 });
+    return map.get(k);
+  };
+  S.logs.forEach((l) => {
+    const c = ensure(l.passenger_uid, l.passenger_name, l.passenger_email, l.passenger_phone);
+    if (!c) return;
+    c.conns++;
+    if (!c.last || l.timestamp > c.last) c.last = l.timestamp;
+    if (!c.phone && l.passenger_phone) c.phone = l.passenger_phone;
+  });
+  S.reviews.forEach((r) => {
+    const c = ensure(r.passenger_uid, r.passenger_name, r.passenger_email, "");
+    if (c) c.reviews++;
+  });
+  return [...map.values()].sort((a, b) => (b.last || b.joined_at || "").localeCompare(a.last || a.joined_at || ""));
+}
+
+/* ---------- audit ---------- */
+async function audit(action, target, details) {
+  try {
+    await addDoc(collection(db, "admin_audit"), { at: new Date().toISOString(), by: adminUser.email, action, target: target || "", details: details || "" });
+  } catch (e) { console.warn("audit failed", e); }
+}
+
+/* ---------- render ---------- */
+function queuePaint() {
+  if (paintQueued) return;
+  paintQueued = true;
+  requestAnimationFrame(() => { paintQueued = false; paint(); });
+}
+function paint() {
+  paintBadges();
+  ({ overview: paintOverview, live: paintLive, logs: paintLogs, customers: paintCustomers, reviews: paintReviews, drivers: paintDrivers, audit: paintAudit })[view]();
+}
+function paintBadges() { /* reserved for nav counters */ }
+
+function paintOverview() {
+  const today = todayIST();
+  const live = S.trips.filter((t) => tripState(t) === "live");
+  const stale = S.trips.filter((t) => tripState(t) === "stale");
+  const sched = S.trips.filter((t) => t.status === "Promised");
+  const activeCap = S.drivers.filter((d) => driverStatus(d).kind === "active" || driverStatus(d).kind === "expiring").length;
+  const cust = customers();
+  const blocked = cust.filter((c) => c.blocked).length;
+  const todayConn = S.logs.filter((l) => istDay(l.timestamp) === today).length;
+  const lowRecent = S.reviews.filter((r) => Number(r.stars) <= 2 && Date.now() - new Date(r.created_at).getTime() < 7 * 86400000).length;
+  $("ovStamp").textContent = "Updated " + fmtWhen(new Date().toISOString()) + " IST";
+  const card = (n, l, cls = "") => `<div class="stat ${cls}"><b>${n}</b><span>${l}</span></div>`;
+  $("ovStats").innerHTML =
+    card(live.length, "Captains running now", "live") +
+    card(sched.length, "Return trips scheduled") +
+    card(activeCap + " / " + S.drivers.length, "Active captains") +
+    card(todayConn, "Connections today") +
+    card(cust.length, "Customers") +
+    card(blocked, "Blocked customers", blocked ? "alert" : "") +
+    card(lowRecent, "Low reviews, last 7 days", lowRecent ? "alert" : "");
+
+  // corridor
+  const byStop = new Map();
+  [...live, ...stale].forEach((t) => {
+    let i = stopIdx(t.current_stop);
+    if (i < 0) i = stopIdx(t.start_stop);
+    if (i < 0) return;
+    if (!byStop.has(i)) byStop.set(i, []);
+    byStop.get(i).push(t);
+  });
+  $("corrTrack").innerHTML = ROUTE_STOPS.map((s, i) => {
+    const ts = byStop.get(i) || [];
+    const chips = ts.map((t) => {
+      const towards = stopIdx(t.end_stop) > stopIdx(t.start_stop);
+      return `<span class="chip ${tripState(t) === "stale" ? "stale" : ""}" title="${esc(t.driver_name)}">${esc(String(t.vehicle_no || "").slice(-4))} ${towards ? "▸" : "◂"}</span>`;
+    }).join("");
+    return `<div class="stop ${MAJOR.has(s.name) ? "major" : ""} ${ts.length ? "has" : ""}"><div class="veh">${chips}</div><div class="rail"><i></i></div><div class="nm" title="${esc(s.name)}">${esc(s.name)}</div></div>`;
+  }).join("");
+  $("corrNote").textContent = live.length ? "▸ towards Kanpur · ◂ towards Manjhepur" : "No vehicle is running right now";
+
+  // attention
+  const items = [];
+  stale.forEach((t) => items.push(`<div class="row"><div class="cell"><b>${esc(t.driver_name)}</b> <span class="pill warn">Trip stuck</span><small>${esc(t.vehicle_no)} · ${esc(t.start_stop)} → ${esc(t.end_stop)} · started ${ago(new Date(tripDepMs(t)).toISOString())}. Passengers no longer see it.</small></div></div>`));
+  S.drivers.forEach((d) => {
+    const s = driverStatus(d);
+    if (s.kind === "expiring" || s.kind === "expired") items.push(`<div class="row"><div class="cell"><b>${esc(d.name)}</b> <span class="pill ${s.cls}">${esc(s.label)}</span><small>${esc(d.vehicle_no)} · ${esc(d.phone)}</small></div></div>`);
+  });
+  $("ovAttention").innerHTML = items.length ? items.slice(0, 8).join("") : `<div class="empty">Nothing needs attention.</div>`;
+
+  $("ovRecent").innerHTML = S.logs.length ? S.logs.slice(0, 6).map((l) =>
+    `<div class="row"><div class="cell"><b>${esc(l.passenger_name)}</b> <span class="pill ${l.action_type === "CALL" ? "info" : "ok"}">${l.action_type === "CALL" ? "Call" : "WhatsApp"}</span><small>to ${esc(l.driver_name)} (${esc(l.vehicle_no)}) · ${ago(l.timestamp)}</small></div></div>`).join("")
+    : `<div class="empty">No connections recorded yet.</div>`;
+}
+
+function paintLive() {
+  const trips = [...S.trips].sort((a, b) => (tripState(a) === "live" ? 0 : 1) - (tripState(b) === "live" ? 0 : 1) || tripDepMs(a) - tripDepMs(b));
+  if (!trips.length) { $("liveRows").innerHTML = `<div class="empty">No trips posted right now.</div>`; return; }
+  $("liveRows").innerHTML = `<div class="row head cols-trip"><div>Captain</div><div>Route</div><div>Where now</div><div>Status</div><div></div></div>` + trips.map((t) => {
+    const st = tripState(t);
+    const pill = st === "live" ? `<span class="pill ok">Running</span>` : st === "stale" ? `<span class="pill warn">Stuck</span>` : `<span class="pill info">Scheduled</span>`;
+    const now = t.status === "Running" ? `${esc(t.current_stop || t.start_stop)}<small>${t.current_stop_time ? esc(t.current_stop_time) : ""}</small>` : `<span class="muted">Departs ${esc(t.trip_date_label || "")} ${esc(t.departure_time)}</span>`;
+    return `<div class="row cols-trip">
+      <div class="cell"><b>${esc(t.driver_name)}</b><small>${esc(t.vehicle_no)} · ${esc(t.driver_phone)}</small></div>
+      <div class="cell">${esc(t.start_stop)} → ${esc(t.end_stop)}<small>Seats left ${esc(t.seats_available)} / ${esc(t.max_capacity)}</small></div>
+      <div class="cell">${now}</div>
+      <div>${pill}</div>
+      <div class="actions"><button class="btn danger sm" data-act="removeTrip" data-id="${esc(t.id)}">Remove</button></div>
+    </div>`;
+  }).join("");
+}
+
+function logsFiltered() {
+  const q = $("lgQ").value.trim().toLowerCase(), act = $("lgAct").value, from = $("lgFrom").value, to = $("lgTo").value;
+  return S.logs.filter((l) => {
+    if (act && l.action_type !== act) return false;
+    const day = istDay(l.timestamp);
+    if (from && day < from) return false;
+    if (to && day > to) return false;
+    if (q) {
+      const hay = [l.passenger_name, l.passenger_email, l.passenger_phone, l.passenger_uid, l.driver_name, l.vehicle_no].join(" ").toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+function paintLogs() {
+  const rows = logsFiltered();
+  const cap = 300;
+  $("lgCount").textContent = `${rows.length} record${rows.length === 1 ? "" : "s"}` + (rows.length > cap ? ` (showing latest ${cap}, export CSV for all)` : "") + (S.logs.length >= LOG_LIMIT ? ` · panel loads the latest ${LOG_LIMIT} records` : "");
+  $("lgRows").innerHTML = rows.length ? rows.slice(0, cap).map((l) => `
+    <div class="row cols-log">
+      <div class="cell c-when">${esc(fmtWhen(l.timestamp))}</div>
+      <div class="cell"><button class="linkish" data-act="filterCustomer" data-q="${esc(l.passenger_email || l.passenger_name)}">${esc(l.passenger_name)}</button></div>
+      <div class="cell">${esc(l.passenger_phone || "—")}<small>${esc(l.passenger_email)}</small></div>
+      <div class="cell"><b>${esc(l.driver_name)}</b><small>${esc(l.vehicle_no)}</small></div>
+      <div><span class="pill ${l.action_type === "CALL" ? "info" : "ok"}">${l.action_type === "CALL" ? "Call" : "WhatsApp"}</span></div>
+    </div>`).join("") : `<div class="empty">No matching records.</div>`;
+}
+
+function paintCustomers() {
+  const q = $("cuQ").value.trim().toLowerCase(), f = $("cuF").value;
+  const list = customers().filter((c) => {
+    if (f === "blocked" && !c.blocked) return false;
+    if (f === "active" && c.blocked) return false;
+    return !q || [c.name, c.email, c.phone].join(" ").toLowerCase().includes(q);
+  });
+  $("cuRows").innerHTML = list.length ? list.slice(0, 300).map((c) => `
+    <div class="row cols-cust">
+      <div class="cell"><b>${esc(c.name || "—")}</b> ${c.blocked ? `<span class="pill bad">Blocked</span>` : ""}<small>${c.blocked && c.blocked_reason ? "Reason: " + esc(c.blocked_reason) : ""}</small></div>
+      <div class="cell">${esc(c.phone || "—")}<small>${esc(c.email || "")}</small></div>
+      <div class="cell">${c.conns}<small>${c.last ? "last " + ago(c.last) : "none"} · ${c.reviews} review${c.reviews === 1 ? "" : "s"}</small></div>
+      <div class="cell">${c.joined_at ? esc(fmtWhen(c.joined_at).split(",").slice(0, 2).join(",")) : "—"}</div>
+      <div class="actions">
+        <button class="btn sm" data-act="filterCustomer" data-q="${esc(c.email || c.name)}">Connections</button>
+        ${c.blocked
+          ? `<button class="btn ok sm" data-act="unblockUser" data-uid="${esc(c.uid)}">Unblock</button>`
+          : `<button class="btn danger sm" data-act="blockUser" data-uid="${esc(c.uid)}">Block</button>`}
+      </div>
+    </div>`).join("") : `<div class="empty">No customers found.</div>`;
+}
+
+function paintReviews() {
+  const q = $("rvQ").value.trim().toLowerCase(), f = $("rvS").value;
+  const list = S.reviews.filter((r) => {
+    const s = Number(r.stars) || 0;
+    if (f === "low" && s > 2) return false;
+    if ((f === "1" || f === "5") && String(s) !== f) return false;
+    return !q || [r.comment, r.passenger_name, r.passenger_email, r.captain_title, (r.tags || []).join(" ")].join(" ").toLowerCase().includes(q);
+  }).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  $("rvRows").innerHTML = list.length ? list.slice(0, 200).map((r) => {
+    const s = Math.max(0, Math.min(5, Number(r.stars) || 0));
+    return `<div class="row cols-rev">
+      <div class="cell">
+        <span class="stars">${"★".repeat(s)}${"☆".repeat(5 - s)}</span> <b>${esc(r.captain_title || r.driver_id)}</b>
+        <small>${esc(r.passenger_name)} · ${esc(r.passenger_email)} · ${esc(fmtWhen(r.created_at))}</small>
+        ${(r.tags || []).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}
+        ${r.comment ? `<div class="quote">${esc(r.comment)}</div>` : ""}
+      </div>
+      <div class="actions">
+        <button class="btn danger sm" data-act="delReview" data-id="${esc(r.id)}">Delete</button>
+        <button class="btn danger sm" data-act="delReviewBlock" data-id="${esc(r.id)}">Delete + block</button>
+      </div>
+    </div>`;
+  }).join("") : `<div class="empty">No reviews match.</div>`;
+}
+
+function paintDrivers() {
+  const q = $("drQ").value.trim().toLowerCase(), f = $("drF").value;
+  const runningIds = new Set(S.trips.filter((t) => tripState(t) === "live").map((t) => t.driver_id));
+  const runningEmails = new Set(S.trips.filter((t) => tripState(t) === "live").map((t) => (t.driver_email || "").toLowerCase()));
+  const list = S.drivers.filter((d) => {
+    const st = driverStatus(d);
+    const isRun = runningIds.has(driverKey(d)) || runningIds.has(d.id) || (d.email && runningEmails.has(d.email.toLowerCase()));
+    if (f === "running" && !isRun) return false;
+    if (f && f !== "running" && st.kind !== f) return false;
+    return !q || [d.name, d.phone, d.vehicle_no, d.email].join(" ").toLowerCase().includes(q);
+  });
+  $("drRows").innerHTML = list.length ? list.slice(0, 300).map((d) => {
+    const st = driverStatus(d);
+    const isRun = runningIds.has(driverKey(d)) || runningIds.has(d.id) || (d.email && runningEmails.has(d.email.toLowerCase()));
+    return `<div class="row cols-drv">
+      <div class="cell"><b>${esc(d.name)}</b> ${isRun ? `<span class="pill ok">Running</span>` : ""}<small>${esc(d.email)}</small></div>
+      <div class="cell">${esc(d.vehicle_no)}<small>${esc(d.phone)}</small></div>
+      <div class="cell">${esc(normYMD(d.expiry_date) || "—")}</div>
+      <div><span class="pill ${st.cls}">${esc(st.label)}</span></div>
+      <div class="actions">${st.kind === "blocked"
+        ? `<button class="btn ok sm" data-act="toggleDriver" data-id="${esc(d.id)}">Unblock</button>`
+        : `<button class="btn danger sm" data-act="toggleDriver" data-id="${esc(d.id)}">Block</button>`}</div>
+    </div>`;
+  }).join("") : `<div class="empty">No captains found.</div>`;
+}
+
+function paintAudit() {
+  $("auRows").innerHTML = S.audit.length ? S.audit.map((a) => `
+    <div class="row cols-aud"><div class="cell">${esc(fmtWhen(a.at))}</div><div class="cell"><b>${esc(a.action)}</b></div><div class="cell">${esc(a.target)}<small>${esc(a.details)}</small></div></div>`).join("")
+    : `<div class="empty">No admin actions yet.</div>`;
+}
+
+/* ---------- police report / csv ---------- */
+function logRecordsWithDriver(rows) {
+  return rows.map((l) => {
+    const d = driverByIdOrEmail(l.driver_id, "");
+    return { ...l, driver_phone: d ? d.phone : "" };
+  });
+}
+function exportCsv() {
+  const rows = logRecordsWithDriver(logsFiltered());
+  if (!rows.length) return toast("No records to export");
+  const head = ["Date-Time (IST)", "Customer name", "Customer phone (self-declared)", "Customer Gmail", "Customer UID", "Action", "Captain", "Vehicle", "Captain phone", "Captain ID"];
+  const lines = [head.map(csvCell).join(",")].concat(rows.map((l) =>
+    [fmtWhen(l.timestamp), l.passenger_name, l.passenger_phone, l.passenger_email, l.passenger_uid, l.action_type, l.driver_name, l.vehicle_no, l.driver_phone, l.driver_id].map(csvCell).join(",")));
+  const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "routeconnect-connections-" + todayIST() + ".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  audit("Exported connections CSV", rows.length + " records", filterSummary());
+}
+function filterSummary() {
+  const parts = [];
+  if ($("lgQ").value.trim()) parts.push('search "' + $("lgQ").value.trim() + '"');
+  if ($("lgAct").value) parts.push("action " + $("lgAct").value);
+  if ($("lgFrom").value) parts.push("from " + $("lgFrom").value);
+  if ($("lgTo").value) parts.push("to " + $("lgTo").value);
+  return parts.length ? parts.join(", ") : "all records";
+}
+function policeReport() {
+  const rows = logRecordsWithDriver(logsFiltered());
+  if (!rows.length) return toast("No records to include");
+  $("reportSheet").innerHTML = `
+    <h1>RouteConnect: Customer–Captain Connection Record</h1>
+    <div class="meta">
+      <b>Generated</b><span>${esc(fmtWhen(new Date().toISOString()))} IST</span>
+      <b>Generated by</b><span>${esc(adminUser.email)}</span>
+      <b>Filter</b><span>${esc(filterSummary())}</span>
+      <b>Total records</b><span>${rows.length}</span>
+    </div>
+    <table>
+      <thead><tr><th>#</th><th>Date-Time (IST)</th><th>Customer</th><th>Customer phone</th><th>Customer Gmail</th><th>Action</th><th>Captain</th><th>Vehicle</th><th>Captain phone</th></tr></thead>
+      <tbody>${rows.map((l, i) => `<tr><td>${i + 1}</td><td>${esc(fmtWhen(l.timestamp))}</td><td>${esc(l.passenger_name)}</td><td>${esc(l.passenger_phone || "—")}</td><td>${esc(l.passenger_email)}</td><td>${l.action_type === "CALL" ? "Call" : "WhatsApp"}</td><td>${esc(l.driver_name)}</td><td>${esc(l.vehicle_no)}</td><td>${esc(l.driver_phone || "—")}</td></tr>`).join("")}</tbody>
+    </table>
+    <p class="note">Each row records that the customer tapped the Call or WhatsApp button for the captain on the RouteConnect website. It does not prove that a call was answered or that the customer travelled. Customer Gmail comes from Google sign-in; customer phone was typed by the customer and is not verified. Times are Indian Standard Time.</p>`;
+  $("reportModal").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  audit("Generated police report", rows.length + " records", filterSummary());
+}
+function closeReport() { $("reportModal").classList.add("hidden"); document.body.style.overflow = ""; }
+
+/* ---------- actions ---------- */
+async function setBlocked(uid, blocked) {
+  const c = customers().find((x) => x.uid === uid);
+  if (!uid) return toast("This customer has no account ID, cannot block");
+  let reason = "";
+  if (blocked) {
+    reason = prompt("Reason for blocking " + (c ? c.name : "") + " (kept in the audit trail):", "Spam / misuse");
+    if (reason === null) return;
+  } else if (!confirm("Unblock " + (c ? c.name : "this customer") + "?")) return;
+  const payload = blocked
+    ? { uid, blocked: true, blocked_reason: reason.trim(), blocked_at: new Date().toISOString(), blocked_by: adminUser.email }
+    : { uid, blocked: false, blocked_reason: "", unblocked_at: new Date().toISOString(), blocked_by: adminUser.email };
+  if (c) { payload.name = c.name || ""; payload.email = c.email || ""; payload.phone = c.phone || ""; }
+  await setDoc(doc(db, "passengers", uid), payload, { merge: true });
+  await audit(blocked ? "Blocked customer" : "Unblocked customer", (c ? c.name + " <" + c.email + ">" : uid), reason);
+  toast(blocked ? "Customer blocked" : "Customer unblocked");
+}
+async function deleteReview(id, alsoBlock) {
+  const r = S.reviews.find((x) => x.id === id);
+  if (!r) return;
+  const msg = alsoBlock ? "Delete this review AND block " + r.passenger_name + "?" : "Delete this review?";
+  if (!confirm(msg)) return;
+  const { id: _omit, ...copy } = r;
+  await setDoc(doc(db, "deleted_reviews", id), { ...copy, deleted_at: new Date().toISOString(), deleted_by: adminUser.email });
+  await deleteDoc(doc(db, "reviews", id));
+  await audit("Deleted review", r.passenger_name + " <" + r.passenger_email + "> on " + (r.captain_title || r.driver_id), r.comment || "");
+  if (alsoBlock && r.passenger_uid) await setBlocked(r.passenger_uid, true);
+  else toast("Review deleted");
+}
+async function removeTrip(id) {
+  const t = S.trips.find((x) => x.id === id);
+  if (!t || !confirm("Remove this trip from the passenger page?\n" + t.driver_name + " · " + t.start_stop + " → " + t.end_stop)) return;
+  await deleteDoc(doc(db, "live_trips", id));
+  await audit("Removed trip", t.driver_name + " (" + t.vehicle_no + ")", t.start_stop + " → " + t.end_stop);
+  toast("Trip removed");
+}
+async function toggleDriver(id) {
+  const d = S.drivers.find((x) => x.id === id);
+  if (!d) return;
+  const blocking = driverStatus(d).kind !== "blocked";
+  if (!confirm((blocking ? "Block " : "Unblock ") + d.name + " (" + d.vehicle_no + ")?\n\nNote: if your Google Sheet sync rewrites this record, it can reset the status.")) return;
+  await updateDoc(doc(db, "verified_drivers", id), { status: blocking ? "Blocked" : "Active" });
+  if (blocking) {
+    const theirs = S.trips.filter((t) => t.driver_id === driverKey(d) || t.driver_id === d.id || (d.email && (t.driver_email || "").toLowerCase() === d.email.toLowerCase()));
+    await Promise.all(theirs.map((t) => deleteDoc(doc(db, "live_trips", t.id)).catch(() => {})));
+  }
+  await audit(blocking ? "Blocked captain" : "Unblocked captain", d.name + " (" + d.vehicle_no + ")", d.email || "");
+  toast(blocking ? "Captain blocked" : "Captain unblocked");
+}
+
+const ACTIONS = {
+  nav: (el) => setView(el.dataset.view),
+  signout: () => signOut(auth),
+  exportCsv, policeReport, closeReport,
+  printReport: () => window.print(),
+  clearFilters: () => { ["lgQ", "lgFrom", "lgTo"].forEach((i) => ($(i).value = "")); $("lgAct").value = ""; queuePaint(); },
+  filterCustomer: (el) => { $("lgQ").value = el.dataset.q || ""; $("lgAct").value = ""; $("lgFrom").value = ""; $("lgTo").value = ""; setView("logs"); },
+  blockUser: (el) => setBlocked(el.dataset.uid, true),
+  unblockUser: (el) => setBlocked(el.dataset.uid, false),
+  delReview: (el) => deleteReview(el.dataset.id, false),
+  delReviewBlock: (el) => deleteReview(el.dataset.id, true),
+  removeTrip: (el) => removeTrip(el.dataset.id),
+  toggleDriver: (el) => toggleDriver(el.dataset.id)
+};
+document.addEventListener("click", async (e) => {
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  const fn = ACTIONS[el.dataset.act];
+  if (!fn) return;
+  try { await fn(el); } catch (err) {
+    console.error(err);
+    toast(err && err.code === "permission-denied" ? "Permission denied: update Firestore rules" : "Failed: " + (err.message || err));
+  }
+});
+["lgQ", "lgAct", "lgFrom", "lgTo", "cuQ", "cuF", "rvQ", "rvS", "drQ", "drF"].forEach((id) => {
+  $(id).addEventListener("input", queuePaint);
+  $(id).addEventListener("change", queuePaint);
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeReport(); });
+
+function setView(v) {
+  view = v;
+  document.querySelectorAll("main > section").forEach((s) => s.classList.toggle("hidden", s.id !== "v-" + v));
+  document.querySelectorAll("[data-act=nav]").forEach((b) => b.classList.toggle("active", b.dataset.view === v));
+  window.scrollTo({ top: 0 });
+  queuePaint();
+}
+
+/* ---------- data listeners ---------- */
+function listen(name, q, store, mapFn) {
+  unsubs.push(onSnapshot(q, (snap) => {
+    S[store] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    if (mapFn) S[store] = mapFn(S[store]);
+    loaded.add(name);
+    queuePaint();
+  }, (err) => {
+    const bar = $("errbar");
+    bar.textContent = `Cannot read "${name}": ${err.code === "permission-denied" ? "Firestore rules do not allow the admin account yet. Publish the updated rules (see zero-firestore.rules)." : err.message}`;
+    bar.classList.remove("hidden");
+  }));
+}
+function boot(user) {
+  adminUser = user;
+  $("gate").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  $("bottomnav").classList.remove("hidden");
+  $("whoEmail").textContent = user.email;
+  unsubs.forEach((u) => u()); unsubs = [];
+  listen("live_trips", collection(db, "live_trips"), "trips");
+  listen("verified_drivers", collection(db, "verified_drivers"), "drivers");
+  listen("passengers", collection(db, "passengers"), "pax");
+  listen("reviews", collection(db, "reviews"), "reviews");
+  listen("interaction_logs", query(collection(db, "interaction_logs"), orderBy("timestamp", "desc"), limit(LOG_LIMIT)), "logs");
+  listen("admin_audit", query(collection(db, "admin_audit"), orderBy("at", "desc"), limit(200)), "audit");
+  setView(view);
+  setInterval(queuePaint, 60000);
+}
+function showGate(msg) {
+  $("app").classList.add("hidden");
+  $("bottomnav").classList.add("hidden");
+  $("gate").classList.remove("hidden");
+  const m = $("gateMsg");
+  if (msg) { m.textContent = msg; m.classList.remove("hidden"); } else m.classList.add("hidden");
+}
+
+$("btnSignIn").addEventListener("click", async () => {
+  try { await signInWithPopup(auth, provider); }
+  catch (e) { if (e.code !== "auth/popup-closed-by-user") showGate("Sign-in failed: " + (e.message || e.code)); }
+});
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { unsubs.forEach((u) => u()); unsubs = []; adminUser = null; showGate(deniedMsg); deniedMsg = ""; return; }
+  const ok = (user.email || "").toLowerCase() === ADMIN_EMAIL && user.emailVerified;
+  if (!ok) {
+    deniedMsg = "Access denied for " + (user.email || "this account") + ". This panel is only for the administrator.";
+    showGate(deniedMsg);
+    try { await signOut(auth); } catch (e) {}
+    return;
+  }
+  boot(user);
+});
+</script>
+</body>
+</html>
