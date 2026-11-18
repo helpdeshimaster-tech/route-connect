@@ -496,6 +496,8 @@
     setPersistence(auth, browserLocalPersistence).catch(() => {});
 
     // Ground-calibrated micro-offsets (Total corridor duration: 145 mins)
+    const escapeHTML = (v) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
     const ROUTE_STOPS = [
       { index: 0,  name: "Manjhepur", offset: 0 },
       { index: 1,  name: "Barwa", offset: 4 },
@@ -1071,7 +1073,7 @@
       badge.innerHTML = `
         <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs">
           <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span class="font-semibold text-slate-200 truncate max-w-[110px]">${user.email}</span>
+          <span class="font-semibold text-slate-200 truncate max-w-[110px]">${escapeHTML(user.email)}</span>
           <button onclick="logoutDriver()" title="Sign Out" class="text-slate-400 hover:text-rose-400 ml-1">
             <i class="fa-solid fa-right-from-bracket"></i>
           </button>
@@ -1535,7 +1537,7 @@
           <div class="rc-checkin">
             <div class="rc-checkin-head">
               <span class="rc-checkin-title"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>Tap the stop you have reached</span>
-              <span class="rc-now">📍 Now: ${currentStopName} (${trip.current_stop_time || "Just started"})</span>
+              <span class="rc-now">📍 Now: ${escapeHTML(currentStopName)} (${escapeHTML(trip.current_stop_time || "Just started")})</span>
             </div>
             <div class="rc-stop-grid">
               ${quickStops.map(st => {
@@ -1543,7 +1545,7 @@
                 return `
                   <button
                     type="button"
-                    onclick="checkInStop('${trip.id}', '${st.name}')"
+                    onclick="checkInStop('${escapeHTML(trip.id)}', '${escapeHTML(st.name)}')"
                     class="rc-stop ${isCurrent ? 'rc-stop-cur' : ''}"
                   >
                     ${isCurrent ? '📍 ' : ''}${st.name}
@@ -1585,10 +1587,10 @@
               <span class="rc-tag ${isLive ? 'rc-tag-live' : 'rc-tag-ret'}">
                 ${isLive ? '<span class="w-2 h-2 rounded-full bg-white pulse-dot"></span> Live Running' : '<i class="fa-solid fa-calendar-check"></i> Scheduled Return'}
               </span>
-              <span class="rc-vno">${trip.vehicle_no}</span>
+              <span class="rc-vno">${escapeHTML(trip.vehicle_no)}</span>
             </div>
 
-            <h4 class="rc-route">${trip.start_stop} <i class="fa-solid fa-arrow-right"></i> ${trip.end_stop}</h4>
+            <h4 class="rc-route">${escapeHTML(trip.start_stop)} <i class="fa-solid fa-arrow-right"></i> ${escapeHTML(trip.end_stop)}</h4>
             <p class="rc-times"><b>${dayLabel}, ${format12Hr(displayDep24)}</b> &nbsp;•&nbsp; ETA <b>${format12Hr(displayArr24)}</b></p>
             ${autoLagNoticeHTML}
 
@@ -1603,7 +1605,7 @@
 
             <div class="rc-more">
               ${subStopHTML}
-              ${trip.note ? `<div class="rc-note-line"><i class="fa-solid fa-bullhorn mr-1"></i>${trip.note}</div>` : ''}
+              ${trip.note ? `<div class="rc-note-line"><i class="fa-solid fa-bullhorn mr-1"></i>${escapeHTML(trip.note)}</div>` : ''}
               <div class="rc-more-actions">
                 <button type="button" data-open="${isLive ? 'live' : 'ret'}" onclick="loadTripIntoEditor('${trip.id}')" class="rc-edit" title="Edit Trip Details">
                   <i class="fa-solid fa-pen"></i> Edit
