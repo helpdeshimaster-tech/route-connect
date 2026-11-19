@@ -93,6 +93,7 @@ main{padding:22px 26px 60px;min-width:0}
 .cols-drv{grid-template-columns:1.2fr 1fr 120px 120px auto}
 .cols-trip{grid-template-columns:1.1fr 1.4fr 1fr 110px auto}
 .cols-aud{grid-template-columns:150px 1fr 1.4fr}
+.cols-cmp{grid-template-columns:150px 1.4fr 1.2fr 100px auto}
 .cell small{display:block;color:var(--muted);font-size:12.5px;word-break:break-all}
 .cell b{font-weight:700}
 .linkish{background:none;border:0;padding:0;color:var(--brand);font-weight:700;cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:2px}
@@ -141,7 +142,7 @@ main{padding:22px 26px 60px;min-width:0}
   #bottomnav i{font-size:15px;padding:5px 14px;border-radius:99px}
   .grid2{grid-template-columns:1fr}
   .row.head{display:none}
-  .cols-log,.cols-cust,.cols-drv,.cols-trip,.cols-aud{grid-template-columns:1fr 1fr}
+  .cols-log,.cols-cust,.cols-drv,.cols-trip,.cols-aud,.cols-cmp{grid-template-columns:1fr 1fr}
   .cols-log .c-when{grid-column:1/-1}
   .actions{justify-content:flex-start;grid-column:1/-1}
   .cols-rev{grid-template-columns:1fr}
@@ -180,6 +181,7 @@ main{padding:22px 26px 60px;min-width:0}
     <button class="nav-item" data-act="nav" data-view="customers"><i class="fa-solid fa-users"></i>Customers</button>
     <button class="nav-item" data-act="nav" data-view="reviews"><i class="fa-solid fa-star-half-stroke"></i>Reviews</button>
     <button class="nav-item" data-act="nav" data-view="drivers"><i class="fa-solid fa-id-card"></i>Captains</button>
+    <button class="nav-item" data-act="nav" data-view="complaints"><i class="fa-solid fa-flag"></i>Complaints</button>
     <button class="nav-item" data-act="nav" data-view="audit"><i class="fa-solid fa-clipboard-list"></i>Audit trail</button>
     <div class="who"><span id="whoEmail"></span><button data-act="signout">Sign out</button></div>
   </aside>
@@ -206,7 +208,7 @@ main{padding:22px 26px 60px;min-width:0}
 
     <!-- Live trips -->
     <section id="v-live" class="hidden">
-      <div class="page-head"><div><h2>Live trips</h2><p>Running vehicles and scheduled return trips right now.</p></div></div>
+      <div class="page-head"><div><h2>Live trips</h2><p>Running vehicles and scheduled return trips right now.</p></div><div class="actions"><button class="btn" data-act="cleanStale"><i class="fa-solid fa-broom"></i> Clear stuck / old trips</button></div></div>
       <div class="panel"><div class="rows" id="liveRows"></div></div>
     </section>
 
@@ -247,7 +249,7 @@ main{padding:22px 26px 60px;min-width:0}
 
     <!-- Reviews -->
     <section id="v-reviews" class="hidden">
-      <div class="page-head"><div><h2>Reviews</h2><p>Deleted reviews are archived in <span class="mono">deleted_reviews</span>, never lost.</p></div></div>
+      <div class="page-head"><div><h2>Reviews</h2><p>Deleted reviews are archived in <span class="mono">deleted_reviews</span>, never lost.</p></div><div class="actions"><button class="btn" data-act="rebuildRatings"><i class="fa-solid fa-calculator"></i> Rebuild rating totals</button></div></div>
       <div class="filters">
         <input type="search" id="rvQ" placeholder="Search comment, customer, captain" />
         <select id="rvS"><option value="">All ratings</option><option value="low">1–2 stars</option><option value="1">1 star</option><option value="5">5 stars</option></select>
@@ -265,6 +267,15 @@ main{padding:22px 26px 60px;min-width:0}
       <div class="panel"><div class="rows">
         <div class="row head cols-drv"><div>Captain</div><div>Vehicle / Phone</div><div>Plan expiry</div><div>Status</div><div></div></div>
         <div id="drRows"></div>
+      </div></div>
+    </section>
+
+    <!-- Complaints -->
+    <section id="v-complaints" class="hidden">
+      <div class="page-head"><div><h2>Complaints</h2><p>Reports sent by passengers against captains.</p></div></div>
+      <div class="panel"><div class="rows">
+        <div class="row head cols-cmp"><div>When (IST)</div><div>Captain / Reason</div><div>Passenger</div><div>Status</div><div></div></div>
+        <div id="cmRows"></div>
       </div></div>
     </section>
 
@@ -286,6 +297,7 @@ main{padding:22px 26px 60px;min-width:0}
   <button data-act="nav" data-view="customers"><i class="fa-solid fa-users"></i>Users</button>
   <button data-act="nav" data-view="reviews"><i class="fa-solid fa-star-half-stroke"></i>Reviews</button>
   <button data-act="nav" data-view="drivers"><i class="fa-solid fa-id-card"></i>Captains</button>
+  <button data-act="nav" data-view="complaints"><i class="fa-solid fa-flag"></i>Reports</button>
 </nav>
 
 <!-- Police report -->
@@ -303,7 +315,7 @@ main{padding:22px 26px 60px;min-width:0}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, addDoc, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, addDoc, onSnapshot, query, orderBy, limit, increment, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAJnefI6TOx8WN2CfFpABebiZEjC4Cn0p4",
@@ -398,7 +410,7 @@ function toast(msg) {
 }
 
 /* ---------- state ---------- */
-const S = { trips: [], drivers: [], pax: [], reviews: [], logs: [], audit: [] };
+const S = { trips: [], drivers: [], pax: [], reviews: [], logs: [], audit: [], complaints: [], bdev: [] };
 let deniedMsg = "", adminUser = null, unsubs = [], view = "overview", paintQueued = false;
 const loaded = new Set();
 
@@ -451,6 +463,14 @@ function customers() {
   return [...map.values()].sort((a, b) => (b.last || b.joined_at || "").localeCompare(a.last || a.joined_at || ""));
 }
 
+function deviceIdsFor(uid) {
+  const ids = new Set();
+  const add = (v) => { if (/^D[0-9a-f]{32}$/.test(v || "")) ids.add(v); };
+  S.pax.forEach((p) => { if ((p.uid || p.id) === uid) add(p.device_id); });
+  [S.logs, S.reviews, S.complaints].forEach((list) => list.forEach((x) => { if (x.passenger_uid === uid) add(x.device_id); }));
+  return [...ids];
+}
+
 /* ---------- audit ---------- */
 async function audit(action, target, details) {
   try {
@@ -466,7 +486,7 @@ function queuePaint() {
 }
 function paint() {
   paintBadges();
-  ({ overview: paintOverview, live: paintLive, logs: paintLogs, customers: paintCustomers, reviews: paintReviews, drivers: paintDrivers, audit: paintAudit })[view]();
+  ({ overview: paintOverview, live: paintLive, logs: paintLogs, customers: paintCustomers, reviews: paintReviews, drivers: paintDrivers, complaints: paintComplaints, audit: paintAudit })[view]();
 }
 function paintBadges() { /* reserved for nav counters */ }
 
@@ -489,7 +509,8 @@ function paintOverview() {
     card(todayConn, "Connections today") +
     card(cust.length, "Customers") +
     card(blocked, "Blocked customers", blocked ? "alert" : "") +
-    card(lowRecent, "Low reviews, last 7 days", lowRecent ? "alert" : "");
+    card(lowRecent, "Low reviews, last 7 days", lowRecent ? "alert" : "") +
+    card(S.complaints.filter((c) => c.status !== "Resolved").length, "Open complaints", S.complaints.some((c) => c.status !== "Resolved") ? "alert" : "");
 
   // corridor
   const byStop = new Map();
@@ -563,7 +584,7 @@ function paintLogs() {
     <div class="row cols-log">
       <div class="cell c-when">${esc(fmtWhen(l.timestamp))}</div>
       <div class="cell"><button class="linkish" data-act="filterCustomer" data-q="${esc(l.passenger_email || l.passenger_name)}">${esc(l.passenger_name)}</button></div>
-      <div class="cell">${esc(l.passenger_phone || "—")}<small>${esc(l.passenger_email)}</small></div>
+      <div class="cell">${esc(l.passenger_phone || "—")}<small>${esc(l.passenger_email)}</small><small class="mono">Device ${esc((l.device_id || "—").slice(0, 9))}</small></div>
       <div class="cell"><b>${esc(l.driver_name)}</b><small>${esc(l.vehicle_no)}</small></div>
       <div><span class="pill ${l.action_type === "CALL" ? "info" : "ok"}">${l.action_type === "CALL" ? "Call" : "WhatsApp"}</span></div>
     </div>`).join("") : `<div class="empty">No matching records.</div>`;
@@ -658,9 +679,9 @@ function logRecordsWithDriver(rows) {
 function exportCsv() {
   const rows = logRecordsWithDriver(logsFiltered());
   if (!rows.length) return toast("No records to export");
-  const head = ["Date-Time (IST)", "Customer name", "Customer phone (self-declared)", "Customer Gmail", "Customer UID", "Action", "Captain", "Vehicle", "Captain phone", "Captain ID"];
+  const head = ["Date-Time (IST)", "Customer name", "Customer phone (self-declared)", "Customer Gmail", "Customer UID", "Action", "Captain", "Vehicle", "Captain phone", "Captain ID", "Device ID"];
   const lines = [head.map(csvCell).join(",")].concat(rows.map((l) =>
-    [fmtWhen(l.timestamp), l.passenger_name, l.passenger_phone, l.passenger_email, l.passenger_uid, l.action_type, l.driver_name, l.vehicle_no, l.driver_phone, l.driver_id].map(csvCell).join(",")));
+    [fmtWhen(l.timestamp), l.passenger_name, l.passenger_phone, l.passenger_email, l.passenger_uid, l.action_type, l.driver_name, l.vehicle_no, l.driver_phone, l.driver_id, l.device_id].map(csvCell).join(",")));
   const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -689,10 +710,10 @@ function policeReport() {
       <b>Total records</b><span>${rows.length}</span>
     </div>
     <table>
-      <thead><tr><th>#</th><th>Date-Time (IST)</th><th>Customer</th><th>Customer phone</th><th>Customer Gmail</th><th>Action</th><th>Captain</th><th>Vehicle</th><th>Captain phone</th></tr></thead>
-      <tbody>${rows.map((l, i) => `<tr><td>${i + 1}</td><td>${esc(fmtWhen(l.timestamp))}</td><td>${esc(l.passenger_name)}</td><td>${esc(l.passenger_phone || "—")}</td><td>${esc(l.passenger_email)}</td><td>${l.action_type === "CALL" ? "Call" : "WhatsApp"}</td><td>${esc(l.driver_name)}</td><td>${esc(l.vehicle_no)}</td><td>${esc(l.driver_phone || "—")}</td></tr>`).join("")}</tbody>
+      <thead><tr><th>#</th><th>Date-Time (IST)</th><th>Customer</th><th>Customer phone</th><th>Customer Gmail</th><th>Device</th><th>Action</th><th>Captain</th><th>Vehicle</th><th>Captain phone</th></tr></thead>
+      <tbody>${rows.map((l, i) => `<tr><td>${i + 1}</td><td>${esc(fmtWhen(l.timestamp))}</td><td>${esc(l.passenger_name)}</td><td>${esc(l.passenger_phone || "—")}</td><td>${esc(l.passenger_email)}</td><td>${esc((l.device_id || "—").slice(0, 9))}</td><td>${l.action_type === "CALL" ? "Call" : "WhatsApp"}</td><td>${esc(l.driver_name)}</td><td>${esc(l.vehicle_no)}</td><td>${esc(l.driver_phone || "—")}</td></tr>`).join("")}</tbody>
     </table>
-    <p class="note">Each row records that the customer tapped the Call or WhatsApp button for the captain on the RouteConnect website. It does not prove that a call was answered or that the customer travelled. Customer Gmail comes from Google sign-in; customer phone was typed by the customer and is not verified. Times are Indian Standard Time.</p>`;
+    <p class="note">Each row records that the customer tapped the Call or WhatsApp button for the captain on the RouteConnect website. It does not prove that a call was answered or that the customer travelled. Customer Gmail comes from Google sign-in; customer phone was typed by the customer and is not verified. Device is a random ID stored in the customer’s browser; the customer can clear it. Times are Indian Standard Time.</p>`;
   $("reportModal").classList.remove("hidden");
   document.body.style.overflow = "hidden";
   audit("Generated police report", rows.length + " records", filterSummary());
@@ -713,7 +734,17 @@ async function setBlocked(uid, blocked) {
     : { uid, blocked: false, blocked_reason: "", unblocked_at: new Date().toISOString(), blocked_by: adminUser.email };
   if (c) { payload.name = c.name || ""; payload.email = c.email || ""; payload.phone = c.phone || ""; }
   await setDoc(doc(db, "passengers", uid), payload, { merge: true });
-  await audit(blocked ? "Blocked customer" : "Unblocked customer", (c ? c.name + " <" + c.email + ">" : uid), reason);
+  let devNote = "";
+  if (blocked) {
+    const devs = deviceIdsFor(uid);
+    await Promise.all(devs.map((id) => setDoc(doc(db, "blocked_devices", id), { uid, name: c ? c.name || "" : "", email: c ? c.email || "" : "", reason: reason.trim(), blocked_at: new Date().toISOString(), blocked_by: adminUser.email })));
+    devNote = devs.length + " device(s) blocked";
+  } else {
+    const mine = S.bdev.filter((b) => b.uid === uid);
+    await Promise.all(mine.map((b) => deleteDoc(doc(db, "blocked_devices", b.id))));
+    devNote = mine.length + " device(s) unblocked";
+  }
+  await audit(blocked ? "Blocked customer" : "Unblocked customer", (c ? c.name + " <" + c.email + ">" : uid), (reason ? reason + " · " : "") + devNote);
   toast(blocked ? "Customer blocked" : "Customer unblocked");
 }
 async function deleteReview(id, alsoBlock) {
@@ -724,6 +755,7 @@ async function deleteReview(id, alsoBlock) {
   const { id: _omit, ...copy } = r;
   await setDoc(doc(db, "deleted_reviews", id), { ...copy, deleted_at: new Date().toISOString(), deleted_by: adminUser.email });
   await deleteDoc(doc(db, "reviews", id));
+  if (r.driver_id) await updateDoc(doc(db, "driver_ratings", r.driver_id), { sum: increment(-(Number(r.stars) || 0)), count: increment(-1) }).catch(() => {});
   await audit("Deleted review", r.passenger_name + " <" + r.passenger_email + "> on " + (r.captain_title || r.driver_id), r.comment || "");
   if (alsoBlock && r.passenger_uid) await setBlocked(r.passenger_uid, true);
   else toast("Review deleted");
@@ -749,7 +781,58 @@ async function toggleDriver(id) {
   toast(blocking ? "Captain blocked" : "Captain unblocked");
 }
 
+function paintComplaints() {
+  const list = S.complaints;
+  $("cmRows").innerHTML = list.length ? list.slice(0, 300).map((c) => {
+    const open = c.status !== "Resolved";
+    const d = driverByIdOrEmail(c.driver_id, "");
+    const canBlock = d && driverStatus(d).kind !== "blocked";
+    return `<div class="row cols-cmp">
+      <div class="cell">${esc(fmtWhen(c.created_at))}</div>
+      <div class="cell"><b>${esc(c.captain_title || c.driver_id)}</b><small>${esc(c.reason)}</small>${c.details ? `<div class="quote">${esc(c.details)}</div>` : ""}</div>
+      <div class="cell">${esc(c.passenger_name)}<small>${esc(c.passenger_phone || "")} · ${esc(c.passenger_email)}</small></div>
+      <div><span class="pill ${open ? "warn" : "ok"}">${open ? "Open" : "Resolved"}</span></div>
+      <div class="actions"><button class="btn sm" data-act="toggleComplaint" data-id="${esc(c.id)}">${open ? "Mark resolved" : "Reopen"}</button>${canBlock ? `<button class="btn danger sm" data-act="toggleDriver" data-id="${esc(d.id)}">Block captain</button>` : ""}</div>
+    </div>`;
+  }).join("") : `<div class="empty">No complaints yet.</div>`;
+}
+async function toggleComplaint(id) {
+  const c = S.complaints.find((x) => x.id === id);
+  if (!c) return;
+  const next = c.status === "Resolved" ? "Open" : "Resolved";
+  await updateDoc(doc(db, "complaints", id), { status: next, handled_by: adminUser.email, handled_at: new Date().toISOString() });
+  await audit(next === "Resolved" ? "Resolved complaint" : "Reopened complaint", (c.captain_title || c.driver_id), c.reason + " · from " + c.passenger_email);
+}
+async function rebuildRatings() {
+  if (!confirm("Rebuild every captain's rating total from the reviews list? Use this once after the update, or if totals look wrong.")) return;
+  const agg = {};
+  S.reviews.forEach((r) => {
+    if (!r.driver_id) return;
+    const a = agg[r.driver_id] || (agg[r.driver_id] = { sum: 0, count: 0 });
+    a.sum += Number(r.stars) || 0; a.count++;
+  });
+  const ids = Object.keys(agg);
+  for (let i = 0; i < ids.length; i += 400) {
+    const b = writeBatch(db);
+    ids.slice(i, i + 400).forEach((id) => b.set(doc(db, "driver_ratings", id), { sum: agg[id].sum, count: agg[id].count, last_review: "rebuild", updated_at: new Date().toISOString() }));
+    await b.commit();
+  }
+  await audit("Rebuilt rating totals", ids.length + " captains", S.reviews.length + " reviews");
+  toast("Rating totals rebuilt for " + ids.length + " captains");
+}
+async function cleanStale() {
+  const today = todayIST();
+  const dead = S.trips.filter((t) => tripState(t) === "stale" || (t.status === "Promised" && t.trip_date && t.trip_date < today));
+  if (!dead.length) return toast("No stuck or old trips");
+  if (!confirm("Remove " + dead.length + " stuck / old trip(s)?")) return;
+  await Promise.all(dead.map((t) => deleteDoc(doc(db, "live_trips", t.id))));
+  await audit("Cleared stuck / old trips", dead.length + " trips", dead.map((t) => t.driver_name).join(", "));
+  toast(dead.length + " trip(s) removed");
+}
+
 const ACTIONS = {
+  toggleComplaint: (el) => toggleComplaint(el.dataset.id),
+  rebuildRatings, cleanStale,
   nav: (el) => setView(el.dataset.view),
   signout: () => signOut(auth),
   exportCsv, policeReport, closeReport,
@@ -796,7 +879,7 @@ function listen(name, q, store, mapFn) {
     queuePaint();
   }, (err) => {
     const bar = $("errbar");
-    bar.textContent = `Cannot read "${name}": ${err.code === "permission-denied" ? "Firestore rules do not allow the admin account yet. Publish the updated rules (see zero-firestore.rules)." : err.message}`;
+    bar.textContent = `Cannot read "${name}": ${err.code === "permission-denied" ? "Firestore rules do not allow the admin account yet. Publish the updated rules (see firestore.rules)." : err.message}`;
     bar.classList.remove("hidden");
   }));
 }
@@ -812,6 +895,8 @@ function boot(user) {
   listen("passengers", collection(db, "passengers"), "pax");
   listen("reviews", collection(db, "reviews"), "reviews");
   listen("interaction_logs", query(collection(db, "interaction_logs"), orderBy("timestamp", "desc"), limit(LOG_LIMIT)), "logs");
+  listen("complaints", query(collection(db, "complaints"), orderBy("created_at", "desc"), limit(300)), "complaints");
+  listen("blocked_devices", collection(db, "blocked_devices"), "bdev");
   listen("admin_audit", query(collection(db, "admin_audit"), orderBy("at", "desc"), limit(200)), "audit");
   setView(view);
   setInterval(queuePaint, 60000);
