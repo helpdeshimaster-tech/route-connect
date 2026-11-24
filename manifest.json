@@ -1,0 +1,17 @@
+{
+  "name": "RouteConnect – सवारी कॉर्नर",
+  "short_name": "RouteConnect",
+  "description": "Manjhepur – Amauli – Jahanabad – Kanpur live vehicle tracking",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "hi",
+  "icons": [
+    { "src": "icons/passenger-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/passenger-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/passenger-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
