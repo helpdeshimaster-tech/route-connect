@@ -199,7 +199,15 @@
         <span>Sign In with Google Account</span>
       </button>
       <p id="authErrorMsg" class="text-xs text-rose-600 font-medium mt-3 hidden"></p>
+      <div id="apkDownloadBox" class="hidden mt-5 pt-5 border-t border-slate-200">
+        <a href="https://github.com/helpdeshimaster-tech/route-connect/releases/latest/download/app-debug.apk" download class="w-full min-h-[52px] bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold rounded-xl text-sm shadow-md flex items-center justify-center gap-2.5 transition">
+          <i class="fa-brands fa-android text-lg"></i>
+          <span>Captain Android ऐप डाउनलोड करें (APK)</span>
+        </a>
+        <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">स्क्रीन बंद होने पर भी लोकेशन जाती रहेगी। इंस्टॉल करते समय "Unknown source" की अनुमति दें।</p>
+      </div>
     </section>
+    <script>if(!window.AndroidBridge){var _b=document.getElementById("apkDownloadBox");if(_b)_b.classList.remove("hidden");}</script>
     <!-- LOADING STATE -->
     <section id="loadingGate" class="hidden bg-white rounded-2xl p-8 text-center max-w-lg mx-auto my-6 border border-slate-200">
       <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-600 mb-2"></i>
@@ -1785,7 +1793,7 @@
 <!-- INSTALL BUTTON: shows only when the app is not yet installed -->
 <script>
 (function () {
-  var APK_URL = "";   // driver page only: paste the GitHub Releases link of the Captain APK here (optional)
+  var APK_URL = "https://github.com/helpdeshimaster-tech/route-connect/releases/latest/download/app-debug.apk";   // GitHub Releases link of the Captain APK
   var LABEL = "Captain ऐप जोड़ें";
   if (window.AndroidBridge) return;                                   // already inside the Android app
   if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) return;   // already installed
