@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0f172a" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" href="icons/passenger-favicon.png" />
+<link rel="apple-touch-icon" href="icons/passenger-apple-touch.png" />
+<title>RouteConnect | Manjhepur - Amauli - Jahanabad - Kanpur Live Corridor</title>
+<!-- Tailwind CSS CDN (fine for testing; for the live site build a static CSS file, see README) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Font Awesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+.pulse-dot { animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+@keyframes pulse-ring {
+0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+/* ---------- Search block ---------- */
+.rc-search-grid { display: grid; grid-template-columns: 1fr 44px; gap: 8px; align-items: center; }
+.rc-search-grid > .rc-from { grid-column: 1; grid-row: 1; }
+.rc-search-grid > .rc-to { grid-column: 1; grid-row: 2; }
+.rc-search-grid > .rc-swap { grid-column: 2; grid-row: 1 / span 2; }
+.rc-swap {
+width: 44px; height: 44px; border-radius: 9999px; background: #ecfdf5; color: #047857;
+border: 1px solid #a7f3d0; display: flex; align-items: center; justify-content: center;
+}
+.rc-swap:active { background: #d1fae5; }
+.rc-select {
+width: 100%; padding: 12px 12px 12px 40px; background: #f8fafc; border: 1px solid #cbd5e1;
+border-radius: 12px; font-size: 15px; font-weight: 600; outline: none; color: #0f172a;
+}
+.rc-select:focus { border-color: #059669; box-shadow: 0 0 0 3px rgba(16,185,129,.25); }
+/* ---------- Settings dropdown (CSS-only, native <details>) ---------- */
+.rc-settings > summary { list-style: none; cursor: pointer; }
+.rc-settings > summary::-webkit-details-marker { display: none; }
+.rc-settings[open] > summary { background: #475569; }
+.rc-settings-panel {
+position: fixed; top: 62px; left: 12px; right: 12px; margin-left: auto; max-width: 380px;
+background: #fff; color: #0f172a; border-radius: 16px; padding: 16px;
+box-shadow: 0 20px 45px rgba(2,6,23,.4); border: 1px solid #e2e8f0;
+}
+.rc-seg { display: grid; grid-template-columns: 1fr; gap: 6px; margin-top: 6px; }
+.rc-seg button {
+width: 100%; text-align: left; padding: 11px 12px !important; border-radius: 10px !important;
+border: 1px solid #e2e8f0; font-size: 13px;
+}
+.rc-toggle {
+display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer;
+padding: 12px; margin-top: 12px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0;
+}
+.rc-switch { width: 46px; height: 26px; background: #cbd5e1; border-radius: 9999px; position: relative; flex-shrink: 0; transition: .2s; }
+.rc-switch::after {
+content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+background: #fff; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+#showDetails:checked ~ header .rc-switch { background: #059669; }
+#showDetails:checked ~ header .rc-switch::after { transform: translateX(20px); }
+#showDetails:focus-visible ~ header .rc-switch { outline: 2px solid #059669; outline-offset: 2px; }
+/* ===================================================================
+TRIP CARD (NEW: each card has its own "Details" button)
+Always visible : Name • Vehicle • Seats • From → To • Time • ETA • Call • WhatsApp
+Inside Details : Rating • Gender • Next stop • Progress • Live Google Map
+=================================================================== */
+.rc-card {
+background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px;
+box-shadow: 0 1px 2px rgba(15,23,42,.06);
+}
+.rc-card h4 { font-size: 16px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.rc-head-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 auto; }
+.rc-head-left img { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; flex-shrink: 0; border: 1px solid #e2e8f0; }
+.rc-head-left > div { min-width: 0; }
+.rc-head-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.rc-seat-pill { padding: 4px 9px; border-radius: 9999px; background: #f1f5f9; white-space: nowrap; }
+.rc-route { display: flex; align-items: flex-start; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f1f5f9; }
+.rc-route-col { flex: 1 1 0; min-width: 0; }
+.rc-route-col.rc-right { text-align: right; }
+.rc-route-lbl { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; }
+.rc-route-name { display: block; font-size: 15px; font-weight: 700; color: #0f172a; line-height: 1.25; }
+.rc-route-time { display: block; font-size: 14px; font-weight: 700; color: #059669; margin-top: 2px; }
+.rc-route-col.rc-right .rc-route-time { color: #334155; font-size: 13px; }
+.rc-route-arrow { flex: 0 0 24px; text-align: center; color: #94a3b8; padding-top: 18px; }
+.rc-live {
+margin-top: 10px; padding: 10px; font-size: 13px; background: #ecfdf5; border: 1px solid #a7f3d0;
+border-radius: 12px; display: flex; align-items: center; gap: 8px;
+}
+.rc-timing {
+margin-top: 8px; padding: 10px; font-size: 13px; background: #f8fafc; border: 1px solid #e2e8f0;
+border-radius: 12px; display: flex; flex-direction: column; gap: 4px;
+}
+.rc-timing > div { display: flex; justify-content: space-between; gap: 8px; }
+.rc-warn {
+margin-top: 8px; padding: 10px; font-size: 13px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 12px;
+}
+.rc-note {
+margin-top: 10px; font-size: 12px; line-height: 1.35; background: #fffbeb; color: #92400e;
+border: 1px solid #fde68a; padding: 6px 10px; border-radius: 10px; font-weight: 500;
+}
+.rc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.rc-actions button {
+min-height: 48px; font-size: 14px; font-weight: 600; border-radius: 12px; color: #fff;
+display: flex; align-items: center; justify-content: center; gap: 6px; transition: .15s;
+}
+.rc-call { background: #0f172a; } .rc-call:active { background: #1e293b; }
+.rc-wa { background: #059669; } .rc-wa:active { background: #047857; }
+/* Per-card Details button */
+.rc-detail-btn {
+width: 100%; margin-top: 8px; padding: 10px; border-radius: 12px; background: #f1f5f9; color: #334155;
+font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.rc-detail-btn:active { background: #e2e8f0; }
+.rc-detail-btn .rc-chev { transition: transform .2s; }
+.rc-card.rc-open .rc-detail-btn { background: #0f172a; color: #fff; }
+.rc-card.rc-open .rc-detail-btn .rc-chev { transform: rotate(180deg); }
+.rc-lbl-hide { display: none; }
+.rc-card.rc-open .rc-lbl-show { display: none; }
+.rc-card.rc-open .rc-lbl-hide { display: inline; }
+/* Hidden panel */
+.rc-more { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; }
+.rc-card.rc-open .rc-more,
+#showDetails:checked ~ main .rc-more { display: block; }
+#showDetails:checked ~ main .rc-detail-btn { display: none; }
+.rc-more-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.rc-more-row + .rc-more-row { margin-top: 10px; }
+.rc-map-btn {
+width: 100%; min-height: 46px; margin-top: 10px; background: #2563eb; color: #fff; font-size: 14px;
+font-weight: 600; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.rc-map-btn:active { background: #1d4ed8; }
+/* ---------- Modals: bottom-sheet on phones, 16px inputs (no iOS zoom) ---------- */
+@media (max-width: 640px) {
+#authModal, #historyModal, #ratingModal { align-items: flex-end !important; padding: 0 !important; }
+#authModal > div, #historyModal > div, #ratingModal > div {
+max-width: none !important; width: 100% !important; border-radius: 20px 20px 0 0 !important;
+padding-bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+}
+input, select, textarea { font-size: 16px !important; }
+}
+
+/* ---------- Route tracker (Where-is-my-train style) ---------- */
+.rc-route-btn { width:100%; margin-top:8px; padding:11px 12px; border-radius:12px; font-size:13px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; gap:8px; background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; }
+.rc-route-btn:active { background:#d1fae5; }
+#routeModal { position:fixed; inset:0; z-index:60; display:none; background:rgba(15,23,42,.6); backdrop-filter:blur(3px); }
+#routeModal.open { display:flex; align-items:flex-end; justify-content:center; }
+.rt-sheet { background:#fff; width:100%; max-width:560px; height:92vh; border-radius:20px 20px 0 0; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 -10px 40px rgba(2,6,23,.35); }
+.rt-top { background:#0f172a; color:#fff; padding:14px 16px 12px; flex-shrink:0; }
+.rt-sum { display:flex; gap:8px; padding:10px 12px; background:#f8fafc; border-bottom:1px solid #e2e8f0; flex-shrink:0; }
+.rt-sum > div { flex:1; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px; min-width:0; }
+.rt-sum small { display:block; font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.04em; }
+.rt-sum b { display:block; font-size:13px; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#rtList { flex:1; overflow-y:auto; padding:8px 14px 40px; position:relative; scroll-behavior:smooth; }
+.rt-row { display:flex; gap:12px; min-height:58px; position:relative; }
+.rt-time { width:76px; white-space:nowrap; flex-shrink:0; text-align:right; padding-top:3px; font-size:12px; font-weight:700; color:#475569; font-variant-numeric:tabular-nums; }
+.rt-time em { display:block; font-style:normal; font-size:9.5px; font-weight:600; color:#94a3b8; }
+.rt-rail { width:34px; flex-shrink:0; position:relative; display:flex; justify-content:center; }
+.rt-rail::before { content:""; position:absolute; top:0; bottom:0; left:50%; width:4px; margin-left:-2px; background:repeating-linear-gradient(#cbd5e1 0 5px, transparent 5px 10px); }
+.rt-row.first .rt-rail::before { top:14px; }
+.rt-row.last .rt-rail::before { bottom:calc(100% - 14px); }
+.rt-row.done .rt-rail::before { background:#10b981; }
+.rt-row.cur .rt-rail::before { background:linear-gradient(#10b981 0 22px, #cbd5e1 22px); }
+.rt-row.cur.last .rt-rail::before, .rt-row.done.last .rt-rail::before { background:#10b981; }
+.rt-dot { position:relative; z-index:1; margin-top:6px; width:16px; height:16px; border-radius:50%; background:#fff; border:3px solid #cbd5e1; }
+.rt-row.done .rt-dot { background:#10b981; border-color:#10b981; }
+.rt-row.mine .rt-dot { border-color:#2563eb; }
+.rt-row.mine.done .rt-dot { background:#2563eb; border-color:#2563eb; }
+.rt-bus { position:relative; z-index:2; margin-top:-2px; width:34px; height:34px; border-radius:50%; background:#059669; box-shadow:0 0 0 4px rgba(16,185,129,.28); display:flex; align-items:center; justify-content:center; animation:rtPulse 1.8s infinite; }
+@keyframes rtPulse { 0%{box-shadow:0 0 0 0 rgba(16,185,129,.55)} 70%{box-shadow:0 0 0 12px rgba(16,185,129,0)} 100%{box-shadow:0 0 0 0 rgba(16,185,129,0)} }
+.rt-name { flex:1; padding:3px 0 14px; min-width:0; }
+.rt-name b { display:block; font-size:14px; color:#0f172a; line-height:1.25; }
+.rt-row.done:not(.cur) .rt-name b { color:#64748b; font-weight:600; }
+.rt-row.cur .rt-name b { font-size:15px; color:#047857; }
+.rt-name small { display:block; font-size:11px; color:#64748b; margin-top:2px; }
+.rt-tag { display:inline-block; font-size:10px; font-weight:800; padding:1px 7px; border-radius:99px; margin-right:4px; vertical-align:middle; }
+.rt-tag.p { background:#dbeafe; color:#1d4ed8; } .rt-tag.d { background:#ffe4e6; color:#be123c; } .rt-tag.now { background:#d1fae5; color:#047857; }
+.rt-live-pill { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; background:#064e3b; color:#6ee7b7; padding:3px 9px; border-radius:99px; }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+<!-- Hidden checkbox: "Expand all cards" switch inside Settings (CSS only) -->
+<input type="checkbox" id="showDetails" class="sr-only" aria-label="Show full details on all cards" />
+<!-- Top Banner (short) -->
+<div class="bg-amber-500 text-slate-900 text-[11px] sm:text-xs font-semibold py-1.5 px-4 text-center">
+<i class="fa-solid fa-shield-halved mr-1"></i> Verified Captains • Direct Call &amp; WhatsApp Booking
+</div>
+<!-- Offline Network Banner -->
+<div id="offlineNotice" class="hidden bg-rose-600 text-white text-xs font-semibold py-1.5 px-4 text-center">
+<i class="fa-solid fa-wifi-slash mr-1.5"></i> Network disconnected. Showing offline cached vehicle timings...
+</div>
+<!-- Navbar -->
+<header class="bg-slate-900 text-white sticky top-0 z-30">
+<div class="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between gap-2">
+<div class="flex items-center gap-2.5 min-w-0">
+<img src="icons/passenger.svg" alt="RouteConnect" class="w-9 h-9 rounded-lg flex-shrink-0" />
+<div class="min-w-0">
+<h1 class="font-bold text-base tracking-tight leading-none">RouteConnect</h1>
+<p class="text-[10px] text-slate-400 mt-0.5 hidden sm:block">Manjhepur • Amauli • Jahanabad • Kanpur</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<a href="tel:112" aria-label="Emergency SOS 112" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3 py-2.5 rounded-lg flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> SOS</a>
+<div id="authSection" class="flex items-center gap-2">
+<button onclick="openAuthModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+<i class="fa-brands fa-google text-rose-500"></i>
+<span>Sign In</span>
+</button>
+</div>
+<!-- SETTINGS (extra options are hidden here) -->
+<details class="rc-settings">
+<summary aria-label="Settings" class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200">
+<i class="fa-solid fa-gear"></i>
+</summary>
+<div class="rc-settings-panel">
+<h3 class="font-bold text-base flex items-center gap-2"><i class="fa-solid fa-sliders text-emerald-600"></i> Settings</h3>
+<p class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mt-4">Show vehicles going</p>
+<div class="rc-seg">
+<button onclick="setDirectionFilter('ALL')" id="dirBtn_ALL" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white transition">All</button>
+<button onclick="setDirectionFilter('TO_KANPUR')" id="dirBtn_TO_KANPUR" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Towards Kanpur</button>
+<button onclick="setDirectionFilter('TO_MANJHEPUR')" id="dirBtn_TO_MANJHEPUR" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Towards Manjhepur</button>
+</div>
+<label for="showDetails" class="rc-toggle">
+<span>
+<span class="block text-sm font-bold text-slate-900">Expand all cards</span>
+<span class="block text-[11px] text-slate-500">Open Details on every vehicle card</span>
+</span>
+<span class="rc-switch"></span>
+</label>
+<p class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mt-4">Emergency numbers</p>
+<div class="mt-1.5 grid grid-cols-2 gap-2 text-xs font-bold text-center">
+<a href="tel:112" class="py-2.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">112 Emergency</a>
+<a href="tel:1091" class="py-2.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">1091 Women Helpline</a>
+<a href="tel:181" class="py-2.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">181 Mahila Helpline</a>
+<a href="tel:108" class="py-2.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">108 Ambulance</a>
+</div>
+<a href="driver.html" class="mt-3 flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold">
+<i class="fa-solid fa-id-card text-emerald-400"></i> Captain Portal
+</a>
+</div>
+</details>
+</div>
+</div>
+</header>
+<!-- Search Section -->
+<section class="bg-slate-900 text-white px-4 pt-1 pb-5">
+<div class="max-w-2xl mx-auto">
+<div class="flex items-center justify-between mb-3">
+<h2 class="text-lg font-bold flex items-center gap-2">
+<i class="fa-solid fa-route text-emerald-400"></i> Find your ride
+</h2>
+<span id="currentDateBadge" class="text-[11px] bg-emerald-500/15 text-emerald-300 font-semibold px-2.5 py-1 rounded-full border border-emerald-500/30"></span>
+</div>
+<div class="bg-white text-slate-800 rounded-2xl p-3 shadow-xl">
+<div class="rc-search-grid">
+<!-- From Stop -->
+<div class="rc-from relative">
+<i class="fa-solid fa-location-dot absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-600 pointer-events-none"></i>
+<select id="fromStop" onchange="filterTrips()" aria-label="Pickup Stop (From)" class="rc-select">
+<option value="">-- All Pickup Stops --</option>
+</select>
+</div>
+<!-- Swap Button -->
+<button onclick="swapStops()" title="Reverse Route" aria-label="Reverse Route" class="rc-swap">
+<i class="fa-solid fa-up-down"></i>
+</button>
+<!-- To Stop -->
+<div class="rc-to relative">
+<i class="fa-solid fa-flag-checkered absolute left-3.5 top-1/2 -translate-y-1/2 text-rose-600 pointer-events-none"></i>
+<select id="toStop" onchange="filterTrips()" aria-label="Drop Stop (To)" class="rc-select">
+<option value="">-- All Drop Stops --</option>
+</select>
+</div>
+</div>
+<button onclick="filterTrips()" class="w-full mt-3 py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+<i class="fa-solid fa-magnifying-glass"></i> Find Vehicles
+</button>
+<div class="flex items-start justify-between gap-3 mt-2.5">
+<div id="routeTravelEstimate" class="text-xs text-slate-600 font-medium leading-snug">
+Select Pickup & Drop stops to calculate exact safe transit time and passing vehicles.
+</div>
+<button onclick="resetFilters()" class="flex-shrink-0 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+Reset
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Vehicle Listings -->
+<main class="max-w-2xl mx-auto w-full px-4 py-5 flex-1">
+<div class="flex items-center gap-2 mb-3">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 pulse-dot"></span>
+<h3 class="font-bold text-slate-800 text-sm sm:text-base">
+Available Vehicles (<span id="tripCount">0</span>)
+</h3>
+</div>
+<!-- Cards Container -->
+<div id="tripsContainer" class="space-y-3"></div>
+</main>
+<!-- PASSENGER ACTIVITY & CONTACT HISTORY MODAL -->
+<div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+<div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
+<i class="fa-solid fa-clock-rotate-left"></i>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 text-base leading-tight">My Contact & Booking History</h4>
+<p class="text-[11px] text-slate-500">Only genuine Call & WhatsApp contacts from last 25 days</p>
+</div>
+</div>
+<button onclick="closeHistoryModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+<i class="fa-solid fa-xmark"></i>
+</button>
+</div>
+<div class="overflow-y-auto pr-1 space-y-3 mt-4 flex-1" id="historyListContainer">
+<!-- Rendered by JavaScript -->
+</div>
+</div>
+</div>
+<!-- Google Sign-In Modal -->
+<div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+<div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+<div class="flex items-center gap-2">
+<i class="fa-brands fa-google text-rose-500 text-lg"></i>
+<h4 class="font-bold text-slate-900 text-base">Passenger Verification</h4>
+</div>
+<button onclick="closeAuthModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+<i class="fa-solid fa-xmark"></i>
+</button>
+</div>
+<p class="text-xs text-slate-600 mt-3 leading-relaxed">
+For passenger and Captain safety, please enter your mobile number and continue with your Google account before calling a Captain, booking on WhatsApp, or submitting reviews.
+</p>
+<form id="googleAuthForm" onsubmit="handleGoogleSignIn(event)" class="mt-4 space-y-3">
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+<input type="text" id="authName" required maxlength="60" placeholder="Enter your full name" class="w-full px-3.5 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number (For Safety Record, cannot be changed later)</label>
+<input type="tel" id="authPhone" required pattern="[6-9][0-9]{9}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="10-digit mobile number" class="w-full px-3.5 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
+</div>
+<label class="flex items-start gap-2 text-[11px] text-slate-600 leading-snug">
+<input type="checkbox" id="authConsent" required class="mt-0.5 w-4 h-4 flex-shrink-0" />
+<span>I agree to the <a href="privacy.html" target="_blank" rel="noopener" class="text-emerald-700 font-semibold underline">Privacy Policy</a> and <a href="terms.html" target="_blank" rel="noopener" class="text-emerald-700 font-semibold underline">Terms</a>. I understand that my name, Gmail, mobile number and Call / WhatsApp taps are recorded for safety and may be shared with the police on a lawful request.</span>
+</label>
+<button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm shadow flex items-center justify-center gap-2 transition">
+<i class="fa-brands fa-google text-emerald-400"></i> Continue with Google Account
+</button>
+</form>
+</div>
+</div>
+<!-- Safe External Google Maps Redirect Gate Modal -->
+<div id="mapGateModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+<div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center">
+<div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3 text-xl">
+<i class="fa-solid fa-map-location-dot"></i>
+</div>
+<h4 class="font-bold text-slate-900 text-base">Open Official Google Maps</h4>
+<p id="mapGateDesc" class="text-xs text-slate-600 mt-2 leading-relaxed">
+You are opening the live Google Maps location shared by the Captain.
+</p>
+<div class="mt-5 flex gap-2">
+<button onclick="closeMapGateModal()" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+Cancel
+</button>
+<a id="mapGateConfirmBtn" href="#" target="_blank" rel="noopener noreferrer" onclick="closeMapGateModal()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5 shadow">
+<i class="fa-solid fa-up-right-from-square"></i> Open Map
+</a>
+</div>
+</div>
+</div>
+<!-- Rating & Review Modal (Spam Guard: 1 Review per Captain per 24 Hours) -->
+<div id="ratingModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+<div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+<div>
+<h4 class="font-bold text-slate-900 text-base">Captain Reviews & Rating</h4>
+<p id="modalDriverName" class="text-xs text-slate-500 mt-0.5"></p>
+</div>
+<button onclick="closeRatingModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+<i class="fa-solid fa-xmark"></i>
+</button>
+</div>
+<div class="overflow-y-auto pr-1 space-y-4 mt-3 flex-1">
+<!-- Submit New Review Form -->
+<form id="ratingForm" onsubmit="submitReview(event)" class="space-y-3.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+<input type="hidden" id="modalDriverId" />
+<input type="hidden" id="modalDriverTitleHidden" />
+<div class="text-center">
+<p class="text-[11px] font-semibold uppercase text-slate-500 mb-1.5">Write a Permanent Review</p>
+<div id="starSelector" class="flex justify-center gap-3 text-3xl text-amber-400 cursor-pointer">
+<i onclick="setStarRating(1)" class="fa-solid fa-star" data-star="1"></i>
+<i onclick="setStarRating(2)" class="fa-solid fa-star" data-star="2"></i>
+<i onclick="setStarRating(3)" class="fa-solid fa-star" data-star="3"></i>
+<i onclick="setStarRating(4)" class="fa-solid fa-star" data-star="4"></i>
+<i onclick="setStarRating(5)" class="fa-solid fa-star" data-star="5"></i>
+</div>
+<span id="starRatingText" class="text-xs font-bold text-emerald-600 mt-1 block">5 Stars - Excellent Service</span>
+</div>
+<div>
+<p class="text-xs font-semibold text-slate-600 mb-1.5">Quick Tags (Optional):</p>
+<div id="tagContainer" class="flex flex-wrap gap-1.5">
+<button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1.5 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">On Time</button>
+<button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1.5 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Safe Driving</button>
+<button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1.5 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Clean Vehicle</button>
+<button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1.5 rounded-full border border-slate-300 bg-white text-slate-600 hover:border-emerald-500">Polite Captain</button>
+<button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1.5 rounded-full border border-rose-200 bg-white text-rose-600 hover:border-rose-500">Overloading</button>
+<button type="button" onclick="toggleTag(this)" class="tag-btn text-xs px-2.5 py-1.5 rounded-full border border-rose-200 bg-white text-rose-600 hover:border-rose-500">Late Departure</button>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-1">
+<label class="block text-xs font-semibold text-slate-600">Your Feedback</label>
+<span id="charCount" class="text-[11px] font-medium text-slate-400">0 / 250 chars</span>
+</div>
+<textarea
+id="reviewerComment"
+rows="2"
+maxlength="250"
+oninput="sanitizeAndCount(this)"
+placeholder="Share your travel experience with this Captain..."
+class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+></textarea>
+</div>
+<button type="submit" id="submitReviewBtn" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm shadow transition">
+Submit Permanent Review
+</button>
+</form>
+<!-- Permanent Reviews List -->
+<div>
+<h5 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
+<span>All Passenger Reviews</span>
+<span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">Permanent Record</span>
+</h5>
+<div id="driverReviewsList" class="space-y-2.5"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Report Captain Modal -->
+<div id="reportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+<div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+<div>
+<h4 class="font-bold text-slate-900 text-base">Report this Captain</h4>
+<p id="reportDriverName" class="text-xs text-slate-500 mt-0.5"></p>
+</div>
+<button onclick="closeReportModal()" aria-label="Close" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+</div>
+<form id="reportForm" onsubmit="submitComplaint(event)" class="mt-4 space-y-3">
+<input type="hidden" id="reportDriverId" />
+<input type="hidden" id="reportDriverTitle" />
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1" for="reportReason">What happened?</label>
+<select id="reportReason" required class="w-full px-3 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm">
+<option value="Overcharging">Overcharging</option>
+<option value="Overloading">Overloading</option>
+<option value="Rude behaviour">Rude behaviour</option>
+<option value="Unsafe driving">Unsafe driving</option>
+<option value="Harassment">Harassment</option>
+<option value="Wrong information">Wrong information</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1" for="reportDetails">Details (optional)</label>
+<textarea id="reportDetails" rows="3" maxlength="300" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm" placeholder="Tell us briefly what happened"></textarea>
+</div>
+<p class="text-[11px] text-slate-500">In an emergency call <a href="tel:112" class="font-bold text-rose-600">112</a> first.</p>
+<button type="submit" id="reportSubmitBtn" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl text-sm shadow">Send Report</button>
+</form>
+</div>
+</div>
+<!-- Footer -->
+<!-- ROUTE TRACKER (Where-is-my-train style) -->
+<div id="routeModal" onclick="if(event.target===this)closeRouteModal()">
+<div class="rt-sheet" role="dialog" aria-modal="true" aria-label="Vehicle route tracker">
+<div class="rt-top">
+<div class="flex items-start justify-between gap-3">
+<div class="min-w-0">
+<p id="rtTitle" class="font-bold text-base leading-tight truncate"></p>
+<p id="rtSub" class="text-[11px] text-slate-300 mt-0.5 truncate"></p>
+</div>
+<button onclick="closeRouteModal()" aria-label="Close" class="w-9 h-9 rounded-full bg-slate-800 text-slate-200 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-xmark"></i></button>
+</div>
+<div class="mt-2 flex items-center justify-between gap-2">
+<span id="rtPill"></span>
+<button onclick="rtScrollToBus()" class="text-[11px] font-bold text-emerald-300"><i class="fa-solid fa-crosshairs mr-1"></i>Go to vehicle</button>
+</div>
+</div>
+<div class="rt-sum" id="rtSum"></div>
+<div id="rtList"></div>
+</div>
+</div>
+<footer class="bg-slate-900 text-slate-400 text-[11px] py-5 px-4 mt-8 text-center">
+© 2026 RouteConnect • Manjhepur – Amauli – Jahanabad – Kanpur<br><a href="privacy.html" class="underline">Privacy Policy</a> • <a href="terms.html" class="underline">Terms</a> • Emergency: <a href="tel:112" class="underline">112</a>
+</footer>
+<!-- ========================================================================= -->
+<!-- FIREBASE CLOUD ENGINE (UNCHANGED) -->
+<!-- ========================================================================= -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, onSnapshot, query, where, limit, writeBatch, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+const firebaseConfig = {
+apiKey: "AIzaSyAJnefI6TOx8WN2CfFpABebiZEjC4Cn0p4",
+authDomain: "routeconnect-kanpur-34176.firebaseapp.com",
+projectId: "routeconnect-kanpur-34176",
+storageBucket: "routeconnect-kanpur-34176.firebasestorage.app",
+messagingSenderId: "853374704678",
+appId: "1:853374704678:web:3285be5fb293c3dbc09ae7",
+measurementId: "G-PJK9TJ5MX4"
+};
+// Spam protection: paste your reCAPTCHA v3 site key here after enabling Firebase App Check (see README). Empty = off.
+const APPCHECK_SITE_KEY = "";
+const app = initializeApp(firebaseConfig);
+if (APPCHECK_SITE_KEY) {
+  try {
+    const ac = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js");
+    ac.initializeAppCheck(app, { provider: new ac.ReCaptchaV3Provider(APPCHECK_SITE_KEY), isTokenAutoRefreshEnabled: true });
+  } catch (e) { console.warn("App Check not started:", e.message); }
+}
+try { getAnalytics(app); } catch (e) {}
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// Random device ID kept in this browser. It is written to every log so a blocked person cannot simply open a new Gmail on the same phone.
+function makeDeviceId() {
+  const a = new Uint8Array(16);
+  (window.crypto || window.msCrypto).getRandomValues(a);
+  return "D" + Array.from(a, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+function getDeviceId() {
+  try {
+    const k = "RC_DEVICE_ID";
+    let id = localStorage.getItem(k);
+    if (!/^D[0-9a-f]{32}$/.test(id || "")) { id = makeDeviceId(); localStorage.setItem(k, id); }
+    return id;
+  } catch (e) { return makeDeviceId(); }
+}
+window.RC_DEVICE_ID = getDeviceId();
+
+window.RC_FIREBASE = { auth, db, googleProvider, signInWithPopup, signOut, collection, doc, getDoc, getDocs, setDoc, addDoc, query, where, limit, writeBatch, Timestamp };
+
+// Reviews are loaded only for the captain whose card is open (keeps Firebase reads low)
+window.RC_REVIEWS_CACHE = {};
+window.RC_loadReviews = async (driverId) => {
+  const s = await getDocs(query(collection(db, "reviews"), where("driver_id", "==", driverId), limit(60)));
+  const out = []; s.forEach((d) => out.push({ id: d.id, ...d.data() })); return out;
+};
+window.RC_loadMyReviews = async (uid) => {
+  const s = await getDocs(query(collection(db, "reviews"), where("passenger_uid", "==", uid), limit(100)));
+  const out = []; s.forEach((d) => out.push({ id: d.id, ...d.data() })); return out;
+};
+
+// Block status: the account itself OR this device can be blocked by the admin
+window.RC_AUTH_READY = false;
+window.RC_BLOCK_CHECKED = false;
+window.RC_IS_BLOCKED = false;
+let _unsubP = null, _unsubD = null, _pBlocked = false, _dBlocked = false, _pChecked = false, _dChecked = false;
+function _recalcBlock() {
+  window.RC_IS_BLOCKED = _pBlocked || _dBlocked;
+  window.RC_BLOCK_CHECKED = _pChecked && _dChecked;
+}
+onAuthStateChanged(auth, (u) => {
+  window.RC_AUTH_READY = true;
+  if (_unsubP) { _unsubP(); _unsubP = null; }
+  if (_unsubD) { _unsubD(); _unsubD = null; }
+  _pBlocked = _dBlocked = false; _pChecked = _dChecked = false; _recalcBlock();
+  if (!u) { _pChecked = _dChecked = true; _recalcBlock(); return; }
+  _unsubP = onSnapshot(doc(db, "passengers", u.uid), (s) => {
+    _pBlocked = !!(s.exists() && s.data().blocked === true); _pChecked = true; _recalcBlock();
+  }, () => { _pChecked = true; _recalcBlock(); });
+  _unsubD = onSnapshot(doc(db, "blocked_devices", window.RC_DEVICE_ID), (s) => {
+    _dBlocked = s.exists(); _dChecked = true; _recalcBlock();
+  }, () => { _dChecked = true; _recalcBlock(); });
+});
+
+// Online / Offline Status Detection
+function updateOnlineStatus() {
+  const banner = document.getElementById("offlineNotice");
+  if (!banner) return;
+  if (navigator.onLine) banner.classList.add("hidden"); else banner.classList.remove("hidden");
+}
+window.addEventListener("online", updateOnlineStatus);
+window.addEventListener("offline", updateOnlineStatus);
+updateOnlineStatus();
+
+// Real-time active and scheduled trips (only registered, active captains can write these: enforced by Firestore rules)
+onSnapshot(collection(db, "live_trips"), (snapshot) => {
+  const liveTrips = [];
+  snapshot.forEach((docSnap) => { liveTrips.push({ id: docSnap.id, ...docSnap.data() }); });
+  try { localStorage.setItem("RC_LIVE_TRIPS", JSON.stringify(liveTrips)); } catch (e) {}
+  if (typeof window.filterTrips === "function") window.filterTrips();
+}, (err) => { console.warn("Firestore live_trips listener notice:", err.message); });
+
+// Ready-made rating totals: one tiny document per captain instead of downloading every review
+onSnapshot(collection(db, "driver_ratings"), (snapshot) => {
+  const map = {};
+  snapshot.forEach((docSnap) => { map[docSnap.id] = docSnap.data(); });
+  try { localStorage.setItem("RC_RATINGS", JSON.stringify(map)); } catch (e) {}
+  if (typeof window.filterTrips === "function") window.filterTrips();
+}, (err) => { console.warn("Firestore driver_ratings listener notice:", err.message); });
+</script>
+<!-- RouteConnect Application Engine -->
+<script>
+// Exact match with driver.html ground-calibrated offsets (145 mins total corridor duration)
+const escapeHTML = (v) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+// For values placed inside a JS string within an inline onclick="..." attribute
+const jsStr = (v) => escapeHTML(String(v ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\r?\n/g, " "));
+const encQ = (v) => encodeURIComponent(String(v ?? "")).replace(/'/g, "%27");
+const ROUTE_STOPS = [
+{ index: 0, name: "Manjhepur", lat: 25.949832, lng: 80.460233, radius: 300, offset: 0 },
+{ index: 1, name: "Barwa", lat: 25.948998, lng: 80.434362, radius: 300, offset: 4 },
+{ index: 2, name: "Maudev", lat: 25.953187, lng: 80.419657, radius: 300, offset: 8 },
+{ index: 3, name: "Bhikhanipur", lat: 25.955712, lng: 80.397372, radius: 200, offset: 12 },
+{ index: 4, name: "Harijanpur", lat: 25.958967, lng: 80.391522, radius: 200, offset: 14 },
+{ index: 5, name: "Budhanda", lat: 25.963365, lng: 80.384063, radius: 250, offset: 16 },
+{ index: 6, name: "Salhepur", lat: 25.970745, lng: 80.37203, radius: 150, offset: 18 },
+{ index: 7, name: "Sathigavan", lat: 25.972927, lng: 80.368865, radius: 150, offset: 21 },
+{ index: 8, name: "Kauh Mod", lat: 25.977705, lng: 80.353863, radius: 300, offset: 23 },
+{ index: 9, name: "Makandapur Mod", lat: 25.986475, lng: 80.336863, radius: 250, offset: 25 },
+{ index: 10, name: "Kulkheda Mod (Nayara Petrol Pump)", lat: 25.991938, lng: 80.329127, radius: 250, offset: 27 },
+{ index: 11, name: "Madri", lat: 25.997133, lng: 80.323045, radius: 250, offset: 29 },
+{ index: 12, name: "Amauli", lat: 26.012032, lng: 80.31039, radius: 250, offset: 33 },
+{ index: 13, name: "Behta Khurd", lat: 26.021, lng: 80.317843, radius: 250, offset: 38 },
+{ index: 14, name: "Jamuiya (Harkundi Baba)", lat: 26.03044, lng: 80.324732, radius: 250, offset: 43 },
+{ index: 15, name: "Birnai", lat: 26.0357, lng: 80.329622, radius: 250, offset: 46 },
+{ index: 16, name: "Ranupur", lat: 26.049857, lng: 80.335853, radius: 200, offset: 49 },
+{ index: 17, name: "Lahuri Sarai", lat: 26.055052, lng: 80.33797, radius: 200, offset: 52 },
+{ index: 18, name: "Kalana", lat: 26.073268, lng: 80.345663, radius: 250, offset: 55 },
+{ index: 19, name: "Jahanabad", lat: 26.100722, lng: 80.350945, radius: 250, offset: 60 },
+{ index: 20, name: "Mathurapur", lat: 26.151162, lng: 80.345222, radius: 250, offset: 65 },
+{ index: 21, name: "Birhar Mod", lat: 26.161303, lng: 80.345103, radius: 250, offset: 70 },
+{ index: 22, name: "Sadh", lat: 26.236227, lng: 80.352663, radius: 250, offset: 85 },
+{ index: 23, name: "Majhawan", lat: 26.303089, lng: 80.316845, radius: 250, offset: 98 },
+{ index: 24, name: "Ramaipur", lat: 26.344208, lng: 80.296717, radius: 200, offset: 115 },
+{ index: 25, name: "Magrasa", lat: 26.349042, lng: 80.299327, radius: 200, offset: 120 },
+{ index: 26, name: "Oriyara", lat: 26.363918, lng: 80.304772, radius: 200, offset: 124 },
+{ index: 27, name: "Bingawan", lat: 26.373905, lng: 80.307958, radius: 200, offset: 128 },
+{ index: 28, name: "Pipauri Mod", lat: 26.3851, lng: 80.309913, radius: 200, offset: 132 },
+{ index: 29, name: "Galla Mandi", lat: 26.390132, lng: 80.311053, radius: 150, offset: 136 },
+{ index: 30, name: "Naubasta", lat: 26.402128, lng: 80.314423, radius: 150, offset: 139 },
+{ index: 31, name: "Baudh Nagar", lat: 26.405823, lng: 80.315733, radius: 150, offset: 142 },
+{ index: 32, name: "Basant Vihar Chauraha", lat: 26.419702, lng: 80.318623, radius: 150, offset: 145 }
+];
+const DEFAULT_TRIPS = [];
+let currentDirectionFilter = "ALL";
+let selectedStarRating = 5;
+// NEW: remembers which cards have their "Details" panel open (survives the 30-sec re-render)
+const openTripDetails = new Set();
+const RC_CONSENT_VERSION = "2026-11";
+const pad2 = (n) => String(n).padStart(2, "0");
+const _istFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+// Always India time, whatever the phone clock/time zone says
+function istParts(ms = Date.now()) {
+  const p = {};
+  _istFmt.formatToParts(new Date(ms)).forEach((x) => { p[x.type] = x.value; });
+  return { y: +p.year, mo: +p.month, d: +p.day, h: +p.hour % 24, mi: +p.minute };
+}
+function istYMD(offsetDays = 0) {
+  const p = istParts();
+  const dt = new Date(Date.UTC(p.y, p.mo - 1, p.d + offsetDays));
+  return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth() + 1)}-${pad2(dt.getUTCDate())}`;
+}
+function istYMDFromMs(ms) {
+  const p = istParts(ms);
+  return `${p.y}-${pad2(p.mo)}-${pad2(p.d)}`;
+}
+function istNowMins() {
+  const p = istParts();
+  return p.h * 60 + p.mi;
+}
+function normalizeDateToYMD(dateInput) {
+if (!dateInput) return "";
+const raw = String(dateInput).trim();
+const dmyMatch = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+if (dmyMatch) {
+return `${dmyMatch[3]}-${dmyMatch[2].padStart(2, "0")}-${dmyMatch[1].padStart(2, "0")}`;
+}
+const ymdMatch = raw.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+if (ymdMatch) {
+return `${ymdMatch[1]}-${ymdMatch[2].padStart(2, "0")}-${ymdMatch[3].padStart(2, "0")}`;
+}
+const parsed = new Date(raw);
+if (!isNaN(parsed.getTime())) {
+return istYMDFromMs(parsed.getTime());
+}
+return raw;
+}
+function timeStrToMins(tStr) {
+if (!tStr || !tStr.includes(":")) return 0;
+const [h, m] = tStr.split(":").map(Number);
+return h * 60 + m;
+}
+function minsToTimeStr(totalMins) {
+const norm = ((totalMins % 1440) + 1440) % 1440;
+const hh = String(Math.floor(norm / 60)).padStart(2, "0");
+const mm = String(norm % 60).padStart(2, "0");
+return `${hh}:${mm}`;
+}
+function format12Hour(hh, mm) {
+const period = hh >= 12 ? "PM" : "AM";
+const hour12 = hh % 12 || 12;
+return `${String(hour12).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${period}`;
+}
+function convert24To12(timeStr) {
+if (!timeStr || !timeStr.includes(":")) return timeStr || "--:--";
+const [hh, mm] = timeStr.split(":").map(Number);
+if (isNaN(hh) || isNaN(mm)) return timeStr;
+return format12Hour(hh, mm);
+}
+function addMinutesToTimeStr(timeStr, minutesToAdd) {
+if (!timeStr || !timeStr.includes(":")) return "--:--";
+const [hh, mm] = timeStr.split(":").map(Number);
+const totalMins = hh * 60 + mm + minutesToAdd;
+const finalH = Math.floor((totalMins / 60) % 24);
+const finalM = totalMins % 60;
+return format12Hour(finalH, finalM);
+}
+function getStopObj(stopName) {
+return ROUTE_STOPS.find(s => s.name === stopName);
+}
+function formatDuration(mins) {
+const h = Math.floor(mins / 60);
+const m = mins % 60;
+if (h > 0 && m > 0) return `${h} hr ${m} min`;
+if (h > 0) return `${h} hr`;
+return `${m} min`;
+}
+function getCleanDayLabel(trip) {
+const tomorrowYMD = istYMD(1);
+if (trip.trip_date === tomorrowYMD) return "Tomorrow";
+if (trip.trip_date_label && /कल|tomorrow/i.test(trip.trip_date_label)) return "Tomorrow";
+return "Today";
+}
+function getEffectiveArrivalMins(depTimeStr, arrTimeStr) {
+const depM = timeStrToMins(depTimeStr);
+let arrM = timeStrToMins(arrTimeStr);
+if (arrM < depM) {
+arrM += 1440;
+}
+return arrM;
+}
+function isValidAndFreshGoogleMapsUrl(urlStr, trackingUpdatedAt) {
+if (!urlStr || typeof urlStr !== "string") return false;
+const clean = urlStr.trim();
+const strictPattern = /^https:\/\/(maps\.app\.goo\.gl\/[A-Za-z0-9_\-]+|goo\.gl\/maps\/[A-Za-z0-9_\-]+|(www\.)?google\.(com|co\.in)\/maps\S+)$/i;
+if (!strictPattern.test(clean)) return false;
+if (trackingUpdatedAt) {
+const ts = new Date(trackingUpdatedAt).getTime();
+if (!isNaN(ts)) {
+const ageHours = (Date.now() - ts) / (1000 * 60 * 60);
+if (ageHours > 12) return false;
+}
+}
+return true;
+}
+// Trips can only be written by registered, active captains (Firestore rules). The page only checks the plan expiry stored on the trip.
+function getVerifiedDriverRecord(trip) {
+if (trip.expiry_date) {
+const exp = normalizeDateToYMD(trip.expiry_date);
+if (exp && exp < istYMD(0)) return { allowed: false, record: null };
+}
+return { allowed: true, record: null };
+}
+function tripDepMs(trip, ymd) {
+const [h, m] = String(trip.departure_time || "").split(":").map(Number);
+if (isNaN(h) || isNaN(m)) return NaN;
+return Date.parse(`${ymd}T${pad2(h)}:${pad2(m)}:00+05:30`);
+}
+// Midnight-safe Active Trip Validator with 90-minute completion margin (India time)
+function isTripStillActive(trip) {
+const today = istYMD(0), tomorrow = istYMD(1);
+const tripDate = trip.trip_date || today;
+const isPastDate = tripDate < today;
+if (isPastDate && trip.status !== "Running") return false;
+if (tripDate === tomorrow) return true;
+const tripStart = getStopObj(trip.start_stop);
+const tripEnd = getStopObj(trip.end_stop);
+if (!tripStart || !tripEnd || !trip.departure_time) return false;
+const safeRouteMins = Math.abs(tripEnd.offset - tripStart.offset);
+let dep = tripDepMs(trip, tripDate);
+if (isNaN(dep)) return false;
+const now = Date.now();
+if (!isPastDate && dep - now > 12 * 3600000) dep -= 86400000;
+return now <= dep + (safeRouteMins + 90) * 60000;
+}
+// Smart Auto-Lag (+2m -> +5m -> +10m) with 60-Minute Cancellation Ceiling
+function getEffectiveScheduledTimes(trip, allTrips) {
+const todayYMD = istYMD(0);
+const tripStart = getStopObj(trip.start_stop);
+const tripEnd = getStopObj(trip.end_stop);
+const routeMins = (tripStart && tripEnd) ? Math.abs(tripEnd.offset - tripStart.offset) : 0;
+let baseDep = trip.base_departure_time || trip.departure_time;
+let baseArr = trip.base_arrival_time || trip.claimed_arrival_time;
+if (trip.status === "Running" || (trip.trip_date && trip.trip_date !== todayYMD)) {
+return {
+dep24: trip.departure_time,
+arr24: trip.claimed_arrival_time,
+lagAddedMins: 0,
+isExpiredByDelay: false
+};
+}
+let baseDepMins = timeStrToMins(baseDep);
+const origSpan = Math.max(routeMins, getEffectiveArrivalMins(baseDep, baseArr) - baseDepMins);
+// Turnaround distance buffer check against any live running trip by the same Captain Today
+const sameCaptainLive = allTrips.find(
+t => t.status === "Running" &&
+((t.driver_uid && trip.driver_uid && t.driver_uid === trip.driver_uid) ||
+(t.driver_id && trip.driver_id && t.driver_id === trip.driver_id))
+);
+if (sameCaptainLive) {
+const liveEndObj = getStopObj(sameCaptainLive.end_stop);
+const liveCurObj = sameCaptainLive.current_stop ? getStopObj(sameCaptainLive.current_stop) : null;
+let liveArr24 = sameCaptainLive.claimed_arrival_time;
+if (liveCurObj && liveEndObj && sameCaptainLive.current_stop_time_24) {
+const remLive = Math.abs(liveEndObj.offset - liveCurObj.offset);
+liveArr24 = minsToTimeStr(timeStrToMins(sameCaptainLive.current_stop_time_24) + remLive);
+}
+const effLiveArrMins = getEffectiveArrivalMins(sameCaptainLive.departure_time, liveArr24);
+const deadheadMins = (liveEndObj && tripStart) ? Math.abs(tripStart.offset - liveEndObj.offset) : 0;
+const earliestPossibleDep = effLiveArrMins + deadheadMins + 20;
+if (earliestPossibleDep < 1440 && baseDepMins < earliestPossibleDep) {
+baseDepMins = earliestPossibleDep;
+}
+}
+const nowMins = istNowMins();
+if (nowMins < baseDepMins) {
+return {
+dep24: minsToTimeStr(baseDepMins),
+arr24: minsToTimeStr(baseDepMins + origSpan),
+lagAddedMins: 0,
+isExpiredByDelay: false
+};
+}
+const diff = nowMins - baseDepMins;
+// 60-Minute Cancellation Ceiling: If Captain has not pressed start within 60 minutes, expire trip
+if (diff > 60) {
+return {
+dep24: minsToTimeStr(baseDepMins),
+arr24: minsToTimeStr(baseDepMins + origSpan),
+lagAddedMins: diff,
+isExpiredByDelay: true
+};
+}
+let lagAddedMins = 0;
+if (diff < 2) {
+lagAddedMins = 2;
+} else if (diff < 7) {
+lagAddedMins = 7;
+} else {
+const extra10Blocks = Math.floor((diff - 7) / 10) + 1;
+lagAddedMins = Math.min(60, 7 + extra10Blocks * 10);
+}
+const finalDepMins = baseDepMins + lagAddedMins;
+return {
+dep24: minsToTimeStr(finalDepMins),
+arr24: minsToTimeStr(finalDepMins + origSpan),
+lagAddedMins,
+isExpiredByDelay: false
+};
+}
+function getCaptainRatingSummary(driverId) {
+let r = null;
+try { r = (JSON.parse(localStorage.getItem("RC_RATINGS") || "{}") || {})[driverId]; } catch (e) {}
+if (r && Number(r.count) > 0) return { avg: (Number(r.sum) / Number(r.count)).toFixed(1), count: Number(r.count) };
+return { avg: "New", count: 0 };
+}
+function getLoggedInPassenger() {
+try {
+return JSON.parse(localStorage.getItem("RC_PASSENGER_USER"));
+} catch (e) {
+return null;
+}
+}
+function renderAuthHeader() {
+const user = getLoggedInPassenger();
+const authContainer = document.getElementById("authSection");
+if (user && user.email) {
+authContainer.innerHTML = `
+<button onclick="openHistoryModal()" title="View Booking & Contact History" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+<i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
+<span class="hidden sm:inline">My Activity</span>
+</button>
+<div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs">
+<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+<span class="font-semibold text-slate-200 truncate max-w-[100px]">${escapeHTML(user.name)}</span>
+<button onclick="signOutPassenger()" title="Sign Out" class="text-slate-400 hover:text-rose-400 ml-1">
+<i class="fa-solid fa-right-from-bracket"></i>
+</button>
+</div>
+`;
+} else {
+authContainer.innerHTML = `
+<button onclick="openAuthModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+<i class="fa-brands fa-google text-rose-500"></i>
+<span>Sign In</span>
+</button>
+`;
+}
+}
+function openAuthModal() {
+document.getElementById("authModal").classList.remove("hidden");
+document.getElementById("authModal").classList.add("flex");
+}
+function closeAuthModal() {
+document.getElementById("authModal").classList.add("hidden");
+document.getElementById("authModal").classList.remove("flex");
+}
+function openMapGateModal(captainName, vehicleNo, mapUrl) {
+document.getElementById("mapGateDesc").textContent =
+`You are opening the live Google Maps location shared by Captain ${captainName} (${vehicleNo}).`;
+document.getElementById("mapGateConfirmBtn").href = mapUrl;
+document.getElementById("mapGateModal").classList.remove("hidden");
+document.getElementById("mapGateModal").classList.add("flex");
+}
+function closeMapGateModal() {
+document.getElementById("mapGateModal").classList.add("hidden");
+document.getElementById("mapGateModal").classList.remove("flex");
+}
+// =========================================================================
+// PASSENGER BOOKING & CONTACT HISTORY LOGIC
+// =========================================================================
+function openHistoryModal() {
+const user = getLoggedInPassenger();
+if (!user) {
+openAuthModal();
+return;
+}
+renderCustomerHistory(user);
+document.getElementById("historyModal").classList.remove("hidden");
+document.getElementById("historyModal").classList.add("flex");
+}
+function closeHistoryModal() {
+document.getElementById("historyModal").classList.add("hidden");
+document.getElementById("historyModal").classList.remove("flex");
+}
+function renderCustomerHistory(user) {
+const listEl = document.getElementById("historyListContainer");
+if (!listEl) return;
+purgeExpiredInteractionLogs();
+let logs = [];
+try {
+logs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
+} catch (e) {}
+// Filter: Only Call & WhatsApp events belonging strictly to this passenger (Maps excluded from logs)
+const myLogs = logs
+.filter(l => (l.passenger_uid === user.uid || (l.passenger_email && l.passenger_email === user.email)))
+.filter(l => l.action_type === "CALL" || l.action_type === "WHATSAPP")
+.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+if (myLogs.length === 0) {
+listEl.innerHTML = `
+<div class="py-8 text-center text-xs text-slate-500 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-4">
+<i class="fa-solid fa-address-book text-slate-300 text-3xl mb-2 block"></i>
+No contact history yet. When you call a Captain or book seats via WhatsApp, your activity will appear here.
+</div>
+`;
+return;
+}
+listEl.innerHTML = myLogs.map(item => {
+const dateObj = new Date(item.timestamp);
+const timeFormatted = dateObj.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" });
+const dateFormatted = dateObj.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric" });
+const isCall = item.action_type === "CALL";
+const badgeHTML = isCall
+? `<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1"><i class="fa-solid fa-phone"></i> Call Placed</span>`
+: `<span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> WhatsApp Booking</span>`;
+return `
+<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3 shadow-sm hover:bg-white transition">
+<div class="flex items-start gap-2.5">
+<div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+<i class="fa-solid ${isCall ? 'fa-phone-volume text-blue-400' : 'fa-comment-dots text-emerald-400'}"></i>
+</div>
+<div>
+<h5 class="font-bold text-slate-900 text-xs sm:text-sm leading-tight">${escapeHTML(item.driver_name || "Verified Captain")}</h5>
+<p class="text-[11px] font-mono text-slate-600 mt-0.5">${escapeHTML(item.vehicle_no || "Route Vehicle")}</p>
+<p class="text-[10px] text-slate-400 mt-0.5">${dateFormatted} • ${timeFormatted}</p>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+${badgeHTML}
+<button
+onclick="closeHistoryModal(); openRatingModal('${jsStr(item.driver_id)}', '${jsStr(item.driver_name + ' (' + item.vehicle_no + ')')}')"
+class="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline flex items-center gap-1"
+>
+<i class="fa-solid fa-star text-amber-500"></i> Rate Captain
+</button>
+</div>
+</div>
+`;
+}).join("");
+}
+async function handleGoogleSignIn(e) {
+e.preventDefault();
+const typedName = document.getElementById("authName").value.trim().replace(/[<>/{}[\]\\]/g, "");
+const phone = document.getElementById("authPhone").value.trim();
+if (!document.getElementById("authConsent").checked) {
+alert("Please accept the Privacy Policy and Terms to continue.");
+return;
+}
+if (!/^[6-9][0-9]{9}$/.test(phone)) {
+alert("Please enter a valid 10-digit mobile number.");
+return;
+}
+const F = window.RC_FIREBASE;
+if (!F) {
+alert("Secure sign-in is not available right now. Please check your internet connection and reload the page.");
+return;
+}
+let user;
+try {
+const result = await F.signInWithPopup(F.auth, F.googleProvider);
+user = result && result.user;
+if (!user) throw new Error("no-user");
+} catch (err) {
+if (!err || err.code !== "auth/popup-closed-by-user") alert("Google sign-in did not complete. Please try again.");
+return;
+}
+const email = (user.email || "").toLowerCase();
+if (!email.endsWith("@gmail.com") || !user.emailVerified) {
+alert("Please sign in with a verified @gmail.com account.");
+try { await F.signOut(F.auth); } catch (e2) {}
+return;
+}
+const name = String(user.displayName || typedName || "Verified Passenger").replace(/[<>/{}[\]\\]/g, "").slice(0, 60);
+const ref = F.doc(F.db, "passengers", user.uid);
+let existing = null;
+try { const s = await F.getDoc(ref); if (s.exists()) existing = s.data(); } catch (e3) {}
+const nowIso = new Date().toISOString();
+try {
+if (existing) {
+const upd = { name, device_id: window.RC_DEVICE_ID, last_login_at: nowIso };
+if (existing.consent_version !== RC_CONSENT_VERSION) { upd.consent_version = RC_CONSENT_VERSION; upd.consent_at = nowIso; }
+await F.setDoc(ref, upd, { merge: true });
+} else {
+await F.setDoc(ref, { uid: user.uid, name, email, phone, joined_at: nowIso, last_login_at: nowIso, device_id: window.RC_DEVICE_ID, consent_version: RC_CONSENT_VERSION, consent_at: nowIso });
+}
+} catch (err) {
+try { await F.signOut(F.auth); } catch (e4) {}
+localStorage.removeItem("RC_PASSENGER_USER");
+alert(err && err.code === "permission-denied"
+? "This device or account cannot be registered. If you think this is a mistake, please contact RouteConnect support."
+: "Could not save your profile. Please check your internet connection and try again.");
+return;
+}
+const passengerObj = { uid: user.uid, name, email, phone: (existing && existing.phone) || phone, joined_at: (existing && existing.joined_at) || nowIso };
+localStorage.setItem("RC_PASSENGER_USER", JSON.stringify(passengerObj));
+closeAuthModal();
+renderAuthHeader();
+}
+async function signOutPassenger() {
+if (window.RC_FIREBASE) {
+try { await window.RC_FIREBASE.signOut(window.RC_FIREBASE.auth); } catch (e) {}
+}
+localStorage.removeItem("RC_PASSENGER_USER");
+renderAuthHeader();
+}
+function purgeExpiredInteractionLogs() {
+try {
+const rawLogs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]");
+const cutoffTime = Date.now() - (25 * 24 * 60 * 60 * 1000);
+const validLogs = rawLogs.filter(log => new Date(log.timestamp).getTime() >= cutoffTime);
+localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(validLogs));
+} catch (e) {}
+}
+// Records ONLY Call & WhatsApp interactions (Google Maps live viewing is completely excluded to prevent spam logs)
+async function handleProtectedAction(actionType, driverId, captainName, vehicleNo, targetUrl) {
+const user = getLoggedInPassenger();
+if (!user) { openAuthModal(); return; }
+if (window.RC_IS_BLOCKED) {
+alert("Your account has been blocked from contacting captains. If you think this is a mistake, please contact RouteConnect support.");
+return;
+}
+if (actionType === "GMAPS_LIVE") { openMapGateModal(captainName, vehicleNo, targetUrl); return; }
+const F = window.RC_FIREBASE;
+if (!F) { alert("Secure connection is not ready. Please reload the page."); return; }
+if (!F.auth.currentUser) {
+if (!window.RC_AUTH_READY) { alert("Connecting securely. Please tap again in a moment."); return; }
+localStorage.removeItem("RC_PASSENGER_USER");
+renderAuthHeader();
+openAuthModal();
+return;
+}
+if (!window.RC_BLOCK_CHECKED) { alert("Checking your account. Please tap again in a moment."); return; }
+const logEntry = {
+log_id: "LOG_" + Date.now(),
+passenger_uid: user.uid,
+passenger_name: user.name,
+passenger_email: user.email,
+passenger_phone: user.phone,
+device_id: window.RC_DEVICE_ID,
+driver_id: driverId,
+driver_name: captainName,
+vehicle_no: vehicleNo,
+action_type: actionType,
+timestamp: new Date().toISOString()
+};
+// The contact is saved on the server BEFORE the call / WhatsApp opens, so records are complete
+try {
+const remote = { ...logEntry, expire_at: F.Timestamp.fromMillis(Date.now() + 365 * 86400000) };
+await Promise.race([
+F.addDoc(F.collection(F.db, "interaction_logs"), remote),
+new Promise((resolve) => setTimeout(resolve, 8000))
+]);
+} catch (err) {
+alert(err && err.code === "permission-denied"
+? "This contact could not be recorded. Please sign out, sign in again and retry."
+: "This contact could not be recorded. Please check your internet connection and try again.");
+return;
+}
+purgeExpiredInteractionLogs();
+let logs = [];
+try { logs = JSON.parse(localStorage.getItem("RC_INTERACTION_LOGS") || "[]"); } catch (e) {}
+logs.push(logEntry);
+try { localStorage.setItem("RC_INTERACTION_LOGS", JSON.stringify(logs)); } catch (e) {}
+if (actionType === "CALL") {
+window.location.href = targetUrl;
+} else {
+const w = window.open(targetUrl, "_blank", "noopener,noreferrer");
+if (!w) window.location.href = targetUrl;
+}
+}
+function initDropdowns() {
+const fromSelect = document.getElementById("fromStop");
+const toSelect = document.getElementById("toStop");
+ROUTE_STOPS.forEach(stop => {
+fromSelect.add(new Option(stop.name, stop.name));
+toSelect.add(new Option(stop.name, stop.name));
+});
+const today = new Date().toLocaleDateString("en-US", {
+timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short", year: "numeric"
+});
+document.getElementById("currentDateBadge").textContent = today;
+}
+function swapStops() {
+const fromSelect = document.getElementById("fromStop");
+const toSelect = document.getElementById("toStop");
+const temp = fromSelect.value;
+fromSelect.value = toSelect.value;
+toSelect.value = temp;
+filterTrips();
+}
+function resetFilters() {
+document.getElementById("fromStop").value = "";
+document.getElementById("toStop").value = "";
+setDirectionFilter("ALL");
+document.getElementById("routeTravelEstimate").innerHTML =
+"Select Pickup & Drop stops to calculate exact safe transit time and passing vehicles.";
+filterTrips();
+}
+function setDirectionFilter(dir) {
+currentDirectionFilter = dir;
+["ALL", "TO_KANPUR", "TO_MANJHEPUR"].forEach(key => {
+const btn = document.getElementById(`dirBtn_${key}`);
+if (key === dir) {
+btn.className = "px-3 py-1.5 rounded-lg bg-slate-900 text-white transition";
+} else {
+btn.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition";
+}
+});
+filterTrips();
+}
+function getActiveTripsData() {
+const saved = localStorage.getItem("RC_LIVE_TRIPS");
+if (saved) {
+try {
+const parsed = JSON.parse(saved);
+if (Array.isArray(parsed)) return parsed;
+} catch (e) {}
+}
+return DEFAULT_TRIPS;
+}
+function filterTrips() {
+const fromName = document.getElementById("fromStop").value;
+const toName = document.getElementById("toStop").value;
+const allTrips = getActiveTripsData();
+const fromStop = getStopObj(fromName);
+const toStop = getStopObj(toName);
+const estimateEl = document.getElementById("routeTravelEstimate");
+if (fromStop && toStop) {
+if (fromStop.index === toStop.index) {
+estimateEl.innerHTML = `<span class="text-rose-600 font-semibold">Pickup and Drop stop cannot be the same!</span>`;
+renderTrips([], null, null, allTrips);
+return;
+}
+const safeDuration = Math.abs(toStop.offset - fromStop.offset);
+const dirLabel = toStop.index > fromStop.index ? "Towards Kanpur" : "Towards Manjhepur";
+estimateEl.innerHTML = `
+<span class="text-emerald-700 font-semibold"><i class="fa-solid fa-clock mr-1"></i>Minimum Safe Travel Time (${fromStop.name} → ${toStop.name}): ${formatDuration(safeDuration)}</span>
+<span class="ml-2 text-slate-500">• Direction: ${dirLabel}</span>
+`;
+}
+const filtered = allTrips.filter(trip => {
+if (!isTripStillActive(trip)) return false;
+// Auto-expire scheduled trips delayed by more than 60 minutes without starting
+if (trip.status === "Promised") {
+const checkTimes = getEffectiveScheduledTimes(trip, allTrips);
+if (checkTimes.isExpiredByDelay) return false;
+}
+const dirCheck = getVerifiedDriverRecord(trip);
+if (!dirCheck.allowed) return false;
+const tripStart = getStopObj(trip.start_stop);
+const tripEnd = getStopObj(trip.end_stop);
+if (!tripStart || !tripEnd) return false;
+const isTowardsKanpur = tripEnd.index > tripStart.index;
+if (currentDirectionFilter === "TO_KANPUR" && !isTowardsKanpur) return false;
+if (currentDirectionFilter === "TO_MANJHEPUR" && isTowardsKanpur) return false;
+if (fromStop && toStop) {
+const userTowardsKanpur = toStop.index > fromStop.index;
+if (isTowardsKanpur !== userTowardsKanpur) return false;
+if (isTowardsKanpur) {
+return tripStart.index <= fromStop.index && tripEnd.index >= toStop.index;
+} else {
+return tripStart.index >= fromStop.index && tripEnd.index <= toStop.index;
+}
+}
+if (fromStop && !toStop) {
+if (isTowardsKanpur) {
+return tripStart.index <= fromStop.index && tripEnd.index > fromStop.index;
+} else {
+return tripStart.index >= fromStop.index && tripEnd.index < fromStop.index;
+}
+}
+if (!fromStop && toStop) {
+if (isTowardsKanpur) {
+return tripStart.index < toStop.index && tripEnd.index >= toStop.index;
+} else {
+return tripStart.index > toStop.index && tripEnd.index <= toStop.index;
+}
+}
+return true;
+});
+renderTrips(filtered, fromStop, toStop, allTrips);
+}
+// NEW: per-card "Details" open/close (state kept in openTripDetails so the 30-sec refresh doesn't close it)
+function toggleTripDetails(btn) {
+const card = btn.closest(".rc-card");
+if (!card) return;
+const key = card.getAttribute("data-trip-key");
+const nowOpen = card.classList.toggle("rc-open");
+btn.setAttribute("aria-expanded", nowOpen ? "true" : "false");
+if (nowOpen) { openTripDetails.add(key); } else { openTripDetails.delete(key); }
+}
+function renderTrips(trips, userFromStop, userToStop, allTrips = []) {
+const container = document.getElementById("tripsContainer");
+document.getElementById("tripCount").textContent = trips.length;
+if (trips.length === 0) {
+container.innerHTML = `
+<div class="bg-white rounded-2xl p-8 text-center border border-slate-200 shadow-sm">
+<div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-xl">
+<i class="fa-solid fa-van-shuttle"></i>
+</div>
+<h4 class="font-bold text-slate-800 text-base">No Active or Scheduled Vehicles Right Now</h4>
+<p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Verified Captains update their live departures and return schedules directly from the Captain Portal.</p>
+</div>
+`;
+return;
+}
+container.innerHTML = trips.map(trip => {
+const tripStart = getStopObj(trip.start_stop);
+const tripEnd = getStopObj(trip.end_stop);
+if (!tripStart || !tripEnd) return "";
+const currentStopObj = trip.current_stop ? getStopObj(trip.current_stop) : null;
+const isTowardsKanpur = tripEnd.index > tripStart.index;
+const dirCheck = getVerifiedDriverRecord(trip);
+const dirRecord = dirCheck.record;
+const maxSeats = Number((dirRecord && dirRecord.max_capacity) || trip.max_capacity) || 12;
+const seatsLeft = Number(trip.seats_available);
+const isFull = seatsLeft <= 0;
+const photoSrc = (dirRecord && dirRecord.photo)
+? dirRecord.photo
+: (trip.driver_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(trip.driver_name)}&background=0f172a&color=fff`);
+const genderText = (dirRecord && dirRecord.gender) || trip.driver_gender || "";
+const genderBadge = genderText
+? `<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">${escapeHTML(genderText)}</span>`
+: "";
+let progressPercent = trip.status === "Running" ? 25 : 0;
+if (trip.status === "Running" && currentStopObj) {
+const totalSpan = Math.abs(tripEnd.offset - tripStart.offset) || 1;
+const coveredSpan = Math.abs(currentStopObj.offset - tripStart.offset);
+progressPercent = Math.min(100, Math.max(8, Math.round((coveredSpan / totalSpan) * 100)));
+}
+const rawMapLink = trip.gmaps_link || trip.live_tracking_url || "";
+const hasValidMapLink = isValidAndFreshGoogleMapsUrl(rawMapLink, trip.tracking_updated_at || trip.updated_at);
+// Auto-lagged departure handling for scheduled trips
+const schedTimes = getEffectiveScheduledTimes(trip, allTrips);
+const effectiveDep24 = trip.status === "Promised" ? schedTimes.dep24 : trip.departure_time;
+const effectiveArr24 = trip.status === "Promised" ? schedTimes.arr24 : trip.claimed_arrival_time;
+const dayWord = getCleanDayLabel(trip);
+const depTimeFormatted = `${dayWord}, ${convert24To12(effectiveDep24)}`;
+// Dynamic Destination ETA Calculation based on latest checked-in stop
+let finalDestETA = convert24To12(effectiveArr24);
+if (trip.status === "Running" && currentStopObj) {
+const remMinsToDest = Math.abs(tripEnd.offset - currentStopObj.offset);
+if (trip.current_stop_time_24) {
+finalDestETA = addMinutesToTimeStr(trip.current_stop_time_24, remMinsToDest);
+}
+}
+// Current stop banner (always visible) + next stop text (goes inside Details)
+let liveTrackingBannerHTML = "";
+let nextStopRowHTML = "";
+if (trip.status === "Running") {
+const activeStopName = currentStopObj ? currentStopObj.name : trip.start_stop;
+const stopTimeLabel = trip.current_stop_time || convert24To12(effectiveDep24);
+let nextStopText = `Heading to ${trip.end_stop}`;
+if (currentStopObj && currentStopObj.name !== trip.end_stop) {
+const nextIdx = isTowardsKanpur ? currentStopObj.index + 1 : currentStopObj.index - 1;
+const nextStopObj = ROUTE_STOPS.find(s => s.index === nextIdx);
+if (nextStopObj) {
+const minsAway = Math.abs(nextStopObj.offset - currentStopObj.offset);
+nextStopText = `Next Stop: <b>${nextStopObj.name}</b> (~${minsAway} mins)`;
+}
+}
+liveTrackingBannerHTML = `
+<div class="rc-live">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-600 pulse-dot flex-shrink-0"></span>
+<div>
+<span class="text-slate-600">Now at:</span>
+<span class="font-bold text-emerald-900 ml-1">${activeStopName}</span>
+<span class="text-[11px] text-emerald-700 font-medium ml-1">(${escapeHTML(stopTimeLabel)})</span>
+</div>
+</div>
+`;
+nextStopRowHTML = `
+<div class="rc-more-row text-slate-600">
+<span><i class="fa-solid fa-location-arrow text-emerald-600 mr-1"></i>${nextStopText}</span>
+</div>
+`;
+}
+let customTimingHTML = "";
+if (userFromStop && userToStop) {
+let pickupETA = "";
+let dropETA = "";
+let passedNotice = "";
+// Clear "Crossed / Already Passed" logic when Captain auto-catches up or skips intermediate stops
+const alreadyPassedPickup = currentStopObj && (
+(isTowardsKanpur && currentStopObj.index >= userFromStop.index) ||
+(!isTowardsKanpur && currentStopObj.index <= userFromStop.index)
+);
+if (trip.status === "Running" && alreadyPassedPickup) {
+passedNotice = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Vehicle has already crossed ${userFromStop.name}</span>`;
+} else if (trip.status === "Running" && currentStopObj && trip.current_stop_time_24) {
+const minsFromCurrentToPickup = Math.abs(userFromStop.offset - currentStopObj.offset);
+const minsFromCurrentToDrop = Math.abs(userToStop.offset - currentStopObj.offset);
+pickupETA = addMinutesToTimeStr(trip.current_stop_time_24, minsFromCurrentToPickup);
+dropETA = addMinutesToTimeStr(trip.current_stop_time_24, minsFromCurrentToDrop);
+} else {
+const minsToPickup = Math.abs(userFromStop.offset - tripStart.offset);
+const minsToDrop = Math.abs(userToStop.offset - tripStart.offset);
+pickupETA = addMinutesToTimeStr(effectiveDep24, minsToPickup);
+dropETA = addMinutesToTimeStr(effectiveDep24, minsToDrop);
+}
+customTimingHTML = passedNotice
+? `<div class="rc-warn">${passedNotice}</div>`
+: `
+<div class="rc-timing">
+<div>
+<span class="text-slate-500">Pickup at <b>${userFromStop.name}</b></span>
+<span class="font-bold text-emerald-700">${pickupETA}</span>
+</div>
+<div>
+<span class="text-slate-500">Arrival at <b>${userToStop.name}</b></span>
+<span class="font-bold text-slate-800">${dropETA}</span>
+</div>
+</div>
+`;
+}
+const liveTopBadge = trip.status === "Running"
+? `<span class="inline-flex items-center gap-1.5 text-[11px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Live</span>`
+: "";
+const seatBadge = isFull
+? `<span class="rc-seat-pill text-xs font-bold text-rose-600"><i class="fa-solid fa-ban"></i> Housefull</span>`
+: `<span class="rc-seat-pill text-xs font-bold text-emerald-700"><i class="fa-solid fa-chair"></i> ${seatsLeft}/${maxSeats} Seats</span>`;
+const ratingInfo = getCaptainRatingSummary(trip.driver_id);
+const pickupText = userFromStop ? ` from ${userFromStop.name}` : "";
+const dropText = userToStop ? ` to ${userToStop.name}` : "";
+const whatsappMsg = encodeURIComponent(
+`Hello Captain ${trip.driver_name} (${trip.vehicle_no}), I saw your trip from ${trip.start_stop} to ${trip.end_stop} (${depTimeFormatted}) on RouteConnect. I want to book a seat${pickupText}${dropText}.`
+);
+const waUrl = `https://wa.me/91${String(trip.driver_phone).replace(/\D/g, '')}?text=${whatsappMsg}`;
+const telUrl = `tel:${String(trip.driver_phone).replace(/[^\d+]/g, '')}`;
+const googleMapsBtnHTML = hasValidMapLink
+? `
+<button
+onclick="handleProtectedAction('GMAPS_LIVE', '${jsStr(trip.driver_id)}', '${jsStr(trip.driver_name)}', '${jsStr(trip.vehicle_no)}', '${jsStr(rawMapLink.trim())}')"
+class="rc-map-btn"
+>
+<i class="fa-solid fa-location-crosshairs"></i> Live Google Map
+</button>
+`
+: "";
+// NEW: stable key per card + remembered open/closed state
+const tripKey = encodeURIComponent(String(trip.id || `${trip.driver_id}_${trip.start_stop}_${trip.end_stop}_${trip.departure_time}`));
+const isOpen = openTripDetails.has(tripKey);
+return `
+<div class="rc-card${isOpen ? " rc-open" : ""}" data-trip-key="${tripKey}">
+<!-- 1) Who + seats -->
+<div class="rc-head">
+<div class="rc-head-left">
+<img src="${escapeHTML(photoSrc)}" alt="${escapeHTML(trip.driver_name)}" onerror="this.src='https://ui-avatars.com/api/?name=${encQ(trip.driver_name)}&background=0f172a&color=fff'" />
+<div>
+<h4 class="font-bold text-slate-900">${escapeHTML(trip.driver_name)}</h4>
+<p class="text-xs font-semibold text-slate-600 mt-0.5">
+${escapeHTML(trip.vehicle_type)} • <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 font-mono">${escapeHTML(trip.vehicle_no)}</span>
+</p>
+</div>
+</div>
+<div class="rc-head-right">
+${liveTopBadge}
+${seatBadge}
+</div>
+</div>
+<!-- 2) From -> To + time -->
+<div class="rc-route">
+<div class="rc-route-col">
+<span class="rc-route-lbl">From</span>
+<span class="rc-route-name">${trip.start_stop}</span>
+<span class="rc-route-time">${depTimeFormatted}</span>
+</div>
+<div class="rc-route-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+<div class="rc-route-col rc-right">
+<span class="rc-route-lbl">To</span>
+<span class="rc-route-name">${trip.end_stop}</span>
+<span class="rc-route-time">ETA: ${finalDestETA}</span>
+</div>
+</div>
+${liveTrackingBannerHTML}
+${customTimingHTML}
+${trip.note ? `<div class="rc-note"><i class="fa-solid fa-bullhorn mr-1"></i>${escapeHTML(trip.note)}</div>` : ""}
+<!-- 3) Main actions -->
+<div class="rc-actions">
+<button
+onclick="handleProtectedAction('CALL', '${jsStr(trip.driver_id)}', '${jsStr(trip.driver_name)}', '${jsStr(trip.vehicle_no)}', '${jsStr(telUrl)}')"
+class="rc-call"
+>
+<i class="fa-solid fa-phone"></i> Call
+</button>
+<button
+onclick="handleProtectedAction('WHATSAPP', '${jsStr(trip.driver_id)}', '${jsStr(trip.driver_name)}', '${jsStr(trip.vehicle_no)}', '${jsStr(waUrl)}')"
+class="rc-wa"
+>
+<i class="fa-brands fa-whatsapp text-base"></i> ${trip.status === 'Promised' ? 'Book' : 'WhatsApp'}
+</button>
+</div>
+<!-- 3b) Route tracker button -->
+<button type="button" class="rc-route-btn" onclick="openRouteModal('${jsStr(trip.id)}')">
+<i class="fa-solid fa-route"></i> ${trip.status === 'Running' ? 'Track on route · गाड़ी कहाँ है?' : 'View route & timings · रूट देखें'}
+</button>
+<!-- 4) Per-card Details button -->
+<button type="button" class="rc-detail-btn" aria-expanded="${isOpen ? "true" : "false"}" onclick="toggleTripDetails(this)">
+<span class="rc-lbl-show">Details</span>
+<span class="rc-lbl-hide">Hide details</span>
+<i class="fa-solid fa-chevron-down rc-chev text-[11px]"></i>
+</button>
+<!-- 5) Hidden extras -->
+<div class="rc-more">
+<div class="rc-more-row">
+<button onclick="openRatingModal('${jsStr(trip.driver_id)}', '${jsStr(trip.driver_name + ' (' + trip.vehicle_no + ')')}')" class="text-sm font-bold text-amber-600 flex items-center gap-1">
+<i class="fa-solid fa-star"></i> ${ratingInfo.avg}
+<span class="text-xs text-slate-500 font-medium">(${ratingInfo.count ? ratingInfo.count + " reviews" : "no reviews yet"})</span>
+</button>
+<button onclick="openRatingModal('${jsStr(trip.driver_id)}', '${jsStr(trip.driver_name + ' (' + trip.vehicle_no + ')')}')" class="text-xs text-emerald-700 font-bold">
++ Rate Captain
+</button>
+${genderBadge}
+<button onclick="openReportModal('${jsStr(trip.driver_id)}', '${jsStr(trip.driver_name + ' (' + trip.vehicle_no + ')')}')" class="text-xs text-rose-600 font-bold"><i class="fa-solid fa-flag mr-1"></i>Report</button>
+</div>
+${nextStopRowHTML}
+<div class="rc-more-row" style="display:block">
+<div class="text-[11px] font-semibold text-slate-500 mb-1 flex items-center justify-between">
+<span>${isTowardsKanpur ? "Towards Kanpur →" : "← Towards Manjhepur"}</span>
+<span>${hasValidMapLink ? "🟢 Live Map + Hub Tracking" : (trip.status === 'Running' ? "📍 1-Tap Hub Check-In" : "Scheduled Trip")}</span>
+</div>
+<div class="w-full h-1.5 bg-slate-200 rounded-full relative overflow-hidden">
+<div class="absolute inset-y-0 left-0 ${trip.status === 'Running' ? 'bg-emerald-500' : 'bg-indigo-400'} rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+</div>
+</div>
+${googleMapsBtnHTML}
+</div>
+</div>
+`;
+}).join("");
+window.dispatchEvent(new Event("rc-trips-updated"));
+}
+function openRatingModal(driverId, captainTitle) {
+const user = getLoggedInPassenger();
+if (!user) { openAuthModal(); return; }
+document.getElementById("modalDriverId").value = driverId;
+document.getElementById("modalDriverTitleHidden").value = captainTitle;
+document.getElementById("modalDriverName").textContent = captainTitle;
+document.getElementById("charCount").textContent = "0 / 250 chars";
+setStarRating(5);
+loadAndRenderReviews(driverId);
+document.getElementById("ratingModal").classList.remove("hidden");
+document.getElementById("ratingModal").classList.add("flex");
+}
+function closeRatingModal() {
+document.getElementById("ratingModal").classList.add("hidden");
+document.getElementById("ratingModal").classList.remove("flex");
+document.getElementById("ratingForm").reset();
+document.querySelectorAll("#tagContainer .tag-btn").forEach(btn => {
+btn.classList.remove("bg-emerald-600", "text-white");
+btn.classList.add("bg-white");
+});
+}
+function setStarRating(star) {
+selectedStarRating = star;
+const labels = {
+1: "1 Star - Poor Service",
+2: "2 Stars - Below Average",
+3: "3 Stars - Average",
+4: "4 Stars - Good Service",
+5: "5 Stars - Excellent Service"
+};
+document.getElementById("starRatingText").textContent = labels[star] || "5 Stars";
+document.querySelectorAll("#starSelector i").forEach(icon => {
+const iconStar = Number(icon.getAttribute("data-star"));
+icon.className = iconStar <= star ? "fa-solid fa-star text-amber-400" : "fa-regular fa-star text-slate-300";
+});
+}
+function toggleTag(btn) {
+btn.classList.toggle("bg-emerald-600");
+btn.classList.toggle("text-white");
+btn.classList.toggle("bg-white");
+}
+function sanitizeAndCount(el) {
+el.value = el.value.replace(/[<>/{}[\]\\`~|$^*]/g, "").replace(/(https?:\/\/[^\s]+)/gi, "");
+document.getElementById("charCount").textContent = `${el.value.length} / 250 chars`;
+}
+async function loadAndRenderReviews(driverId) {
+const listEl = document.getElementById("driverReviewsList");
+if (listEl) listEl.innerHTML = `<div class="text-center py-4 text-xs text-slate-400">Loading reviews...</div>`;
+try {
+window.RC_REVIEWS_CACHE[driverId] = await window.RC_loadReviews(driverId);
+} catch (e) {
+if (listEl) listEl.innerHTML = `<div class="text-center py-4 text-xs text-rose-500">Could not load reviews. Please try again.</div>`;
+return;
+}
+window.renderCaptainReviewsList(driverId);
+}
+window.renderCaptainReviewsList = function (driverId) {
+const listEl = document.getElementById("driverReviewsList");
+if (!listEl) return;
+const matching = (window.RC_REVIEWS_CACHE[driverId] || [])
+.filter(r => r.driver_id === driverId)
+.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+if (matching.length === 0) {
+listEl.innerHTML = `
+<div class="text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400">
+No passenger reviews yet for this Captain. Be the first to rate!
+</div>
+`;
+return;
+}
+listEl.innerHTML = matching.map(r => {
+const starsHTML = Array.from({ length: 5 }, (_, idx) =>
+`<i class="${idx < (Number(r.stars) || 5) ? 'fa-solid text-amber-400' : 'fa-regular text-slate-300'} fa-star text-[11px]"></i>`
+).join("");
+const dateStr = r.created_at
+? new Date(r.created_at).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric" })
+: "";
+const tagsHTML = Array.isArray(r.tags) && r.tags.length > 0
+? `<div class="flex flex-wrap gap-1 mt-1.5">${r.tags.map(t => `<span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${escapeHTML(t)}</span>`).join("")}</div>`
+: "";
+return `
+<div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-xs">
+<div class="flex items-center justify-between">
+<span class="font-bold text-slate-800">${escapeHTML(r.passenger_name || "Verified Passenger")}</span>
+<span class="text-[10px] text-slate-400">${dateStr}</span>
+</div>
+<div class="mt-0.5">${starsHTML}</div>
+${r.comment ? `<p class="text-slate-600 mt-1.5 leading-relaxed">${escapeHTML(r.comment)}</p>` : ""}
+${tagsHTML}
+</div>
+`;
+}).join("");
+};
+// Review Submission with 24-Hour Anti-Spam Protection
+async function submitReview(e) {
+e.preventDefault();
+const user = getLoggedInPassenger();
+if (!user) { openAuthModal(); return; }
+if (window.RC_IS_BLOCKED) { alert("Your account has been blocked from posting reviews."); return; }
+const F = window.RC_FIREBASE;
+if (!F || !F.auth.currentUser) { alert("Please sign in again."); openAuthModal(); return; }
+const driverId = document.getElementById("modalDriverId").value;
+const captainTitle = document.getElementById("modalDriverTitleHidden").value;
+const comment = document.getElementById("reviewerComment").value.trim();
+const btn = document.getElementById("submitReviewBtn");
+btn.disabled = true;
+btn.textContent = "Saving Permanent Review...";
+try {
+const mine = await window.RC_loadMyReviews(user.uid);
+const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+if (mine.some(r => r.driver_id === driverId && new Date(r.created_at || 0).getTime() > oneDayAgo)) {
+alert("Anti-Spam Security:\nYou have already submitted a review for this Captain in the last 24 hours. Passengers can review the same Captain once every 24 hours.");
+return;
+}
+const selectedTags = [];
+document.querySelectorAll("#tagContainer .tag-btn.bg-emerald-600").forEach(b => selectedTags.push(b.textContent.trim()));
+const revRef = F.doc(F.collection(F.db, "reviews"));
+const createdAt = new Date().toISOString();
+const reviewPayload = {
+review_id: revRef.id,
+driver_id: driverId,
+captain_title: captainTitle,
+passenger_uid: user.uid,
+passenger_name: user.name,
+passenger_email: user.email,
+device_id: window.RC_DEVICE_ID,
+stars: selectedStarRating,
+tags: selectedTags,
+comment: comment,
+created_at: createdAt
+};
+const rateRef = F.doc(F.db, "driver_ratings", driverId);
+let saved = false, lastErr = null;
+for (let attempt = 0; attempt < 3 && !saved; attempt++) {
+try {
+const snap = await F.getDoc(rateRef);
+const prev = snap.exists() ? snap.data() : null;
+const batch = F.writeBatch(F.db);
+batch.set(revRef, reviewPayload);
+batch.set(rateRef, { sum: (prev ? Number(prev.sum) : 0) + selectedStarRating, count: (prev ? Number(prev.count) : 0) + 1, last_review: revRef.id, updated_at: createdAt });
+await batch.commit();
+saved = true;
+} catch (err) { lastErr = err; }
+}
+if (!saved) throw lastErr || new Error("save failed");
+(window.RC_REVIEWS_CACHE[driverId] = window.RC_REVIEWS_CACHE[driverId] || []).unshift(reviewPayload);
+document.getElementById("reviewerComment").value = "";
+document.getElementById("charCount").textContent = "0 / 250 chars";
+document.querySelectorAll("#tagContainer .tag-btn").forEach(b => {
+b.classList.remove("bg-emerald-600", "text-white");
+b.classList.add("bg-white");
+});
+renderCaptainReviewsList(driverId);
+alert("Thank you! Your review has been saved.");
+} catch (err) {
+alert(err && err.code === "permission-denied"
+? "Your review could not be saved. Please sign out, sign in again and retry."
+: "Your review could not be saved. Please check your internet connection and try again.");
+} finally {
+btn.disabled = false;
+btn.textContent = "Submit Permanent Review";
+}
+}
+// Report a captain
+function openReportModal(driverId, title) {
+if (!getLoggedInPassenger()) { openAuthModal(); return; }
+document.getElementById("reportDriverId").value = driverId;
+document.getElementById("reportDriverTitle").value = title;
+document.getElementById("reportDriverName").textContent = title;
+document.getElementById("reportModal").classList.remove("hidden");
+document.getElementById("reportModal").classList.add("flex");
+}
+function closeReportModal() {
+document.getElementById("reportModal").classList.add("hidden");
+document.getElementById("reportModal").classList.remove("flex");
+document.getElementById("reportForm").reset();
+}
+async function submitComplaint(e) {
+e.preventDefault();
+const user = getLoggedInPassenger();
+const F = window.RC_FIREBASE;
+if (!user || !F || !F.auth.currentUser) { openAuthModal(); return; }
+if (window.RC_IS_BLOCKED) { alert("Your account cannot send reports right now."); return; }
+const btn = document.getElementById("reportSubmitBtn");
+btn.disabled = true;
+try {
+await F.addDoc(F.collection(F.db, "complaints"), {
+passenger_uid: user.uid,
+passenger_name: user.name,
+passenger_email: user.email,
+passenger_phone: user.phone,
+device_id: window.RC_DEVICE_ID,
+driver_id: document.getElementById("reportDriverId").value,
+captain_title: document.getElementById("reportDriverTitle").value,
+reason: document.getElementById("reportReason").value,
+details: document.getElementById("reportDetails").value.trim().replace(/[<>]/g, "").slice(0, 300),
+status: "Open",
+created_at: new Date().toISOString()
+});
+closeReportModal();
+alert("Thank you. Your report has been sent to RouteConnect.");
+} catch (err) {
+alert("Your report could not be sent. Please check your internet connection and try again.");
+} finally {
+btn.disabled = false;
+}
+}
+window.addEventListener("DOMContentLoaded", () => {
+purgeExpiredInteractionLogs();
+renderAuthHeader();
+initDropdowns();
+filterTrips();
+// Re-evaluates auto-lag (+2m -> +5m -> +10m) and auto-catchup every 30 seconds
+setInterval(filterTrips, 30000);
+});
+
+// =====================================================================
+// ROUTE TRACKER: shows all stops of a vehicle's trip like "Where is my train"
+// Uses only data already in live_trips (current_stop, current_stop_time_24) => no extra Firestore reads.
+// =====================================================================
+const RT_BUS_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="3.5" width="16" height="14" rx="3.5" fill="#fff"/><rect x="6" y="6" width="12" height="5" rx="1.2" fill="#059669"/><circle cx="8.6" cy="14" r="1.2" fill="#0f172a"/><circle cx="15.4" cy="14" r="1.2" fill="#0f172a"/><rect x="5.5" y="18" width="3.5" height="2.5" rx="1" fill="#fff"/><rect x="15" y="18" width="3.5" height="2.5" rx="1" fill="#fff"/></svg>';
+let rtTripId = null;
+function rtFindTrip(id) {
+  return getActiveTripsData().find(t => String(t.id) === String(id));
+}
+function rtBuild(trip) {
+  const a = getStopObj(trip.start_stop), b = getStopObj(trip.end_stop);
+  if (!a || !b) return null;
+  const toKanpur = b.index > a.index;
+  const lo = Math.min(a.index, b.index), hi = Math.max(a.index, b.index);
+  let stops = ROUTE_STOPS.filter(s => s.index >= lo && s.index <= hi);
+  if (!toKanpur) stops = stops.slice().reverse();
+  const running = trip.status === "Running";
+  const cur = running ? (getStopObj(trip.current_stop) || a) : null;
+  // time at the reference stop
+  let refStop = a, refTime = trip.departure_time;
+  if (running && cur && trip.current_stop_time_24) { refStop = cur; refTime = trip.current_stop_time_24; }
+  else if (!running) {
+    const st = getEffectiveScheduledTimes(trip, getActiveTripsData());
+    refTime = st.dep24 || trip.departure_time;
+  }
+  const fromName = document.getElementById("fromStop").value, toName = document.getElementById("toStop").value;
+  const rows = stops.map(s => {
+    const passed = running && cur && (toKanpur ? s.index < cur.index : s.index > cur.index);
+    const isCur = running && cur && s.index === cur.index;
+    const delta = Math.abs(s.offset - refStop.offset);
+    const behind = toKanpur ? s.index < refStop.index : s.index > refStop.index;
+    const mins = behind ? -delta : delta;
+    return { s, passed, isCur, mins, time: refTime ? convert24To12(minsToTimeStr(timeStrToMins(refTime) + mins)) : "--:--",
+             pick: s.name === fromName, drop: s.name === toName };
+  });
+  return { rows, cur, toKanpur, running, a, b, refStop, refTime };
+}
+function renderRouteModal() {
+  const trip = rtFindTrip(rtTripId);
+  if (!trip) { closeRouteModal(); return; }
+  const m = rtBuild(trip);
+  if (!m) { closeRouteModal(); return; }
+  const list = document.getElementById("rtList");
+  const prevTop = list.scrollTop;
+  const first = !list.dataset.ready;
+  document.getElementById("rtTitle").textContent = `${trip.vehicle_type || "Vehicle"} • ${trip.vehicle_no || ""}`;
+  document.getElementById("rtSub").textContent = `${trip.driver_name || ""} • ${trip.start_stop} → ${trip.end_stop}`;
+  const total = m.rows.length;
+  const curPos = m.running && m.cur ? m.rows.findIndex(r => r.isCur) : -1;
+  const left = curPos >= 0 ? total - 1 - curPos : total - 1;
+  let nextTxt = "--";
+  if (m.running && curPos >= 0 && curPos < total - 1) { const n = m.rows[curPos + 1]; nextTxt = `${n.s.name} (~${Math.abs(n.s.offset - m.rows[curPos].s.offset)} min)`; }
+  else if (m.running && curPos === total - 1) nextTxt = "Reached";
+  else nextTxt = m.rows[1] ? m.rows[1].s.name : "--";
+  const endTime = m.rows[total - 1].time;
+  document.getElementById("rtPill").innerHTML = m.running
+    ? `<span class="rt-live-pill"><span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>LIVE • ${escapeHTML(trip.current_stop || trip.start_stop)} ${trip.current_stop_time ? "(" + escapeHTML(trip.current_stop_time) + ")" : ""}</span>`
+    : `<span class="rt-live-pill" style="background:#312e81;color:#c7d2fe"><i class="fa-regular fa-clock"></i> Scheduled • ${escapeHTML(convert24To12(m.refTime))}</span>`;
+  document.getElementById("rtSum").innerHTML = `
+    <div><small>Next stop</small><b>${escapeHTML(nextTxt)}</b></div>
+    <div><small>Stops left</small><b>${left} of ${total - 1}</b></div>
+    <div><small>Reaches ${escapeHTML(m.b.name.split(" (")[0])}</small><b>${escapeHTML(endTime)}</b></div>`;
+  list.innerHTML = m.rows.map((r, i) => {
+    const cls = ["rt-row", r.passed || r.isCur ? "done" : "", r.isCur ? "cur" : "", (r.pick || r.drop) ? "mine" : "", i === 0 ? "first" : "", i === total - 1 ? "last" : ""].join(" ");
+    const tags = (r.isCur ? '<span class="rt-tag now">VEHICLE HERE</span>' : "") + (r.pick ? '<span class="rt-tag p">YOUR PICKUP</span>' : "") + (r.drop ? '<span class="rt-tag d">YOUR DROP</span>' : "");
+    let sub = "";
+    if (r.isCur && i < total - 1) sub = `Next: ${escapeHTML(m.rows[i + 1].s.name.split(" (")[0])} in ~${Math.abs(m.rows[i + 1].s.offset - r.s.offset)} min`;
+    else if (!r.passed && !r.isCur && m.running && curPos >= 0) sub = `${Math.abs(r.s.offset - m.cur.offset)} min away`;
+    else if (!m.running && i === 0) sub = "Starting point";
+    const approx = (r.passed || (m.running && !r.isCur)) ? "~" : "";
+    return `<div class="${cls}" data-cur="${r.isCur ? 1 : 0}">
+      <div class="rt-time">${approx}${escapeHTML(r.time)}${r.passed ? "<em>passed</em>" : ""}</div>
+      <div class="rt-rail">${r.isCur ? `<div class="rt-bus">${RT_BUS_SVG}</div>` : '<div class="rt-dot"></div>'}</div>
+      <div class="rt-name"><b>${tags}${escapeHTML(r.s.name)}</b>${sub ? `<small>${sub}</small>` : ""}</div>
+    </div>`;
+  }).join("");
+  list.dataset.ready = "1";
+  if (first) rtScrollToBus(true); else list.scrollTop = prevTop;
+}
+function rtScrollToBus(instant) {
+  const list = document.getElementById("rtList");
+  const el = list.querySelector('[data-cur="1"]') || list.firstElementChild;
+  if (!el) return;
+  const y = el.offsetTop - list.clientHeight / 3;
+  if (instant) { list.style.scrollBehavior = "auto"; list.scrollTop = y; list.style.scrollBehavior = ""; }
+  else list.scrollTo({ top: y, behavior: "smooth" });
+}
+function openRouteModal(id) {
+  rtTripId = id;
+  const list = document.getElementById("rtList");
+  delete list.dataset.ready;
+  document.getElementById("routeModal").classList.add("open");
+  document.body.style.overflow = "hidden";
+  renderRouteModal();
+}
+function closeRouteModal() {
+  rtTripId = null;
+  document.getElementById("routeModal").classList.remove("open");
+  document.body.style.overflow = "";
+}
+// keep the open sheet fresh (data itself arrives live from Firestore; this only re-draws)
+setInterval(() => { if (rtTripId) renderRouteModal(); }, 15000);
+window.addEventListener("rc-trips-updated", () => { if (rtTripId) renderRouteModal(); });
+</script>
+</body>
+</html> 
