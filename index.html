@@ -1813,5 +1813,55 @@ function closeRouteModal() {
 setInterval(() => { if (rtTripId) renderRouteModal(); }, 15000);
 window.addEventListener("rc-trips-updated", () => { if (rtTripId) renderRouteModal(); });
 </script>
+<!-- INSTALL BUTTON: shows only when the app is not yet installed -->
+<script>
+(function () {
+  var APK_URL = "";   // driver page only: paste the GitHub Releases link of the Captain APK here (optional)
+  var LABEL = "RouteConnect ऐप जोड़ें";
+  if (window.AndroidBridge) return;                                   // already inside the Android app
+  if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) return;   // already installed
+  try { if (localStorage.getItem("rc_install_hide") === String(new Date().toDateString())) return; } catch (e) {}
+  var deferred = null;
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  var box = document.createElement("div");
+  box.style.cssText = "position:fixed;right:10px;bottom:" + 16 + "px;z-index:55;display:none;align-items:center;gap:6px;background:#0f172a;color:#fff;border-radius:14px;padding:6px 6px 6px 12px;font:700 13px system-ui,sans-serif;box-shadow:0 6px 20px rgba(2,6,23,.35)";
+  box.innerHTML = '<span id="rcInstTxt">📲 ' + LABEL + '</span>' +
+    '<button id="rcInstGo" style="background:#10b981;color:#052e22;border-radius:10px;padding:7px 12px;font-weight:800;font-size:13px">Install</button>' +
+    '<button id="rcInstX" aria-label="Close" style="color:#94a3b8;padding:6px 8px;font-size:15px">✕</button>';
+  function show() { box.style.display = "flex"; }
+  function help(msg) {
+    var d = document.createElement("div");
+    d.style.cssText = "position:fixed;inset:0;z-index:70;background:rgba(15,23,42,.6);display:flex;align-items:center;justify-content:center;padding:20px";
+    d.innerHTML = '<div style="background:#fff;color:#0f172a;border-radius:16px;max-width:340px;width:100%;padding:18px;font:14px/1.5 system-ui,sans-serif">' +
+      '<b style="font-size:16px">ऐप कैसे जोड़ें</b><div style="margin-top:8px">' + msg + '</div>' +
+      '<button style="margin-top:14px;width:100%;background:#0f172a;color:#fff;border-radius:10px;padding:10px;font-weight:700">ठीक है</button></div>';
+    d.onclick = function (e) { if (e.target === d || e.target.tagName === "BUTTON") d.remove(); };
+    document.body.appendChild(d);
+  }
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferred = e; show(); });
+  window.addEventListener("appinstalled", function () { box.remove(); });
+  function init() {
+    document.body.appendChild(box);
+    box.querySelector("#rcInstX").onclick = function () {
+      box.remove();
+      try { localStorage.setItem("rc_install_hide", String(new Date().toDateString())); } catch (e) {}
+    };
+    box.querySelector("#rcInstGo").onclick = function () {
+      if (deferred) { deferred.prompt(); deferred.userChoice.finally(function () { deferred = null; box.remove(); }); return; }
+      if (isIOS) help("iPhone में Safari खोलें → नीचे <b>Share</b> (⬆︎) दबाएँ → <b>Add to Home Screen</b> चुनें।");
+      else help("Chrome में ऊपर दाएँ <b>⋮</b> मेन्यू दबाएँ → <b>Install app</b> या <b>Add to Home screen</b> चुनें।");
+    };
+    // some browsers never fire the prompt event: still offer the button (with instructions) after a moment
+    setTimeout(show, 2500);
+    if (APK_URL && APK_URL.indexOf("http") === 0) {
+      var a = document.createElement("a");
+      a.href = APK_URL; a.textContent = "⬇ Android ऐप (स्क्रीन बंद होने पर भी लोकेशन)";
+      a.style.cssText = "position:fixed;left:10px;bottom:" + (16 + 52) + "px;z-index:55;background:#f59e0b;color:#1c1917;border-radius:12px;padding:8px 12px;font:800 12px system-ui,sans-serif;text-decoration:none;box-shadow:0 6px 20px rgba(2,6,23,.3)";
+      document.body.appendChild(a);
+    }
+  }
+  if (document.body) init(); else document.addEventListener("DOMContentLoaded", init);
+})();
+</script>
 </body>
 </html> 
